@@ -1,8 +1,9 @@
-# flutter_flame_playground
+# Little Guy project *(Name tbd)*
 
-A new Flutter project.
+A basic walking app using flutter and flame. Uses walking steps as currency to keep a pet, play games with it and more.
 
-## Getting Started
+## Helpful links for team members
+- Learn basic flutter/dart here: https://docs.flutter.dev/learn/pathway
 
 This project is a starting point for a Flutter application.
 
