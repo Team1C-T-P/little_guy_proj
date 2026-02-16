@@ -153,16 +153,6 @@ class DressUp extends StatelessWidget {
           Text('Middle'),
           // Gives twice the space between Middle and End than Begin and Middle.
           Spacer(flex: 2),
-          Container(
-            color: Color.fromARGB(219, 150, 242, 176),
-            child: TextButton(
-              style: ButtonStyle(
-                foregroundColor: ,
-              ),
-              onPressed: () {},
-              child: Text('TextButton'),
-            ),
-          ),
         ],
       ),
     );
