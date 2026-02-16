@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:gap/gap.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flittle Guy',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -150,9 +151,126 @@ class DressUp extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: <Widget>[
-          Text('Middle'),
+          Text('Little Guy location here'),
           // Gives twice the space between Middle and End than Begin and Middle.
           Spacer(flex: 2),
+          Container(
+            color: Color.fromARGB(219, 173, 230, 189),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Container(
+                    color: Color.fromARGB(219, 246, 255, 226),
+                    width: MediaQuery.of(context).size.width,
+                    height: 250,
+
+                    child: ListView(
+                      children: [
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Stack(
+                  children: <Widget>[
+                    Container(child: Image.asset("images/clover.png")),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: SizedBox(
+                        width: 10,
+                        height: 100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: FittedBox(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  159,
+                                  239,
+                                  167,
+                                ),
+                              ),
+                              child: Text(
+                                "Shop",
+                                style: DefaultTextStyle.of(
+                                  context,
+                                ).style.apply(fontSizeFactor: 1),
+                              ),
+                              onPressed: () {
+                                Shop();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.only(right: 18),
+                      child: Image.asset("images/daisy.png"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
