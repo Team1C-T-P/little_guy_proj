@@ -120,6 +120,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Home Screen'));
+  }
+}
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -129,4 +138,154 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// Since settings_screen.dart is imported, we can use the SettingsScreen widget in the _screens list in _MyHomePageState.
+class DressUp extends StatelessWidget {
+  const DressUp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: <Widget>[
+          Text('Little Guy location here'),
+          // Gives twice the space between Middle and End than Begin and Middle.
+          Spacer(flex: 2),
+          Container(
+            color: Color.fromARGB(219, 173, 230, 189),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Container(
+                    color: Color.fromARGB(219, 246, 255, 226),
+                    width: MediaQuery.of(context).size.width,
+                    height: 250,
+
+                    child: ListView(
+                      children: [
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Stack(
+                  children: <Widget>[
+                    Container(child: Image.asset("images/clover.png")),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: SizedBox(
+                        width: 10,
+                        height: 100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: FittedBox(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  159,
+                                  239,
+                                  167,
+                                ),
+                              ),
+                              child: Text(
+                                "Shop",
+                                style: DefaultTextStyle.of(
+                                  context,
+                                ).style.apply(fontSizeFactor: 1),
+                              ),
+                              onPressed: () {
+                                Shop();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.only(right: 18),
+                      child: Image.asset("images/daisy.png"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Shop extends StatelessWidget {
+  const Shop({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Shop'));
+  }
+}
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Settings Screen'));
+  }
+}
