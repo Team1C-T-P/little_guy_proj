@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -162,7 +163,58 @@ class DressUp extends StatelessWidget {
 class Shop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('Shop'));
+    return Scaffold(
+      backgroundColor: Color.fromARGB(219, 150, 242, 176),
+      body: Column(
+        children: [
+          // Top blue area
+          Expanded(
+            flex: 3,
+            child: Container(
+              color: Color.fromARGB(255, 173, 232, 244),
+              child: Center(
+                child: Icon(Icons.pets, size: 80, color: Colors.grey),
+              ),
+            ),
+          ),
+          // White box with green padding
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          // Button area
+          Padding(
+            padding: EdgeInsets.only(bottom: 20, top: 20),
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  print('Button Pressed');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent,
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: Text(
+                  'Dress',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
