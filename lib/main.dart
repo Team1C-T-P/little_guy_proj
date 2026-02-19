@@ -132,6 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Home Screen'));
@@ -139,6 +141,8 @@ class HomeScreen extends StatelessWidget {
 }
 
 class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Map'));
@@ -146,6 +150,8 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class DressUp extends StatelessWidget {
+  const DressUp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -278,6 +284,8 @@ class DressUp extends StatelessWidget {
 }
 
 class Shop extends StatelessWidget {
+  const Shop({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Shop'));
@@ -285,6 +293,8 @@ class Shop extends StatelessWidget {
 }
 
 class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Settings Screen'));
