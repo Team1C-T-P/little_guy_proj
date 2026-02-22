@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import 'views/settings_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -297,6 +298,6 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('Settings Screen'));
+    return const SettingsScreen();
   }
 }
