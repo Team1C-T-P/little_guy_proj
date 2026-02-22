@@ -149,10 +149,10 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
+            Spacer(),
             Container(
               color: Color.fromARGB(219, 173, 230, 189),
               width: MediaQuery.of(context).size.width,
-              height: 250,
               child: Column(
                 children: <Widget>[
                   Padding(
@@ -218,9 +218,75 @@ class HomeScreen extends StatelessWidget {
                         Spacer(),
                       ]
                     )
+                  ),
+                  Padding(
+                    padding:  const EdgeInsets.all(20),
+                    child: Container(
+                      color: Color.fromARGB(219, 246, 255, 226),
+                      width: MediaQuery.of(context).size.width,
+                      height: 150,
+                      child: Column(
+                        children: <Widget> [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget> [
+                                Image.asset('images/hunger.png'),
+                                SizedBox(
+                                  width: 100,
+                                  child: LinearProgressIndicator(
+                                    value: 0.5,
+                                    backgroundColor: Color.fromARGB(255, 246, 255, 226),
+                                    color: Color.fromARGB(255, 159, 239, 167),
+                                  )
+                                )
+                              ]
+                            )
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget> [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget> [
+                                    Image.asset('images/enjoyment.png'),
+                                    SizedBox(
+                                      width: 100,
+                                      child: LinearProgressIndicator(
+                                        value: 0.5,
+                                        backgroundColor: Color.fromARGB(255, 246, 255, 226),
+                                        color: Color.fromARGB(255, 159, 239, 167),
+                                      )
+                                    )
+                                  ]
+                                ),
+                                Gap(MediaQuery.of(context).size.width * 0.1),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget> [
+                                    Image.asset('images/hygiene.png'),
+                                    SizedBox(
+                                      width: 100,
+                                      child: LinearProgressIndicator(
+                                        value: 0.5,
+                                        backgroundColor: Color.fromARGB(255, 246, 255, 226),
+                                        color: Color.fromARGB(255, 159, 239, 167),
+                                      )
+                                    )
+                                  ]
+                                )
+                              ]
+                            )
+                          )
+                        ]
+                      )
+                    )
                   )
                 ]
-              )
+              ),
             )
           ]
       )
