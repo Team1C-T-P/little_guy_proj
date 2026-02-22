@@ -153,36 +153,70 @@ class HomeScreen extends StatelessWidget {
               color: Color.fromARGB(219, 173, 230, 189),
               width: MediaQuery.of(context).size.width,
               height: 250,
-              child: Stack(
+              child: Column(
                 children: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
                     child: SizedBox(
-                      width: 10,
-                      height: 100,
-                      child: Padding(
-                        padding: const EdgeInsets.all(25),
-                        child: FittedBox(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                159,
-                                239,
-                                167,
-                              ),
-                            ),
-                            child: Text(
+                      width: 150,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 159, 239, 167),
+                        ),
+                        onPressed: () {
+                        },
+                        child: Text(
                               "Feed",
                               style: DefaultTextStyle.of(
                                 context,
                               ).style.apply(fontSizeFactor: 1),
-                            ),
-                            onPressed: () {
-                            },
-                          ),
+                        )
+                      )
+                    )
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Row(
+                      children: <Widget> [
+                        Spacer(),
+                        SizedBox(
+                            width: 150,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 159, 239, 167),
+                              ),
+                              onPressed: () {
+                              },
+                              child: Text(
+                                    "Play",
+                                    style: DefaultTextStyle.of(
+                                      context,
+                                    ).style.apply(fontSizeFactor: 1),
+                              )
+                            )
                         ),
-                      ),
+                        Spacer(),
+                        SizedBox(
+                            width: 150,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 159, 239, 167),
+                              ),
+                              onPressed: () {
+                              },
+                              child: Text(
+                                    "Clean",
+                                    style: DefaultTextStyle.of(
+                                      context,
+                                    ).style.apply(fontSizeFactor: 1),
+                              )
+                            )
+                        ),
+                        Spacer(),
+                      ]
                     )
                   )
                 ]
