@@ -136,7 +136,62 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('Home Screen'));
+    
+    return Scaffold(
+      body: Column(
+          children: <Widget> [
+            Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                children: <Widget>[
+                  Text('Home Screen')
+                ],
+              ),
+            ),
+            Container(
+              color: Color.fromARGB(219, 173, 230, 189),
+              width: MediaQuery.of(context).size.width,
+              height: 250,
+              child: Stack(
+                children: <Widget>[
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: SizedBox(
+                      width: 10,
+                      height: 100,
+                      child: Padding(
+                        padding: const EdgeInsets.all(25),
+                        child: FittedBox(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                159,
+                                239,
+                                167,
+                              ),
+                            ),
+                            child: Text(
+                              "Feed",
+                              style: DefaultTextStyle.of(
+                                context,
+                              ).style.apply(fontSizeFactor: 1),
+                            ),
+                            onPressed: () {
+                            },
+                          ),
+                        ),
+                      ),
+                    )
+                  )
+                ]
+              )
+            )
+          ]
+      )
+    );
+    
   }
 }
 
