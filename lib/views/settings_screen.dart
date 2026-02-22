@@ -1,7 +1,27 @@
 import 'package:flutter/material.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+} // Changed from StatelessWidget to StatefulWidget to manage changing settings states
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  // Added state variables notifs and volume
+  bool _notificationsEnabled = true;
+  double _soundVolume = 0.5;
+  // manage text input via TextEditingController
+  final TextEditingController _petNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    // clean up controllers
+    _petNameController.dispose();
+    _userNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +41,7 @@ class SettingsScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
+                  controller: _petNameController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Pet name',
@@ -32,6 +53,7 @@ class SettingsScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
+                  controller: _userNameController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'User name',
@@ -53,9 +75,11 @@ class SettingsScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 16),
                     ),
                     Switch(
-                      value: true, // You'll need to manage state for this
+                      value: _notificationsEnabled,
                       onChanged: (bool value) {
-                        // Handle switch change
+                        setState(() {
+                          _notificationsEnabled = value;
+                        });
                       },
                     ),
                   ],
@@ -72,9 +96,11 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     Text('Sound Volume', style: TextStyle(fontSize: 16)),
                     Slider(
-                      value: 0.5, // You'll need to manage state for this
+                      value: _soundVolume,
                       onChanged: (double value) {
-                        // Handle slider change
+                        setState(() {
+                          _soundVolume = value;
+                        });
                       },
                       min: 0,
                       max: 1,
