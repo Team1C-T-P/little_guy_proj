@@ -5,7 +5,7 @@ class SettingsScreen extends StatefulWidget {
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
-} // Changed from StatelessWidget to StatefulWidget to manage changing settings states
+} // Changed from StatelessWidget to StatefulWidget to manage changing settings states - figure out how to store these settings persistently later on.
 
 class _SettingsScreenState extends State<SettingsScreen> {
   // Added state variables notifs and volume
@@ -17,7 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void dispose() {
-    // clean up controllers
+    // clean up controllers for when the widget is destroyed to prevent memory leaks - probably good practice even if this screen is unlikely to be destroyed in this app
     _petNameController.dispose();
     _userNameController.dispose();
     super.dispose();
@@ -37,6 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Column(
             children: [
+              // For pet and user name we need to put in variables which are holding the current value - a thing to look into.
               // Pet Name Setting
               Padding(
                 padding: const EdgeInsets.all(16.0),
