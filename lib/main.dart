@@ -293,11 +293,4 @@ class Shop extends StatelessWidget {
   }
 }
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SettingsScreen();
-  }
-}
+// Since settings_screen.dart is imported, we can use the SettingsScreen widget in the _screens list in _MyHomePageState.
