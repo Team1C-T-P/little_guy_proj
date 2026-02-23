@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 class Shop extends StatelessWidget {
   const Shop({super.key});
 
+  // automatically load images in a folder for shop use
   Future<List<String>> _loadImages() async {
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     return manifest
@@ -32,7 +33,7 @@ class Shop extends StatelessWidget {
               ),
             ),
           ),
-          // White box with green padding
+          // Area containing the items to choose
           Expanded(
             flex: 2,
             child: Padding(
@@ -48,6 +49,8 @@ class Shop extends StatelessWidget {
                     if (!snapshot.hasData) {
                       return Center(child: CircularProgressIndicator());
                     }
+                    // adds the images from the _loadiamges to the box
+                    // in rows of four
                     return GridView.builder(
                       padding: EdgeInsets.all(8),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -108,29 +111,6 @@ class Shop extends StatelessWidget {
               ),
             ],
           ),
-          // Button area
-          // Padding(
-          //   padding: const EdgeInsets.all(20),
-          //   child: FittedBox(
-          //     child: ElevatedButton(
-          //       onPressed: () {
-          //         print('Button Pressed');
-          //       },
-          //       style: ElevatedButton.styleFrom(
-          //         backgroundColor: const Color.fromARGB(255, 159, 239, 167),
-          //         shape: RoundedRectangleBorder(
-          //           borderRadius: BorderRadius.circular(30),
-          //         ),
-          //       ),
-          //       child: Text(
-          //         "Dress",
-          //         style: DefaultTextStyle.of(
-          //           context,
-          //         ).style.apply(fontSizeFactor: 1),
-          //       ),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
