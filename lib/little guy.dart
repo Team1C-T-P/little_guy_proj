@@ -11,6 +11,7 @@ class LittleGuy extends StatefulWidget {
 class _LittleGuyState extends State<LittleGuy>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _walkAnimation;
 
   @override
   void initState() {
@@ -19,6 +20,38 @@ class _LittleGuyState extends State<LittleGuy>
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
+
+  //walking back and forth animation
+   _walkAnimation = TweenSequence([
+      // Walk right
+      TweenSequenceItem(
+        tween: Tween(begin: 0.0, end: 30.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 25,
+      ),
+
+      TweenSequenceItem(
+        tween: ConstantTween(30.0),
+        weight: 10,
+      ),
+
+      TweenSequenceItem(
+        tween: Tween(begin: 30.0, end: -30.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 25,
+      ),
+
+       TweenSequenceItem(
+        tween: ConstantTween(-30.0),
+        weight: 10,
+      ),
+
+      TweenSequenceItem(
+        tween: Tween(begin: -30.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 30,
+      ),
+    ]).animate(_controller);
   }
 
   @override
@@ -30,15 +63,15 @@ class _LittleGuyState extends State<LittleGuy>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _controller,
+      animation: _walkAnimation,
       builder: (_, child) {
-        final t = _controller.value * 2 * pi;
+        // final t = _controller.value * 2 * pi;
 
-        final dx = cos(t) * 6;  // left/right
-        final dy = sin(t) * 8;  // up/down
+        // final dx = cos(t) * 6;  // left/right
+        // final dy = sin(t) * 8;  // up/down
 
         return Transform.translate(
-          offset: Offset(dx, dy),
+          offset: Offset(_walkAnimation.value, 0),
           child: child,
         );
       },
