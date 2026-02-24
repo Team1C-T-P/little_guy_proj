@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import 'little guy.dart';
+
 
 import 'views/shop_view.dart';
 
@@ -159,7 +161,7 @@ class DressUp extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: <Widget>[
-          Text('Little Guy location here'),
+          const LittleGuy(),
           // Gives twice the space between Middle and End than Begin and Middle.
           Spacer(flex: 2),
           Container(
