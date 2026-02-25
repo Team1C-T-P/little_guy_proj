@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import 'views/settings_screen.dart';
 import 'little guy.dart';
 
 import 'views/shop_view.dart';
@@ -287,11 +288,13 @@ class DressUp extends StatelessWidget {
   }
 }
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+class Shop extends StatelessWidget {
+  const Shop({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('Settings Screen'));
+    return Center(child: Text('Shop'));
   }
 }
+
+// Since settings_screen.dart is imported, we can use the SettingsScreen widget in the _screens list in _MyHomePageState.
