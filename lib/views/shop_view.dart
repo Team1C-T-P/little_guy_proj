@@ -24,7 +24,7 @@ class Shop extends StatelessWidget {
       backgroundColor: Color.fromARGB(219, 150, 242, 176),
       body: Column(
         children: [
-          // Top blue area
+          // Top blue area containing the littleguy
           Expanded(
             flex: 3,
             child: Container(
@@ -58,9 +58,12 @@ class Shop extends StatelessWidget {
                         mainAxisSpacing: 8,
                       ),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => Padding(
+                      itemBuilder: (context, index) => IconButton(
                         padding: EdgeInsets.all(8.0),
-                        child: Image.asset(
+                        onPressed: () {
+                          print('image was clicked');
+                        },
+                        icon: Image.asset(
                           snapshot.data![index],
                           fit: BoxFit.cover,
                         ),
@@ -71,6 +74,7 @@ class Shop extends StatelessWidget {
               ),
             ),
           ),
+          // bottom row, with the button to go to dress
           Stack(
             children: <Widget>[
               Container(child: Image.asset("images/clover.png")),
