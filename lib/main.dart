@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'views/settings_screen.dart';
 import 'little guy.dart';
-
 import 'views/shop_view.dart';
 
 void main() {
@@ -285,15 +284,6 @@ class DressUp extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class Shop extends StatelessWidget {
-  const Shop({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Shop'));
   }
 }
 

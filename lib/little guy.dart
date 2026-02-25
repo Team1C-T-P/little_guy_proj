@@ -21,34 +21,34 @@ class _LittleGuyState extends State<LittleGuy>
       duration: const Duration(seconds: 3),
     )..repeat();
 
-  //walking back and forth animation
-   _walkAnimation = TweenSequence([
+    //walking back and forth animation
+    _walkAnimation = TweenSequence([
       // Walk right
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 30.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(
+          begin: 0.0,
+          end: 30.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 25,
       ),
 
-      TweenSequenceItem(
-        tween: ConstantTween(30.0),
-        weight: 10,
-      ),
+      TweenSequenceItem(tween: ConstantTween(30.0), weight: 10),
 
       TweenSequenceItem(
-        tween: Tween(begin: 30.0, end: -30.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(
+          begin: 30.0,
+          end: -30.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 25,
       ),
 
-       TweenSequenceItem(
-        tween: ConstantTween(-30.0),
-        weight: 10,
-      ),
+      TweenSequenceItem(tween: ConstantTween(-30.0), weight: 10),
 
       TweenSequenceItem(
-        tween: Tween(begin: -30.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween(
+          begin: -30.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 30,
       ),
     ]).animate(_controller);
@@ -76,7 +76,7 @@ class _LittleGuyState extends State<LittleGuy>
         );
       },
       child: Image.asset(
-        'images/clover.png', // need to change to be pet but structure
+        'images/funnyguy.png', // need to change to be pet but structure
         width: 150,
       ),
     );
