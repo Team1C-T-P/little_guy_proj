@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'little guy.dart';
 
-
 import 'views/shop_view.dart';
 
 void main() {
@@ -16,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flittle Guy',
       theme: ThemeData(
         // This is the theme of your application.

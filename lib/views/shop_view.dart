@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_flame_playground/little%20guy.dart';
 
 class Shop extends StatelessWidget {
   const Shop({super.key});
@@ -28,9 +29,7 @@ class Shop extends StatelessWidget {
             flex: 3,
             child: Container(
               color: Color.fromARGB(255, 173, 232, 244),
-              child: Center(
-                child: Icon(Icons.pets, size: 80, color: Colors.grey),
-              ),
+              child: Center(child: LittleGuy()),
             ),
           ),
           // Area containing the items to choose
