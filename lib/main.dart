@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'views/settings_screen.dart';
+import 'little guy.dart';
+
+import 'views/shop_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,6 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flittle Guy',
       theme: ThemeData(
         // This is the theme of your application.
@@ -158,7 +162,7 @@ class DressUp extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: <Widget>[
-          Text('Little Guy location here'),
+          const LittleGuy(),
           // Gives twice the space between Middle and End than Begin and Middle.
           Spacer(flex: 2),
           Container(
