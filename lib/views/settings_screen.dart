@@ -1,0 +1,123 @@
+import 'package:flutter/material.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+} // Changed from StatelessWidget to StatefulWidget to manage changing settings states - figure out how to store these settings persistently later on.
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  // Added state variables notifs and volume
+  bool _notificationsEnabled = true;
+  double _soundVolume = 0.5;
+  // manage text input via TextEditingController
+  final TextEditingController _petNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    // clean up controllers for when the widget is destroyed to prevent memory leaks - probably good practice even if this screen is unlikely to be destroyed in this app
+    _petNameController.dispose();
+    _userNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color.fromARGB(219, 173, 230, 189),
+      body: Column(
+        children: <Widget>[
+          Text('Settings', style: TextStyle(fontSize: 32)),
+          Container(
+            alignment: Alignment.topLeft,
+            padding: const EdgeInsets.only(right: 18),
+            child: Image.asset("images/clover.png"),
+          ),
+          Column(
+            children: [
+              // For pet and user name we need to put in variables which are holding the current value - a thing to look into.
+              // Pet Name Setting
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _petNameController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Pet name',
+                    prefixIcon: Icon(Icons.pets),
+                  ),
+                ),
+              ),
+              // User Name Setting
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _userNameController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'User name',
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+              ),
+              // Notifications Switch
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Enable Notifications',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    Switch(
+                      value: _notificationsEnabled,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _notificationsEnabled = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Volume Slider
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Sound Volume', style: TextStyle(fontSize: 16)),
+                    Slider(
+                      value: _soundVolume,
+                      onChanged: (double value) {
+                        setState(() {
+                          _soundVolume = value;
+                        });
+                      },
+                      min: 0,
+                      max: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Container(
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.only(right: 18),
+            child: Image.asset("images/daisy.png"),
+          ),
+        ],
+      ),
+    );
+  }
+}
