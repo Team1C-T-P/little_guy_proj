@@ -25,25 +25,30 @@ class HomeScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width,
               child: Column(
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: SizedBox(
-                      width: 150,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 159, 239, 167),
-                        ),
-                        onPressed: () {
-                        },
-                        child: Text(
-                              "Feed",
-                              style: DefaultTextStyle.of(
-                                context,
-                              ).style.apply(fontSizeFactor: 1),
+                  Row(
+                    children: [
+                        Image.asset('images/clover.png'),
+                        Spacer(),
+                        SizedBox(
+                          width: 150,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 159, 239, 167),
+                          ),
+                          onPressed: () {
+                          },
+                          child: Text(
+                                "Feed",
+                                style: DefaultTextStyle.of(
+                                  context,
+                                ).style.apply(fontSizeFactor: 1),
+                          )
                         )
-                      )
-                    )
+                      ),
+                      Spacer(),
+                      Image.asset('images/daisy.png')
+                    ],
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 20),
