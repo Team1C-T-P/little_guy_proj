@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'views/settings_screen.dart';
 import 'little guy.dart';
 import 'views/shop_view.dart';
+import 'widgets/button.dart';
 
 void main() {
   runApp(const MyApp());
@@ -248,25 +249,7 @@ class DressUp extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: FittedBox(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  159,
-                                  239,
-                                  167,
-                                ),
-                              ),
-                              child: Text(
-                                "Shop",
-                                style: DefaultTextStyle.of(
-                                  context,
-                                ).style.apply(fontSizeFactor: 1),
-                              ),
-                              onPressed: () {
-                                Shop();
-                              },
-                            ),
+                            child: TempButton(buttonText: "Shop"),
                           ),
                         ),
                       ),
