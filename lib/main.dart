@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gap/gap.dart';
-import 'views/settings_view.dart';
 import 'views/main_page_view.dart';
-import 'little guy.dart';
+import 'views/settings_view.dart';
 import 'views/shop_view.dart';
-import 'widgets/button.dart';
+import 'views/dress_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,21 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
     SettingsScreen(),
   ];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-    });
-
-    void testWow() {
-      child:
-      Text('Hello World');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -143,122 +126,6 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Map'));
-  }
-}
-
-class DressUp extends StatelessWidget {
-  const DressUp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: <Widget>[
-          const LittleGuy(),
-          // Gives twice the space between Middle and End than Begin and Middle.
-          Spacer(flex: 2),
-          Container(
-            color: Color.fromARGB(219, 173, 230, 189),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  child: Container(
-                    color: Color.fromARGB(219, 246, 255, 226),
-                    width: MediaQuery.of(context).size.width,
-                    height: 250,
-
-                    child: ListView(
-                      children: [
-                        Gap(20),
-                        Row(
-                          children: [
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                          ],
-                        ),
-                        Gap(20),
-                        Row(
-                          children: [
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                          ],
-                        ),
-                        Gap(20),
-                        Row(
-                          children: [
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                          ],
-                        ),
-                        Gap(20),
-                        Row(
-                          children: [
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                            Image.asset('images/hat.png'),
-                            Gap(39),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Stack(
-                  children: <Widget>[
-                    Container(child: Image.asset("images/clover.png")),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: SizedBox(
-                        width: 10,
-                        height: 100,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: FittedBox(
-                            child: TempButton(buttonText: "Shop"),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.only(right: 18),
-                      child: Image.asset("images/daisy.png"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
