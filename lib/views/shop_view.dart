@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
+import '../widgets/button.dart';
 
 class Shop extends StatelessWidget {
   const Shop({super.key});
@@ -86,23 +87,7 @@ class Shop extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: FittedBox(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            159,
-                            239,
-                            167,
-                          ),
-                        ),
-                        child: Text(
-                          "Dress",
-                          style: DefaultTextStyle.of(
-                            context,
-                          ).style.apply(fontSizeFactor: 1),
-                        ),
-                        onPressed: () => print("Test"),
-                      ),
+                      child: TempButton(buttonText: "Dress"),
                     ),
                   ),
                 ),
