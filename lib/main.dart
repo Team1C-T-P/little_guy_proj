@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import 'views/main_page.dart';
 import 'views/settings_screen.dart';
 import 'little guy.dart';
 import 'views/shop_view.dart';
@@ -132,15 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Home Screen'));
   }
 }
 
