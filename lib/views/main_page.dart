@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class HomeScreen extends StatelessWidget {
+// Dummy values for the progress bars - will need to be replaced with actual values later on
+int hunger = 50;
+int enjoyment = 50;
+int hygiene = 50;
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     
@@ -15,7 +25,7 @@ class HomeScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width,
               child: Column(
                 children: <Widget>[
-                  Text('Home Screen')
+                  Text('main page'),
                 ],
               ),
             ),
@@ -37,6 +47,10 @@ class HomeScreen extends StatelessWidget {
                             backgroundColor: const Color.fromARGB(255, 159, 239, 167),
                           ),
                           onPressed: () {
+                            // temp to increment until backend integration
+                            setState(() {
+                              hunger = incrementBar(hunger);
+                            });
                           },
                           child: Text(
                                 "Feed",
@@ -63,6 +77,10 @@ class HomeScreen extends StatelessWidget {
                                 backgroundColor: const Color.fromARGB(255, 159, 239, 167),
                               ),
                               onPressed: () {
+                                // temp to increment until backend integration
+                                setState(() {
+                                  enjoyment = incrementBar(enjoyment);
+                                });
                               },
                               child: Text(
                                     "Play",
@@ -81,6 +99,10 @@ class HomeScreen extends StatelessWidget {
                                 backgroundColor: const Color.fromARGB(255, 159, 239, 167),
                               ),
                               onPressed: () {
+                                // temp to increment until backend integration
+                                setState(() {
+                                  hygiene = incrementBar(hygiene);
+                                });
                               },
                               child: Text(
                                     "Clean",
@@ -104,6 +126,7 @@ class HomeScreen extends StatelessWidget {
                         children: <Widget> [
                           Padding(
                             padding: const EdgeInsets.only(top: 10),
+                            // Hunger Progress Bar
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget> [
@@ -111,7 +134,7 @@ class HomeScreen extends StatelessWidget {
                                 SizedBox(
                                   width: 100,
                                   child: LinearProgressIndicator(
-                                    value: 0.5,
+                                    value: hunger.toDouble() / 100,
                                     backgroundColor: Color.fromARGB(255, 246, 255, 226),
                                     color: Color.fromARGB(255, 159, 239, 167),
                                   )
@@ -124,6 +147,7 @@ class HomeScreen extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget> [
+                                // Enjoyment Progress Bar
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget> [
@@ -131,7 +155,7 @@ class HomeScreen extends StatelessWidget {
                                     SizedBox(
                                       width: 100,
                                       child: LinearProgressIndicator(
-                                        value: 0.5,
+                                        value: enjoyment.toDouble() / 100,
                                         backgroundColor: Color.fromARGB(255, 246, 255, 226),
                                         color: Color.fromARGB(255, 159, 239, 167),
                                       )
@@ -139,6 +163,7 @@ class HomeScreen extends StatelessWidget {
                                   ]
                                 ),
                                 Gap(MediaQuery.of(context).size.width * 0.1),
+                                // Hygiene Progress Bar
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget> [
@@ -146,7 +171,7 @@ class HomeScreen extends StatelessWidget {
                                     SizedBox(
                                       width: 100,
                                       child: LinearProgressIndicator(
-                                        value: 0.5,
+                                        value: hygiene.toDouble() / 100,
                                         backgroundColor: Color.fromARGB(255, 246, 255, 226),
                                         color: Color.fromARGB(255, 159, 239, 167),
                                       )
@@ -168,4 +193,12 @@ class HomeScreen extends StatelessWidget {
     );
     
   }
+}
+
+// Dummy function to increment progress bars on button press, will be removed with backend integration
+int incrementBar(int value) {
+  if (value >= 100) {
+    return 0;
+  }
+  return value + 10;
 }
