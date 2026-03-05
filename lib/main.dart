@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import 'views/settings_view.dart';
+import 'views/main_page.dart';
+import 'views/settings_screen.dart';
 import 'little guy.dart';
-
 import 'views/shop_view.dart';
+import 'widgets/button.dart';
 
 void main() {
   runApp(const MyApp());
@@ -135,15 +138,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 } // kill me
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Home Screen'));
-  }
-}
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -248,25 +242,7 @@ class DressUp extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: FittedBox(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  159,
-                                  239,
-                                  167,
-                                ),
-                              ),
-                              child: Text(
-                                "Shop",
-                                style: DefaultTextStyle.of(
-                                  context,
-                                ).style.apply(fontSizeFactor: 1),
-                              ),
-                              onPressed: () {
-                                Shop();
-                              },
-                            ),
+                            child: TempButton(buttonText: "Shop"),
                           ),
                         ),
                       ),
@@ -287,11 +263,4 @@ class DressUp extends StatelessWidget {
   }
 }
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Settings Screen'));
-  }
-}
+// Since settings_screen.dart is imported, we can use the SettingsScreen widget in the _screens list in _MyHomePageState.

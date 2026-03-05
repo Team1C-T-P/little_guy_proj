@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
+import '../widgets/button.dart';
 
 class Shop extends StatelessWidget {
   const Shop({super.key});
@@ -24,7 +25,7 @@ class Shop extends StatelessWidget {
       backgroundColor: Color.fromARGB(219, 150, 242, 176),
       body: Column(
         children: [
-          // Top blue area
+          // Top blue area containing the littleguy
           Expanded(
             flex: 3,
             child: Container(
@@ -58,9 +59,12 @@ class Shop extends StatelessWidget {
                         mainAxisSpacing: 8,
                       ),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => Padding(
+                      itemBuilder: (context, index) => IconButton(
                         padding: EdgeInsets.all(8.0),
-                        child: Image.asset(
+                        onPressed: () {
+                          print('image was clicked');
+                        },
+                        icon: Image.asset(
                           snapshot.data![index],
                           fit: BoxFit.cover,
                         ),
@@ -71,6 +75,7 @@ class Shop extends StatelessWidget {
               ),
             ),
           ),
+          // bottom row, with the button to go to dress
           Stack(
             children: <Widget>[
               Container(child: Image.asset("images/clover.png")),
@@ -82,23 +87,7 @@ class Shop extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: FittedBox(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            159,
-                            239,
-                            167,
-                          ),
-                        ),
-                        child: Text(
-                          "Dress",
-                          style: DefaultTextStyle.of(
-                            context,
-                          ).style.apply(fontSizeFactor: 1),
-                        ),
-                        onPressed: () => print("Test"),
-                      ),
+                      child: TempButton(buttonText: "Dress"),
                     ),
                   ),
                 ),
