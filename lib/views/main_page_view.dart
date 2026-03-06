@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:flutter_flame_playground/widgets/button.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -42,24 +43,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: 150,
                           height: 50,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 159, 239, 167),
-                          ),
-                          onPressed: () {
-                            // temp to increment until backend integration
-                            setState(() {
-                              hunger = incrementBar(hunger);
-                            });
-                          },
-                          child: Text(
-                                "Feed",
-                                style: DefaultTextStyle.of(
-                                  context,
-                                ).style.apply(fontSizeFactor: 1),
+                          child: GreenButton(
+                            buttonText: "Feed",
+                            onPressed: () {
+                              // temp to increment until backend integration
+                              setState(() {
+                                hunger = incrementBar(hunger);
+                              });
+                            },
                           )
-                        )
-                      ),
+                        ),
                       Spacer(),
                       Image.asset('images/daisy.png')
                     ],
@@ -72,44 +65,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                             width: 150,
                             height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 159, 239, 167),
-                              ),
+                            child: GreenButton(
+                              buttonText: "Play",
                               onPressed: () {
                                 // temp to increment until backend integration
                                 setState(() {
                                   enjoyment = incrementBar(enjoyment);
                                 });
                               },
-                              child: Text(
-                                    "Play",
-                                    style: DefaultTextStyle.of(
-                                      context,
-                                    ).style.apply(fontSizeFactor: 1),
-                              )
                             )
                         ),
                         Spacer(),
                         SizedBox(
                             width: 150,
                             height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 159, 239, 167),
-                              ),
+                            child: GreenButton(
+                              buttonText: "Clean",
                               onPressed: () {
                                 // temp to increment until backend integration
                                 setState(() {
                                   hygiene = incrementBar(hygiene);
                                 });
                               },
-                              child: Text(
-                                    "Clean",
-                                    style: DefaultTextStyle.of(
-                                      context,
-                                    ).style.apply(fontSizeFactor: 1),
-                              )
                             )
                         ),
                         Spacer(),
