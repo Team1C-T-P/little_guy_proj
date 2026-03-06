@@ -87,7 +87,7 @@ class Shop extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: FittedBox(
-                      child: TempButton(buttonText: "Dress"),
+                      child: GreenButton(buttonText: "Dress", onPressed: () {}),
                     ),
                   ),
                 ),
