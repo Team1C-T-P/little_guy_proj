@@ -273,8 +273,6 @@ class DressUp extends StatelessWidget {
 }
 
 class Shop extends StatelessWidget {
-  const Shop({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Shop'));
@@ -282,8 +280,6 @@ class Shop extends StatelessWidget {
 }
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Settings Screen'));
