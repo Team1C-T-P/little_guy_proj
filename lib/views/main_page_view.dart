@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
@@ -17,158 +18,214 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       body: Column(
-          children: <Widget> [
-            Container(
+        children: <Widget>[
+          Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 24),
+            child: Image.asset('images/cloud.png'),
+          ),
+          Expanded(
+            flex: 10,
+            child: Container(
+              alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                children: <Widget>[
-                  Text('main page'),
-                ],
-              ),
+              child: Center(child: LittleGuy()),
             ),
-            Spacer(),
-            Container(
-              color: Color.fromARGB(219, 173, 230, 189),
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    children: [
-                        Image.asset('images/clover.png'),
-                        Spacer(),
-                        SizedBox(
-                          width: 150,
-                          height: 50,
+          ),
+          Spacer(),
+          Container(
+            color: Color.fromARGB(219, 150, 242, 176),
+            width: MediaQuery.of(context).size.width,
+
+            child: Column(
+              children: <Widget>[
+                Row(
+                  children: [
+                    Image.asset('images/clover.png'),
+                    Spacer(),
+
+                    SizedBox(
+                      width: 150,
+                      height: 50,
+                      child: FittedBox(
+                        child: GreenButton(
+                          buttonText: "Feed",
+                          onPressed: () {
+                            setState(() {
+                              hunger = incrementBar(hunger);
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+
+                    Spacer(),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.only(right: 18),
+                      child: Image.asset("images/flowerplant.png"),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Row(
+                    children: <Widget>[
+                      Spacer(),
+                      SizedBox(
+                        width: 150,
+                        height: 50,
+                        child: FittedBox(
                           child: GreenButton(
-                            buttonText: "Feed",
+                            buttonText: "Play",
                             onPressed: () {
-                              // temp to increment until backend integration
                               setState(() {
-                                hunger = incrementBar(hunger);
+                                enjoyment = incrementBar(enjoyment);
                               });
                             },
-                          )
+                          ),
                         ),
+                      ),
                       Spacer(),
-                      Image.asset('images/daisy.png')
+                      SizedBox(
+                        width: 150,
+                        height: 50,
+                        child: FittedBox(
+                          child: GreenButton(
+                            buttonText: "Clean",
+                            onPressed: () {
+                              setState(() {
+                                hygiene = incrementBar(hygiene);
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      Spacer(),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Row(
-                      children: <Widget> [
-                        Spacer(),
-                        SizedBox(
-                            width: 150,
-                            height: 50,
-                            child: GreenButton(
-                              buttonText: "Play",
-                              onPressed: () {
-                                // temp to increment until backend integration
-                                setState(() {
-                                  enjoyment = incrementBar(enjoyment);
-                                });
-                              },
-                            )
-                        ),
-                        Spacer(),
-                        SizedBox(
-                            width: 150,
-                            height: 50,
-                            child: GreenButton(
-                              buttonText: "Clean",
-                              onPressed: () {
-                                // temp to increment until backend integration
-                                setState(() {
-                                  hygiene = incrementBar(hygiene);
-                                });
-                              },
-                            )
-                        ),
-                        Spacer(),
-                      ]
-                    )
-                  ),
-                  Padding(
-                    padding:  const EdgeInsets.all(20),
-                    child: Container(
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Container(
+                    decoration: BoxDecoration(
                       color: Color.fromARGB(219, 246, 255, 226),
-                      width: MediaQuery.of(context).size.width,
-                      height: 150,
-                      child: Column(
-                        children: <Widget> [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            // Hunger Progress Bar
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget> [
-                                Image.asset('images/hunger.png'),
-                                SizedBox(
-                                  width: 100,
-                                  child: LinearProgressIndicator(
-                                    value: hunger.toDouble() / 100,
-                                    backgroundColor: Color.fromARGB(255, 246, 255, 226),
-                                    color: Color.fromARGB(255, 159, 239, 167),
-                                  )
-                                )
-                              ]
-                            )
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget> [
-                                // Enjoyment Progress Bar
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget> [
-                                    Image.asset('images/enjoyment.png'),
-                                    SizedBox(
-                                      width: 100,
-                                      child: LinearProgressIndicator(
-                                        value: enjoyment.toDouble() / 100,
-                                        backgroundColor: Color.fromARGB(255, 246, 255, 226),
-                                        color: Color.fromARGB(255, 159, 239, 167),
-                                      )
-                                    )
-                                  ]
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    width: MediaQuery.of(context).size.width,
+                    height: 120,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 0),
+                          // Hunger Progress Bar
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: Image.asset('images/hunger.png'),
+                              ),
+                              SizedBox(
+                                width: 100,
+                                child: LinearProgressIndicator(
+                                  minHeight: 10,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                  value: hunger.toDouble() / 100,
+                                  backgroundColor: Color.fromARGB(
+                                    255,
+                                    246,
+                                    255,
+                                    226,
+                                  ),
+                                  color: Color.fromARGB(255, 159, 239, 167),
                                 ),
-                                Gap(MediaQuery.of(context).size.width * 0.1),
-                                // Hygiene Progress Bar
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget> [
-                                    Image.asset('images/hygiene.png'),
-                                    SizedBox(
-                                      width: 100,
-                                      child: LinearProgressIndicator(
-                                        value: hygiene.toDouble() / 100,
-                                        backgroundColor: Color.fromARGB(255, 246, 255, 226),
-                                        color: Color.fromARGB(255, 159, 239, 167),
-                                      )
-                                    )
-                                  ]
-                                )
-                              ]
-                            )
-                          )
-                        ]
-                      )
-                    )
-                  )
-                ]
-              ),
-            )
-          ]
-      )
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              // Enjoyment Progress Bar
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: Image.asset('images/enjoyment.png'),
+                                  ),
+                                  SizedBox(
+                                    width: 100,
+                                    child: LinearProgressIndicator(
+                                      minHeight: 10,
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(10),
+                                      ),
+                                      value: enjoyment.toDouble() / 100,
+                                      backgroundColor: Color.fromARGB(
+                                        255,
+                                        248,
+                                        255,
+                                        233,
+                                      ),
+                                      color: Color.fromARGB(255, 159, 239, 167),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Gap(MediaQuery.of(context).size.width * 0.1),
+                              // Hygiene Progress Bar
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: Image.asset('images/hygiene.png'),
+                                  ),
+                                  SizedBox(
+                                    width: 100,
+                                    child: LinearProgressIndicator(
+                                      minHeight: 10,
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(10),
+                                      ),
+                                      value: hygiene.toDouble() / 100,
+                                      backgroundColor: Color.fromARGB(
+                                        255,
+                                        246,
+                                        255,
+                                        226,
+                                      ),
+                                      color: Color.fromARGB(255, 159, 239, 167),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
-    
   }
 }
 

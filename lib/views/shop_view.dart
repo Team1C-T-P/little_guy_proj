@@ -13,7 +13,7 @@ class Shop extends StatelessWidget {
         .listAssets()
         .where(
           (path) =>
-              path.startsWith('assets/images/') &&
+              path.startsWith('assets/images/hats/') &&
               (path.endsWith('.png') || path.endsWith('.jpg')),
         )
         .toList();
@@ -29,7 +29,7 @@ class Shop extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Container(
-              color: Color.fromARGB(255, 173, 232, 244),
+              color: Color.fromARGB(255, 221, 249, 255),
               child: Center(child: LittleGuy()),
             ),
           ),

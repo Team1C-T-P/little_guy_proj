@@ -29,6 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Color.fromARGB(219, 173, 230, 189),
       body: Column(
         children: <Widget>[
+          Padding(padding: const EdgeInsets.all(16.0)),
           Text('Settings', style: TextStyle(fontSize: 32)),
           Container(
             alignment: Alignment.topLeft,

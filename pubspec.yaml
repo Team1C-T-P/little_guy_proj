@@ -37,6 +37,8 @@ dependencies:
   flame: ^1.32.0
   google_fonts: ^8.0.1
   gap: ^3.0.1
+  pedometer: ^4.2.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +64,8 @@ flutter:
 
   assets:
      - assets/images/
+     - assets/images/hats/
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
