@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 class LittleGuy extends StatefulWidget {
   const LittleGuy({super.key});
