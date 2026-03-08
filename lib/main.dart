@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gap/gap.dart';
+import 'views/main_page_view.dart';
 import 'views/settings_view.dart';
 import 'views/main_page_view.dart';
 import 'little guy.dart';
 import 'views/shop_view.dart';
-import 'widgets/button.dart';
+import 'views/dress_view.dart';
+import 'views/map_view.dart';
+import 'views/test_view.dart';
+import 'package:pedometer/pedometer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,21 +23,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flittle Guy',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
+        scaffoldBackgroundColor: Color.fromARGB(255, 213, 248, 255),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         textTheme: GoogleFonts.juaTextTheme(),
       ),
@@ -46,15 +35,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -65,26 +45,11 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   final List<Widget> _screens = [
     HomeScreen(),
-    ProfileScreen(),
+    MapScreen(),
     DressUp(),
     Shop(),
     SettingsScreen(),
   ];
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-    });
-
-    void testWow() {
-      child:
-      Text('Hello World');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +60,22 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: const Color.fromARGB(255, 221, 249, 255),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report), // Icon for the button
+            tooltip: 'Go to Test Screen',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TestScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

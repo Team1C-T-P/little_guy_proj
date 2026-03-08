@@ -61,22 +61,17 @@ class _LittleGuyState extends State<LittleGuy>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _walkAnimation,
-      builder: (_, child) {
-        // final t = _controller.value * 2 * pi;
-
-        // final dx = cos(t) * 6;  // left/right
-        // final dy = sin(t) * 8;  // up/down
-
-        return Transform.translate(
-          offset: Offset(_walkAnimation.value, 0),
-          child: child,
-        );
-      },
-      child: Image.asset(
-        'images/funnyguy.png', // need to change to be pet but structure
-        width: 150,
+    return Align(
+      alignment: Alignment.bottomCenter, // Aligns the widget to the bottom
+      child: AnimatedBuilder(
+        animation: _walkAnimation,
+        builder: (_, child) {
+          return Transform.translate(
+            offset: Offset(_walkAnimation.value, 0),
+            child: child,
+          );
+        },
+        child: Image.asset('images/funnyguy.png', width: 180),
       ),
     );
   }

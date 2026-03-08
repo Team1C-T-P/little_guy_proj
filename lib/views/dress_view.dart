@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
+import 'package:flutter_flame_playground/views/shop_view.dart';
 import '../widgets/button.dart';
+import 'main_page_view.dart';
+import 'settings_view.dart';
+import 'shop_view.dart';
+import 'dress_view.dart';
 
-class Shop extends StatelessWidget {
-  const Shop({super.key});
+class DressUp extends StatelessWidget {
+  const DressUp({super.key});
 
   // automatically load images in a folder for shop use
   Future<List<String>> _loadImages() async {
@@ -87,7 +92,15 @@ class Shop extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: FittedBox(
-                      child: GreenButton(buttonText: "Dress", onPressed: () {}),
+                      child: GreenButton(
+                        buttonText: "Shop",
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Shop()),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
