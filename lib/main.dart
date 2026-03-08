@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'views/main_page_view.dart';
 import 'views/settings_view.dart';
+import 'views/main_page_view.dart';
+import 'little guy.dart';
 import 'views/shop_view.dart';
 import 'views/dress_view.dart';
 import 'views/map_view.dart';
@@ -114,4 +116,131 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+} // kill me
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Map'));
+  }
 }
+
+class DressUp extends StatelessWidget {
+  const DressUp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: <Widget>[
+          const LittleGuy(),
+          // Gives twice the space between Middle and End than Begin and Middle.
+          Spacer(flex: 2),
+          Container(
+            color: Color.fromARGB(219, 173, 230, 189),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Container(
+                    color: Color.fromARGB(219, 246, 255, 226),
+                    width: MediaQuery.of(context).size.width,
+                    height: 250,
+
+                    child: ListView(
+                      children: [
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                        Gap(20),
+                        Row(
+                          children: [
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                            Image.asset('images/hat.png'),
+                            Gap(39),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Stack(
+                  children: <Widget>[
+                    Container(child: Image.asset("images/clover.png")),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: SizedBox(
+                        width: 10,
+                        height: 100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: FittedBox(
+                            child: TempButton(buttonText: "Shop"),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.only(right: 18),
+                      child: Image.asset("images/daisy.png"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Since settings_screen.dart is imported, we can use the SettingsScreen widget in the _screens list in _MyHomePageState.
