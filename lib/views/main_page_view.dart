@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 24),
             child: Image.asset('images/cloud.png'),
+            color: Color.fromARGB(255, 213, 248, 255),
           ),
           Expanded(
             flex: 10,
@@ -34,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Center(child: LittleGuy()),
             ),
           ),
-          Spacer(),
           Container(
             color: Color.fromARGB(219, 150, 242, 176),
             width: MediaQuery.of(context).size.width,

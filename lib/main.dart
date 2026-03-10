@@ -6,6 +6,8 @@ import 'views/shop_view.dart';
 import 'views/dress_view.dart';
 import 'views/map_view.dart';
 import 'views/test_view.dart';
+import 'views/community_view.dart';
+import 'views/profile_view.dart';
 import 'package:pedometer/pedometer.dart';
 
 void main() {
@@ -60,15 +62,35 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(''),
-        backgroundColor: const Color.fromARGB(255, 221, 249, 255),
+        backgroundColor: const Color.fromARGB(255, 213, 248, 255),
         actions: [
           IconButton(
             icon: const Icon(Icons.bug_report), // Icon for the button
-            tooltip: 'Go to Test Screen',
+            tooltip: 'Test Screen',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => TestScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.diversity_1), // Icon for the button
+            tooltip: 'Community',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CommunityScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person), // Icon for the button
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
               );
             },
           ),
