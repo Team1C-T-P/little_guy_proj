@@ -39,6 +39,7 @@ dependencies:
   gap: ^3.0.1
   pedometer: ^4.2.0
   permission_handler: ^12.0.1
+  sqflite: ^2.4.2
 
 dev_dependencies:
   flutter_test:
