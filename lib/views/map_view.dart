@@ -3,7 +3,8 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:gap/gap.dart';
-import 'package:flutter_flame_playground/little%20guy.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/utils/location_service.dart';
 
@@ -19,8 +20,10 @@ class _MapScreenState extends State<MapScreen> {
   late Stream<PedestrianStatus> _pedestrianStatusStream;
   String _status = '?', _steps = '?';
   
-  // New variables for location
-  String _locationDisplay = 'Fetching location...';
+  // Map and Location State
+  String _locationDisplay = 'Locating GPS...';
+  LatLng? _currentPosition;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -29,15 +32,17 @@ class _MapScreenState extends State<MapScreen> {
     _fetchLocation();
   }
 
-  // New method to fetch location
   Future<void> _fetchLocation() async {
     try {
       Position? position = await LocationService().determinePosition();
       if (position != null && mounted) {
         setState(() {
-          // Truncating to 4 decimal places for cleaner UI
           _locationDisplay = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+          _currentPosition = LatLng(position.latitude, position.longitude);
         });
+        
+        // Programmatically pan the map camera to the newly found location
+        _mapController.move(_currentPosition!, 16.0);
       }
     } catch (e) {
       if (mounted) {
@@ -105,14 +110,54 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: const Color.fromARGB(219, 150, 242, 176),
       body: Column(
         children: [
+          // Top Area containing the Live Map
           Expanded(
             flex: 10,
             child: Container(
-              alignment: Alignment.bottomCenter,
               color: const Color.fromARGB(255, 221, 249, 255),
-              child: const Center(child: LittleGuy()),
+              child: _currentPosition == null
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          Gap(10),
+                          Text('Finding your Little Guy...'),
+                        ],
+                      ),
+                    )
+                  : FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _currentPosition!,
+                        initialZoom: 16.0,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.all, // Allows panning and zooming
+                        ),
+                      ),
+                      children: [
+                        // OpenStreetMap Tile Configuration
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.flutter_flame_playground',
+                        ),
+                        // Places the custom sprite onto the map at the exact GPS coordinate
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: _currentPosition!,
+                              width: 60,
+                              height: 60,
+                              child: Image.asset('images/funnyguy.png'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
             ),
           ),
+          
+          // Bottom Stats Area
           Container(
             color: const Color.fromARGB(219, 150, 242, 176),
             width: MediaQuery.of(context).size.width,
@@ -169,7 +214,6 @@ class _MapScreenState extends State<MapScreen> {
                           ],
                         ),
                         const Gap(15),
-                        // New UI element to show Android GPS coordinates
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
