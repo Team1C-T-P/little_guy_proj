@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -24,26 +25,50 @@ class _MapScreenState extends State<MapScreen> {
   String _locationDisplay = 'Locating GPS...';
   LatLng? _currentPosition;
   final MapController _mapController = MapController();
+  
+  // NEW: Variables for real-time tracking
+  StreamSubscription<Position>? _positionStreamSubscription;
+  final List<LatLng> _route = [];
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
-    _fetchLocation();
+    _startLocationTracking();
   }
 
-  Future<void> _fetchLocation() async {
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _startLocationTracking() async {
     try {
-      Position? position = await LocationService().determinePosition();
-      if (position != null && mounted) {
+      // 1. Get initial position and permissions
+      Position? initialPosition = await LocationService().determinePosition();
+      if (initialPosition != null && mounted) {
         setState(() {
-          _locationDisplay = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
-          _currentPosition = LatLng(position.latitude, position.longitude);
+          _currentPosition = LatLng(initialPosition.latitude, initialPosition.longitude);
+          _route.add(_currentPosition!);
+          _locationDisplay = '${initialPosition.latitude.toStringAsFixed(4)}, ${initialPosition.longitude.toStringAsFixed(4)}';
         });
-        
-        // Programmatically pan the map camera to the newly found location
         _mapController.move(_currentPosition!, 16.0);
       }
+
+      // 2. Start listening to the live stream
+      _positionStreamSubscription = LocationService().getLocationStream().listen((Position position) {
+        if (mounted) {
+          setState(() {
+            _currentPosition = LatLng(position.latitude, position.longitude);
+            _route.add(_currentPosition!); // Add new coordinate to the trail
+            _locationDisplay = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+          });
+          
+          // Optionally center the camera on the user as they walk
+          _mapController.move(_currentPosition!, _mapController.camera.zoom);
+        }
+      });
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -130,18 +155,27 @@ class _MapScreenState extends State<MapScreen> {
                       mapController: _mapController,
                       options: MapOptions(
                         initialCenter: _currentPosition!,
-                        initialZoom: 16.0,
+                        initialZoom: 18.0, // Zoomed in closer for walking
                         interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.all, // Allows panning and zooming
+                          flags: InteractiveFlag.all,
                         ),
                       ),
                       children: [
-                        // OpenStreetMap Tile Configuration
                         TileLayer(
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                           userAgentPackageName: 'com.example.flutter_flame_playground',
                         ),
-                        // Places the custom sprite onto the map at the exact GPS coordinate
+                        // NEW: Draws the trail behind the user
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: _route,
+                              strokeWidth: 5.0,
+                              color: const Color.fromARGB(255, 77, 151, 86), // App's green theme
+                            ),
+                          ],
+                        ),
+                        // Custom sprite at current location
                         MarkerLayer(
                           markers: [
                             Marker(
