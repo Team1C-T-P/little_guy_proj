@@ -39,8 +39,23 @@ class AppDatabase {
       );
     ''');
 
+  /* route table info:
+   - all coordinates are stored using decimal degrees
+  */
+    await db.execute('''
+        CREATE TABLE route (
+          route_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          route_name TEXT NOT NULL,
+          route_start_coordinate_lat NUMERIC NOT NULL,
+          route_start_coordinate_lon NUMERIC NOT NULL,
+          route_end_coordinate_lat NUMERIC NOT NULL,
+          route_end_coordinate_lon NUMERIC NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES user(user_id)
+          );
+      ''');
 
-    /* item table info:
+    /* little_guy table info:
       - hygiene, hunger and enjoyment levels are stored as integers from 0 to 100, when used this needs to be divided by 100 
     */
     await db.execute('''
