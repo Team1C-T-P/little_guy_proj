@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
+import 'package:flutter_flame_playground/utils/location_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -16,11 +18,34 @@ class _MapScreenState extends State<MapScreen> {
   late Stream<StepCount> _stepCountStream;
   late Stream<PedestrianStatus> _pedestrianStatusStream;
   String _status = '?', _steps = '?';
+  
+  // New variables for location
+  String _locationDisplay = 'Fetching location...';
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    _fetchLocation();
+  }
+
+  // New method to fetch location
+  Future<void> _fetchLocation() async {
+    try {
+      Position? position = await LocationService().determinePosition();
+      if (position != null && mounted) {
+        setState(() {
+          // Truncating to 4 decimal places for cleaner UI
+          _locationDisplay = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _locationDisplay = 'Location Error';
+        });
+      }
+    }
   }
 
   void onStepCount(StepCount event) {
@@ -49,13 +74,9 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<bool> _checkActivityRecognitionPermission() async {
     bool granted = await Permission.activityRecognition.isGranted;
-
     if (!granted) {
-      granted =
-          await Permission.activityRecognition.request() ==
-          PermissionStatus.granted;
+      granted = await Permission.activityRecognition.request() == PermissionStatus.granted;
     }
-
     return granted;
   }
 
@@ -84,7 +105,6 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: const Color.fromARGB(219, 150, 242, 176),
       body: Column(
         children: [
-          // Top Area containing the LittleGuy (Map Placeholder)
           Expanded(
             flex: 10,
             child: Container(
@@ -93,8 +113,6 @@ class _MapScreenState extends State<MapScreen> {
               child: const Center(child: LittleGuy()),
             ),
           ),
-          
-          // Bottom Stats Area
           Container(
             color: const Color.fromARGB(219, 150, 242, 176),
             width: MediaQuery.of(context).size.width,
@@ -124,75 +142,56 @@ class _MapScreenState extends State<MapScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            // Device Pedometer Stats
                             Column(
                               children: [
-                                const Icon(
-                                  Icons.directions_walk,
-                                  size: 40,
-                                  color: Color.fromARGB(255, 77, 151, 86),
-                                ),
+                                const Icon(Icons.directions_walk, size: 40, color: Color.fromARGB(255, 77, 151, 86)),
                                 const Gap(5),
-                                const Text(
-                                  'Device Steps',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  _steps,
-                                  style: const TextStyle(fontSize: 18),
-                                ),
+                                const Text('Device Steps', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(_steps, style: const TextStyle(fontSize: 18)),
                               ],
                             ),
-                            
-                            // App Global Steps
                             Column(
                               children: [
-                                const Icon(
-                                  Icons.accessibility_new,
-                                  size: 40,
-                                  color: Color.fromARGB(255, 77, 151, 86),
-                                ),
+                                const Icon(Icons.accessibility_new, size: 40, color: Color.fromARGB(255, 77, 151, 86)),
                                 const Gap(5),
-                                const Text(
-                                  'Global Steps',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '${StepCounter().stepCount}',
-                                  style: const TextStyle(fontSize: 18),
-                                ),
+                                const Text('Global Steps', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text('${StepCounter().stepCount}', style: const TextStyle(fontSize: 18)),
                               ],
                             ),
-                            
-                            // Current Status
                             Column(
                               children: [
-                                Icon(
-                                  _status == 'walking'
-                                      ? Icons.directions_run
-                                      : Icons.man,
-                                  size: 40,
-                                  color: const Color.fromARGB(255, 77, 151, 86),
-                                ),
+                                Icon(_status == 'walking' ? Icons.directions_run : Icons.man, size: 40, color: const Color.fromARGB(255, 77, 151, 86)),
                                 const Gap(5),
-                                const Text(
-                                  'Status',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  _status,
-                                  style: const TextStyle(fontSize: 18),
-                                ),
+                                const Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(_status, style: const TextStyle(fontSize: 18)),
                               ],
                             ),
                           ],
+                        ),
+                        const Gap(15),
+                        // New UI element to show Android GPS coordinates
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(219, 150, 242, 176),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.pin_drop, color: Color.fromARGB(255, 77, 151, 86)),
+                              const Gap(10),
+                              Text(
+                                _locationDisplay,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                
-                // Bottom row with decorators
                 Stack(
                   children: <Widget>[
                     Container(
