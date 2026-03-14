@@ -1,7 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
-  // Singleton pattern to match your StepCounter style
+  // Singleton pattern
   static final LocationService _instance = LocationService._internal();
   factory LocationService() => _instance;
   LocationService._internal();
@@ -30,7 +30,17 @@ class LocationService {
         'Location permissions are permanently denied, we cannot request permissions.');
     } 
 
-    // When permissions are granted, get the position
+    // When permissions are granted, get the initial position
     return await Geolocator.getCurrentPosition();
+  }
+
+  // NEW: Real-time location stream
+  Stream<Position> getLocationStream() {
+    final LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 2, // Only update if the user moves at least 2 meters
+    );
+    
+    return Geolocator.getPositionStream(locationSettings: locationSettings);
   }
 }
