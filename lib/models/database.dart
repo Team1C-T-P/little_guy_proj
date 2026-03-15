@@ -34,7 +34,7 @@ class AppDatabase {
       CREATE TABLE user (
         user_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_name TEXT NOT NULL,
-        currency INTEGER NOT NULL,
+        currency INTEGER NOT NULL CHECK (currency >= 0),
         last_online TEXT
       );
     ''');
@@ -63,9 +63,9 @@ class AppDatabase {
           little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER NOT NULL,
           little_guy_name TEXT NOT NULL,
-          hygiene_level INTEGER NOT NULL,
-          hunger_level INTEGER NOT NULL,
-          enjoyment_level INTEGER NOT NULL,
+          hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
+          hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
+          enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
           FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
         );
       ''');
@@ -79,8 +79,8 @@ class AppDatabase {
         item_id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_name TEXT NOT NULL,
         image_path TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
-        price INTEGER NOT NULL
+        quantity INTEGER NOT NULL CHECK (quantity >= 0),
+        price INTEGER NOT NULL CHECK (price >= 0)
       );
     ''');
 
@@ -91,7 +91,7 @@ class AppDatabase {
         CREATE TABLE inventory (
           user_id INTEGER NOT NULL,
           item_id INTEGER NOT NULL,
-          quantity INTEGER NOT NULL,
+          quantity INTEGER NOT NULL CHECK (quantity >= 0),
           PRIMARY KEY (user_id, item_id),
           FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
           FOREIGN KEY (item_id) REFERENCES item(item_id)
@@ -111,9 +111,9 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE goal (
         goal_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        target_goal INTEGER NOT NULL,
+        target_goal INTEGER NOT NULL CHECK (target_goal > 0),
         target_deadline TEXT NOT NULL,
-        min_allowed_value INTEGER NOT NULL,
+        min_allowed_value INTEGER NOT NULL CHECK (min_allowed_value >= 0),
         is_recurring BOOLEAN NOT NULL DEFAULT 0
       );
     ''');
@@ -128,8 +128,8 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE reward (
         reward_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        reward_tier VARCHAR(4) NOT NULL,
-        reward_currency INTEGER NOT NULL
+        reward_tier VARCHAR(4) NOT NULL CHECK (reward_tier IN ('low','mid','high','pers')),
+        reward_currency INTEGER NOT NULL CHECK (reward_currency >= 0)
       );
     ''');
 
