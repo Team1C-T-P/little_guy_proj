@@ -51,7 +51,7 @@ class AppDatabase {
           route_start_coordinate_lon NUMERIC NOT NULL,
           route_end_coordinate_lat NUMERIC NOT NULL,
           route_end_coordinate_lon NUMERIC NOT NULL,
-          FOREIGN KEY (user_id) REFERENCES user(user_id)
+          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
           );
       ''');
 
@@ -66,7 +66,7 @@ class AppDatabase {
           hygiene_level INTEGER NOT NULL,
           hunger_level INTEGER NOT NULL,
           enjoyment_level INTEGER NOT NULL,
-          FOREIGN KEY (user_id) REFERENCES user(user_id)
+          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
         );
       ''');
 
@@ -93,7 +93,7 @@ class AppDatabase {
           item_id INTEGER NOT NULL,
           quantity INTEGER NOT NULL,
           PRIMARY KEY (user_id, item_id),
-          FOREIGN KEY (user_id) REFERENCES user(user_id),
+          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
           FOREIGN KEY (item_id) REFERENCES item(item_id)
         );
       ''');
@@ -103,8 +103,43 @@ class AppDatabase {
         little_guy_id INTEGER NOT NULL,
         item_id INTEGER NOT NULL,
         PRIMARY KEY (little_guy_id, item_id),
-        FOREIGN KEY (little_guy_id) REFERENCES little_guy(little_guy_id),
-        FOREIGN KEY (item_id) REFERENCES wearable_item(item_id)
+        FOREIGN KEY (little_guy_id) REFERENCES little_guy(little_guy_id) ON DELETE CASCADE,
+        FOREIGN KEY (item_id) REFERENCES inventory(item_id) ON DELETE CASCADE
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE goal (
+        goal_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        target_goal INTEGER NOT NULL,
+        target_deadline TEXT NOT NULL,
+        min_allowed_value INTEGER NOT NULL,
+        is_recurring BOOLEAN NOT NULL DEFAULT 0
+      );
+    ''');
+
+    // reward_tier - has four possible tier levels:
+    // low level - 2K steps = 20c
+    // mid level - 5K steps = 50c
+    // high level - 10K steps = 100c
+    // personal goal (user-defined) - ?K steps = 50c?
+    // tier linked to goal, if user chose low/mid/high no need for user input
+
+    await db.execute('''
+      CREATE TABLE reward (
+        reward_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        reward_tier VARCHAR(4) NOT NULL,
+        reward_currency INTEGER NOT NULL
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE goal_reward (
+        goal_id INTEGER NOT NULL,
+        reward_id INTEGER NOT NULL,
+        PRIMARY KEY (goal_id, reward_id),
+        FOREIGN KEY (goal_id) REFERENCES goal(goal_id) ON DELETE CASCADE,
+        FOREIGN KEY (reward_id) REFERENCES reward(reward_id) ON DELETE CASCADE
       );
     ''');
   }
