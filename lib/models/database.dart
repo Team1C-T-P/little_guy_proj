@@ -94,7 +94,7 @@ class AppDatabase {
           quantity INTEGER NOT NULL CHECK (quantity >= 0),
           PRIMARY KEY (user_id, item_id),
           FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
-          FOREIGN KEY (item_id) REFERENCES item(item_id)
+          FOREIGN KEY (item_id) REFERENCES item(item_id) ON DELETE CASCADE
         );
       ''');
 
@@ -115,6 +115,25 @@ class AppDatabase {
         target_deadline TEXT NOT NULL,
         min_allowed_value INTEGER NOT NULL CHECK (min_allowed_value >= 0),
         is_recurring BOOLEAN NOT NULL DEFAULT 0
+      );
+    ''');
+
+    /* User_goal table info:
+    - current_progress is number of steps taken
+    - week start and end date the ISO-8601 format, doing this through text
+    - reward_claimed is stored as an integer for boolean
+    */
+    await db.execute('''
+      CREATE TABLE user_goal (
+        user_id INTEGER NOT NULL,
+        goal_id INTEGER NOT NULL,
+        current_progress INTEGER NOT NULL CHECK (current_progress >= 0),
+        week_start_date TEXT NOT NULL,
+        week_end_date TEXT NOT NULL,
+        reward_claimed INT NOT NULL CHECK (reward_claimed IN (0, 1)),
+        PRIMARY KEY (user_id, goal_id),
+        FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+        FOREIGN KEY (goal_id) REFERENCES goal(goal_id) ON DELETE CASCADE
       );
     ''');
 
