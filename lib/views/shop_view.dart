@@ -59,15 +59,28 @@ class Shop extends StatelessWidget {
                         mainAxisSpacing: 8,
                       ),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => IconButton(
-                        padding: EdgeInsets.all(8.0),
-                        onPressed: () {
-                          print('image was clicked');
-                        },
-                        icon: Image.asset(
-                          snapshot.data![index],
-                          fit: BoxFit.cover,
-                        ),
+                      itemBuilder: (context, index) => Column(
+                        children: [
+                          Expanded(
+                            child: IconButton(
+                              padding: EdgeInsets.all(8),
+                              onPressed: () {
+                                print('image clicked');
+                              },
+                              icon: Image.asset(
+                                snapshot.data![index],
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'xxx coins',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
