@@ -3,8 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../widgets/button.dart';
 
-class Shop extends StatelessWidget {
+class Shop extends StatefulWidget {
   const Shop({super.key});
+
+  @override
+  State<Shop> createState() => _ShopState();
+}
+
+class _ShopState extends State<Shop> {
+  int _coinBalance = 500; // placeholder coin balance
+  // will be replaced when db is impemented
 
   // automatically load images in a folder for shop use
   Future<List<String>> _loadImages() async {
@@ -17,6 +25,30 @@ class Shop extends StatelessWidget {
               (path.endsWith('.png') || path.endsWith('.jpg')),
         )
         .toList();
+  }
+
+  void _showPurchaseDialog(String itemName, int price) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Purchase $itemName?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Price: $price coins'),
+            SizedBox(height: 10),
+            Text('Your Balance: $_coinBalance coins'),
+            SizedBox(height: 10),
+            if (_coinBalance < price)
+              Text(
+                'You do not have enough coins to purchase this item.',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
