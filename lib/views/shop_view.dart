@@ -43,10 +43,32 @@ class _ShopState extends State<Shop> {
             if (_coinBalance < price)
               Text(
                 'You do not have enough coins to purchase this item.',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          if (_coinBalance >= price)
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _coinBalance -= price; // Deduct the price from balance
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Purchased $itemName!')));
+              },
+              child: Text('Buy'),
+            ),
+        ],
       ),
     );
   }
@@ -97,7 +119,12 @@ class _ShopState extends State<Shop> {
                             child: IconButton(
                               padding: EdgeInsets.all(8),
                               onPressed: () {
-                                print('image clicked');
+                                _showPurchaseDialog(
+                                  'Item ${index + 1}',
+                                  50 +
+                                      (index *
+                                          10), // Example price based on index;
+                                );
                               },
                               icon: Image.asset(
                                 snapshot.data![index],
