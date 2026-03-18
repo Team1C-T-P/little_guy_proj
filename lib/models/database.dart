@@ -47,10 +47,10 @@ class AppDatabase {
           route_id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER NOT NULL,
           route_name TEXT NOT NULL,
-          route_start_coordinate_lat NUMERIC NOT NULL,
-          route_start_coordinate_lon NUMERIC NOT NULL,
-          route_end_coordinate_lat NUMERIC NOT NULL,
-          route_end_coordinate_lon NUMERIC NOT NULL,
+          route_start_coordinate_lat NUMERIC NOT NULL CHECK (route_start_coordinate_lat >= -90 AND route_start_coordinate_lat <= 90),
+          route_start_coordinate_lon NUMERIC NOT NULL CHECK (route_start_coordinate_lon >= -180 AND route_start_coordinate_lon <= 180),
+          route_end_coordinate_lat NUMERIC NOT NULL CHECK (route_end_coordinate_lat >= -90 AND route_end_coordinate_lat <= 90),
+          route_end_coordinate_lon NUMERIC NOT NULL CHECK (route_end_coordinate_lon >= -180 AND route_end_coordinate_lon <= 180),
           FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
           );
       ''');
