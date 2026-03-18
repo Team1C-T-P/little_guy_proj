@@ -181,3 +181,10 @@ class _ShopState extends State<Shop> {
     );
   }
 }
+
+/*
+Things to make sure are added:
+- make sure when item is bought, make sure it can be identified as bought and shows in the dress screen
+- db functions
+- 
+*/
