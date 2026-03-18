@@ -3,8 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../widgets/button.dart';
 
-class Shop extends StatelessWidget {
+class Shop extends StatefulWidget {
   const Shop({super.key});
+
+  @override
+  State<Shop> createState() => _ShopState();
+}
+
+class _ShopState extends State<Shop> {
+  int _coinBalance = 500; // placeholder coin balance
+  // will be replaced when db is impemented
 
   // automatically load images in a folder for shop use
   Future<List<String>> _loadImages() async {
@@ -17,6 +25,57 @@ class Shop extends StatelessWidget {
               (path.endsWith('.png') || path.endsWith('.jpg')),
         )
         .toList();
+  }
+
+  // shows box when item is clicked
+  void _showPurchaseDialog(String itemName, int price) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        // item name
+        title: Text('Purchase $itemName?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // item price and user balance
+            // will be replaced when db is implemented
+            Text('Price: $price coins'),
+            SizedBox(height: 10),
+            Text('Your Balance: $_coinBalance coins'),
+            SizedBox(height: 10),
+            if (_coinBalance < price)
+              Text(
+                'You do not have enough coins to purchase this item.',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          // compare user balance to price
+          if (_coinBalance >= price)
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _coinBalance -= price; // Deduct the price from balance
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Purchased $itemName!')));
+              },
+              child: Text('Buy'),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -59,15 +118,33 @@ class Shop extends StatelessWidget {
                         mainAxisSpacing: 8,
                       ),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => IconButton(
-                        padding: EdgeInsets.all(8.0),
-                        onPressed: () {
-                          print('image was clicked');
-                        },
-                        icon: Image.asset(
-                          snapshot.data![index],
-                          fit: BoxFit.cover,
-                        ),
+                      itemBuilder: (context, index) => Column(
+                        children: [
+                          Expanded(
+                            child: IconButton(
+                              padding: EdgeInsets.all(8),
+                              onPressed: () {
+                                _showPurchaseDialog(
+                                  'Item ${index + 1}',
+                                  50 + (index * 10),
+                                  // Example price based on index;
+                                );
+                              },
+                              icon: Image.asset(
+                                snapshot.data![index],
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          // show how much an item costs
+                          Text(
+                            'xxx coins', // placeholder until prices and db are implemented
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -104,3 +181,10 @@ class Shop extends StatelessWidget {
     );
   }
 }
+
+/*
+Things to make sure are added:
+- make sure when item is bought, make sure it can be identified as bought and shows in the dress screen
+- db functions
+- 
+*/
