@@ -27,15 +27,19 @@ class _ShopState extends State<Shop> {
         .toList();
   }
 
+  // shows box when item is clicked
   void _showPurchaseDialog(String itemName, int price) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        // item name
         title: Text('Purchase $itemName?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // item price and user balance
+            // will be replaced when db is implemented
             Text('Price: $price coins'),
             SizedBox(height: 10),
             Text('Your Balance: $_coinBalance coins'),
@@ -55,6 +59,7 @@ class _ShopState extends State<Shop> {
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel'),
           ),
+          // compare user balance to price
           if (_coinBalance >= price)
             TextButton(
               onPressed: () {
@@ -121,9 +126,8 @@ class _ShopState extends State<Shop> {
                               onPressed: () {
                                 _showPurchaseDialog(
                                   'Item ${index + 1}',
-                                  50 +
-                                      (index *
-                                          10), // Example price based on index;
+                                  50 + (index * 10),
+                                  // Example price based on index;
                                 );
                               },
                               icon: Image.asset(
@@ -132,8 +136,9 @@ class _ShopState extends State<Shop> {
                               ),
                             ),
                           ),
+                          // show how much an item costs
                           Text(
-                            'xxx coins',
+                            'xxx coins', // placeholder until prices and db are implemented
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
