@@ -39,6 +39,16 @@ class AppDatabase {
       );
     ''');
 
+    await db.execute('''
+      CREATE TABLE friend (
+        user_id INTEGER NOT NULL,
+        friend_id INTEGER NOT NULL CHECK (friend_id != user_id),
+        PRIMARY KEY (user_id, friend_id),
+        FOREIGN KEY (user_id) REFERENCES user(user_id)
+        FOREIGN KEY (friend_id) REFERENCES user(user_id)
+      );
+    ''');
+
   /* route table info:
    - all coordinates are stored using decimal degrees
   */
