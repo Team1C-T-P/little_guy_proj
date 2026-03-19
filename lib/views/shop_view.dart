@@ -155,7 +155,7 @@ class _ShopState extends State<Shop> {
           // bottom row, with the button to go to dress
           Stack(
             children: <Widget>[
-              Container(child: Image.asset("images/clover.png")),
+              Container(child: Image.asset('assets/images/clover.png')),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: SizedBox(
@@ -172,7 +172,7 @@ class _ShopState extends State<Shop> {
               Container(
                 alignment: Alignment.bottomRight,
                 padding: const EdgeInsets.only(right: 18),
-                child: Image.asset("images/daisy.png"),
+                child: Image.asset('assets/images/daisy.png'),
               ),
             ],
           ),

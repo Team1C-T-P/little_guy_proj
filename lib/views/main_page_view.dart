@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 24),
-            child: Image.asset('images/cloud.png'),
+            child: Image.asset('assets/images/cloud.png'),
             color: Color.fromARGB(255, 213, 248, 255),
           ),
           Expanded(
@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: <Widget>[
                 Row(
                   children: [
-                    Image.asset('images/clover.png'),
+                    Image.asset('assets/images/clover.png'),
                     Spacer(),
 
                     SizedBox(
@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       alignment: Alignment.bottomRight,
                       padding: const EdgeInsets.only(right: 18),
-                      child: Image.asset("images/flowerplant.png"),
+                      child: Image.asset('assets/images/flowerplant.png'),
                     ),
                   ],
                 ),
@@ -129,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizedBox(
                                 width: 40,
                                 height: 40,
-                                child: Image.asset('images/hunger.png'),
+                                child: Image.asset('assets/images/hunger.png'),
                               ),
                               SizedBox(
                                 width: 100,
@@ -163,7 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   SizedBox(
                                     width: 40,
                                     height: 40,
-                                    child: Image.asset('images/enjoyment.png'),
+                                    child: Image.asset(
+                                      'assets/images/enjoyment.png',
+                                    ),
                                   ),
                                   SizedBox(
                                     width: 100,
@@ -192,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   SizedBox(
                                     width: 40,
                                     height: 40,
-                                    child: Image.asset('images/hygiene.png'),
+                                    child: Image.asset(
+                                      'assets/images/hygiene.png',
+                                    ),
                                   ),
                                   SizedBox(
                                     width: 100,

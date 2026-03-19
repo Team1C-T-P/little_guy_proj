@@ -71,7 +71,7 @@ class _LittleGuyState extends State<LittleGuy>
             child: child,
           );
         },
-        child: Image.asset('images/funnyguy.png', width: 180),
+        child: Image.asset('assets/images/funnyguy.png', width: 180),
       ),
     );
   }

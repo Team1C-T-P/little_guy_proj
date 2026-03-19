@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'models/database.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'views/main_page_view.dart';
 import 'views/settings_view.dart';
@@ -10,7 +11,12 @@ import 'views/community_view.dart';
 import 'views/profile_view.dart';
 import 'package:pedometer/pedometer.dart';
 
-void main() {
+void main() async {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // // Ensure the database is initialized before running the app
+  // await AppDatabase.instance.database;
+  // // Initialize default data if necessary
+  // await AppDatabase.instance.initializeDefaultData();
   runApp(const MyApp());
 }
 

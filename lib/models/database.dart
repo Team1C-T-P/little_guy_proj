@@ -17,15 +17,10 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'little_guy.db');
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
-
     /* user table info:
       - currency is stored in pennies, so when used divide by 100, and updating multiply by 100
       - last_online is stored in the ISO-8601 format, doing this through text
@@ -49,7 +44,7 @@ class AppDatabase {
       );
     ''');
 
-  /* route table info:
+    /* route table info:
    - all coordinates are stored using decimal degrees
   */
     await db.execute('''
@@ -84,7 +79,7 @@ class AppDatabase {
       - price is stored in pennies, so when used divide by 100, and updating multiply by 100
       - quantity will usually be 1, needed for stackable items e.g. food
     */
-      await db.execute('''
+    await db.execute('''
       CREATE TABLE item (
         item_id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_name TEXT NOT NULL,
@@ -173,7 +168,40 @@ class AppDatabase {
     ''');
   }
 
-Future close() async {
+  // create default to user pet and item to initialize db
+  Future<void> initializeDefaultData() async {
+    final db = await database;
+
+    // check if already initialized
+    final users = await db.query('user');
+    if (users.isNotEmpty) return;
+
+    // create user
+    await db.insert('user', {
+      'user_name': 'Default User',
+      'currency': 1000, // 10 coins
+      'last_online': DateTime.now().toIso8601String(),
+    });
+
+    // create a little guy
+    await db.insert('little_guy', {
+      'user_id': 1,
+      'little_guy_name': 'Buddy',
+      'hygiene_level': 100,
+      'hunger_level': 100,
+      'enjoyment_level': 100,
+    });
+
+    // create sample item
+    await db.insert('item', {
+      'item_name': 'Cool Hat',
+      'image_path': 'assets/images/hats/cool_hat.png',
+      'quantity': 1,
+      'price': 500, // 5 coins
+    });
+  }
+
+  Future close() async {
     final db = _database;
     if (db != null) {
       await db.close();
