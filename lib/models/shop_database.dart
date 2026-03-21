@@ -3,7 +3,7 @@ import 'database.dart';
 
 class ShopDatabase {
   // get items from shop
-  Future<List<Map<String, dynamic>>> getShopItems() async {
+  Future<List<Map<String, dynamic>>> getAllItems() async {
     final db = await AppDatabase.instance.database;
     return await db.query('item');
   }
@@ -63,7 +63,7 @@ class ShopDatabase {
     // check if user has enough currency
     final userCurrency = users.first['currency'] as int;
     final itemPrice = items.first['price'] as int;
-    if (userCurrency < itemPrice) return 'Not enough funds';
+    if (userCurrency < itemPrice) return 'insufficient_funds';
 
     // deduct price from user's currency using transaction
     await db.transaction((txn) async {
@@ -81,7 +81,7 @@ class ShopDatabase {
         'quantity': 1,
       });
     });
-  return 'Purchase successful!';
+    return 'success';
   }
 
   // get lists of items owned by user
@@ -93,7 +93,6 @@ class ShopDatabase {
       whereArgs: [userId],
     );
 
-    return inventory.map((item) => item['item_id'] as int).toSet();  
-
-
+    return inventory.map((item) => item['item_id'] as int).toSet();
+  }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_flame_playground/little%20guy.dart';
+import '../little%20guy.dart';
 import '../widgets/button.dart';
+import '../models/shop_database.dart';
 
 class Shop extends StatefulWidget {
   const Shop({super.key});
@@ -11,40 +12,63 @@ class Shop extends StatefulWidget {
 }
 
 class _ShopState extends State<Shop> {
-  int _coinBalance = 500; // placeholder coin balance
-  // will be replaced when db is impemented
+  final ShopDatabase _shopDb = ShopDatabase();
 
-  // automatically load images in a folder for shop use
-  Future<List<String>> _loadImages() async {
-    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-    return manifest
-        .listAssets()
-        .where(
-          (path) =>
-              path.startsWith('assets/images/hats/') &&
-              (path.endsWith('.png') || path.endsWith('.jpg')),
-        )
-        .toList();
+  // Placeholder for user's coin balance, will be fetched from DB
+  int _coinBalance = 0;
+  List<Map<String, dynamic>> _items = [];
+  Set<int> _ownedItemIds = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadShopData();
   }
 
-  // shows box when item is clicked
-  void _showPurchaseDialog(String itemName, int price) {
+  Future<void> _loadShopData() async {
+    // load user currency and shop items from the database
+    // Assuming user ID 1 for now
+
+    final currency = await _shopDb.getUserCurrency(1);
+    final items = await _shopDb.getAllItems();
+    final ownedIds = await _shopDb.getUserItems(1);
+
+    setState(() {
+      _coinBalance = currency;
+      _items = items;
+      _ownedItemIds = ownedIds.toSet();
+      _isLoading = false;
+    });
+  }
+
+  void _showPurchaseDialog(Map<String, dynamic> item) {
+    final itemId = item['item_id'] as int;
+    final itemName = item['item_name'] as String;
+    final price = item['price'] as int;
+    final alreadyOwned = _ownedItemIds.contains(itemId);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        // item name
         title: Text('Purchase $itemName?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // item price and user balance
-            // will be replaced when db is implemented
             Text('Price: $price coins'),
             SizedBox(height: 10),
             Text('Your Balance: $_coinBalance coins'),
             SizedBox(height: 10),
-            if (_coinBalance < price)
+            if (alreadyOwned)
+              Text(
+                'You already own this item.',
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            else if (_coinBalance < price)
               Text(
                 'You do not have enough coins to purchase this item.',
                 style: TextStyle(
@@ -59,17 +83,35 @@ class _ShopState extends State<Shop> {
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel'),
           ),
-          // compare user balance to price
-          if (_coinBalance >= price)
+          if (!alreadyOwned && _coinBalance >= price)
             TextButton(
-              onPressed: () {
-                setState(() {
-                  _coinBalance -= price; // Deduct the price from balance
-                });
+              onPressed: () async {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('Purchased $itemName!')));
+                final result = await _shopDb.purchaseItem(1, itemId);
+
+                if (result == 'success') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Purchased $itemName!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _loadShopData(); // Refresh data after purchase
+                } else if (result == 'already_owned') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('You already own this item!'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                } else if (result == 'insufficient_funds') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Not enough funds to purchase this item.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               child: Text('Buy'),
             ),
@@ -80,6 +122,10 @@ class _ShopState extends State<Shop> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       backgroundColor: Color.fromARGB(219, 150, 242, 176),
       body: Column(
