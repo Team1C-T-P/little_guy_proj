@@ -23,6 +23,8 @@ void main() async {
   runApp(const MyApp());
 }
 
+// test db by printint tables in terminal
+
 Future<void> _debugPrintDatabase() async {
   final db = await AppDatabase.instance.database;
 
