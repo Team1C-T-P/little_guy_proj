@@ -12,12 +12,34 @@ import 'views/profile_view.dart';
 import 'package:pedometer/pedometer.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // // Ensure the database is initialized before running the app
-  // await AppDatabase.instance.database;
-  // // Initialize default data if necessary
-  // await AppDatabase.instance.initializeDefaultData();
+  WidgetsFlutterBinding.ensureInitialized();
+  // Ensure the database is initialized before running the app
+  await AppDatabase.instance.database;
+  // Initialize default data if necessary
+  await AppDatabase.instance.initializeDefaultData();
+
+  await _debugPrintDatabase();
+
   runApp(const MyApp());
+}
+
+Future<void> _debugPrintDatabase() async {
+  final db = await AppDatabase.instance.database;
+
+  // Print users
+  final users = await db.query('user');
+  print('=== USERS ===');
+  print(users);
+
+  // Print little guys
+  final littleGuys = await db.query('little_guy');
+  print('=== LITTLE GUYS ===');
+  print(littleGuys);
+
+  // Print items
+  final items = await db.query('item');
+  print('=== ITEMS ===');
+  print(items);
 }
 
 class MyApp extends StatelessWidget {
