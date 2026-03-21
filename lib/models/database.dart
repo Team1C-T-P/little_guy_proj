@@ -192,13 +192,61 @@ class AppDatabase {
       'enjoyment_level': 100,
     });
 
-    // create sample item
-    await db.insert('item', {
-      'item_name': 'Cool Hat',
-      'image_path': 'assets/images/hats/cool_hat.png',
-      'quantity': 1,
-      'price': 500, // 5 coins
-    });
+    // create some items
+    final hats = [
+      {'name': 'Band', 'path': 'assets/images/hats/band.png', 'price': 100},
+      {
+        'name': 'Cheese Hat',
+        'path': 'assets/images/hats/cheese.png',
+        'price': 150,
+      },
+      {
+        'name': 'Devil Hat',
+        'path': 'assets/images/hats/Deeevilhat.png',
+        'price': 300,
+      },
+      {
+        'name': 'Mushroom Cap',
+        'path': 'assets/images/hats/mushroomcap.png',
+        'price': 200,
+      },
+      {
+        'name': 'Pompom Hat',
+        'path': 'assets/images/hats/pompom.png',
+        'price': 250,
+      },
+      {
+        'name': 'Sleepy Slime',
+        'path': 'assets/images/hats/sleepyslime.png',
+        'price': 400,
+      },
+      {
+        'name': 'Sun Hat',
+        'path': 'assets/images/hats/SunHat.png',
+        'price': 180,
+      },
+      {
+        'name': 'Top Hat',
+        'path': 'assets/images/hats/tophat.png',
+        'price': 350,
+      },
+      {
+        'name': 'Witch Hat',
+        'path': 'assets/images/hats/witchhat.png',
+        'price': 500,
+      },
+    ];
+
+    for (var hat in hats) {
+      await db.insert('item', {
+        'item_name': hat['name'],
+        'image_path': hat['path'],
+        'quantity': 1,
+        'price': hat['price'],
+      });
+    }
+
+    print('Default data initialized with ${hats.length} hats.');
   }
 
   Future close() async {
