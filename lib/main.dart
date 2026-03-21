@@ -18,30 +18,28 @@ void main() async {
   // Initialize default data if necessary
   await AppDatabase.instance.initializeDefaultData();
 
-  await _debugPrintDatabase();
+  await _printAllItems();
 
   runApp(const MyApp());
 }
 
-// test db by printint tables in terminal
+// test db by printing items in terminal
 
-Future<void> _debugPrintDatabase() async {
+Future<void> _printAllItems() async {
   final db = await AppDatabase.instance.database;
-
-  // Print users
-  final users = await db.query('user');
-  print('=== USERS ===');
-  print(users);
-
-  // Print little guys
-  final littleGuys = await db.query('little_guy');
-  print('=== LITTLE GUYS ===');
-  print(littleGuys);
-
-  // Print items
   final items = await db.query('item');
-  print('=== ITEMS ===');
-  print(items);
+
+  print('\n========================================');
+  print('ITEMS IN DATABASE: ${items.length}');
+  print('========================================');
+
+  for (var item in items) {
+    print(
+      'ID: ${item['item_id']} | ${item['item_name']} | ${item['price']} coins | ${item['image_path']}',
+    );
+  }
+
+  print('========================================\n');
 }
 
 class MyApp extends StatelessWidget {
