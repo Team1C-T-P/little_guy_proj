@@ -135,9 +135,21 @@ class _ShopState extends State<Shop> {
             flex: 3,
             child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
-              child: Center(child: LittleGuy()),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // balance the display
+                  Text(
+                    'Balance: $_coinBalance coins',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  LittleGuy(),
+                ],
+              ),
             ),
           ),
+
           // Area containing the items to choose
           Expanded(
             flex: 2,
@@ -148,50 +160,71 @@ class _ShopState extends State<Shop> {
                   color: Color.fromARGB(219, 246, 255, 226),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: FutureBuilder<List<String>>(
-                  future: _loadImages(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    // adds the images from the _loadiamges to the box
-                    // in rows of four
-                    return GridView.builder(
-                      padding: EdgeInsets.all(8),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => Column(
-                        children: [
-                          Expanded(
-                            child: IconButton(
-                              padding: EdgeInsets.all(8),
-                              onPressed: () {
-                                _showPurchaseDialog(
-                                  'Item ${index + 1}',
-                                  50 + (index * 10),
-                                  // Example price based on index;
-                                );
-                              },
-                              icon: Image.asset(
-                                snapshot.data![index],
-                                fit: BoxFit.cover,
+                child: GridView.builder(
+                  padding: EdgeInsets.all(8),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _items.length,
+                  itemBuilder: (context, index) {
+                    final item = _items[index];
+                    final itemId = item['item_id'] as int;
+                    final isOwned = _ownedItemIds.contains(itemId);
+
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              IconButton(
+                                padding: EdgeInsets.all(8),
+                                onPressed: () => _showPurchaseDialog(item),
+                                icon: Image.asset(
+                                  item['item_path'] as String,
+                                  fit: BoxFit.cover,
+                                  color: isOwned ? null : Colors.grey,
+                                  colorBlendMode: isOwned
+                                      ? null
+                                      : BlendMode.saturation,
+                                ),
                               ),
-                            ),
+                              if (isOwned)
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Owned',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          // show how much an item costs
-                          Text(
-                            'xxx coins', // placeholder until prices and db are implemented
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        Text(
+                          isOwned ? 'OWNED' : '${item['price']} coins',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isOwned ? Colors.green : Colors.black,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -227,10 +260,3 @@ class _ShopState extends State<Shop> {
     );
   }
 }
-
-/*
-Things to make sure are added:
-- make sure when item is bought, make sure it can be identified as bought and shows in the dress screen
-- db functions
-- 
-*/
