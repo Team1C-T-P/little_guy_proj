@@ -182,12 +182,12 @@ class _ShopState extends State<Shop> {
                                 padding: EdgeInsets.all(8),
                                 onPressed: () => _showPurchaseDialog(item),
                                 icon: Image.asset(
-                                  item['item_path'] as String,
+                                  item['image_path'] as String,
                                   fit: BoxFit.cover,
-                                  color: isOwned ? null : Colors.grey,
+                                  color: isOwned ? Colors.grey : null,
                                   colorBlendMode: isOwned
-                                      ? null
-                                      : BlendMode.saturation,
+                                      ? BlendMode.saturation
+                                      : null,
                                 ),
                               ),
                               if (isOwned)
