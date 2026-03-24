@@ -231,29 +231,21 @@ class _ShopState extends State<Shop> {
               ),
             ),
           ),
-          // bottom row, with the button to go to dress
-          Stack(
-            children: <Widget>[
-              Container(child: Image.asset('assets/images/clover.png')),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: SizedBox(
-                  width: 10,
-                  height: 100,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: FittedBox(
-                      child: GreenButton(buttonText: "Dress", onPressed: () {}),
-                    ),
-                  ),
+          // bottom row, with the button to choose food or clothes
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: GreenButton(buttonText: 'Food', onPressed: () {}),
                 ),
-              ),
-              Container(
-                alignment: Alignment.bottomRight,
-                padding: const EdgeInsets.only(right: 18),
-                child: Image.asset('assets/images/daisy.png'),
-              ),
-            ],
+                SizedBox(width: 16), // ← This adds spacing between buttons
+                Expanded(
+                  child: GreenButton(buttonText: 'Clothes', onPressed: () {}),
+                ),
+              ],
+            ),
           ),
         ],
       ),
