@@ -240,7 +240,7 @@ class _ShopState extends State<Shop> {
                 Expanded(
                   child: GreenButton(buttonText: 'Food', onPressed: () {}),
                 ),
-                SizedBox(width: 16), // ← This adds spacing between buttons
+                SizedBox(width: 16),
                 Expanded(
                   child: GreenButton(buttonText: 'Clothes', onPressed: () {}),
                 ),

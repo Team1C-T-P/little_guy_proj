@@ -96,3 +96,10 @@ class ShopDatabase {
     return inventory.map((item) => item['item_id'] as int).toSet();
   }
 }
+
+/*
+Need:
+- Get all items
+- update db so item has an id for categories e.g. food or clothing
+- load each separately in the shop view
+*/
