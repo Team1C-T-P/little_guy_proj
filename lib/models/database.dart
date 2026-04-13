@@ -201,8 +201,9 @@ class AppDatabase {
   Future<void> _autoAddHatsFromAssets() async {
     final db = await database;
 
-    // Scan for hat images
+    // Scan for all images in hats and food
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
     final hatImages = manifest
         .listAssets()
         .where(
@@ -212,8 +213,17 @@ class AppDatabase {
         )
         .toList();
 
-    // Price mapping based on filename
-    final priceMap = {
+    final foodImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/food') &&
+              (path.endsWith('.png') || path.endsWith('.jpeg')),
+        )
+        .toList();
+
+    // Price mapping for hats
+    final hatPrices = {
       'band': 100,
       'cheese': 150,
       'deeevilhat': 300,
@@ -225,10 +235,14 @@ class AppDatabase {
       'witchhat': 500,
     };
 
+    // Price mapping for food
+    final foodPrices = {'bread': 100};
+
+    // Add hats
     for (var imagePath in hatImages) {
       final fileName = imagePath.split('/').last.split('.').first.toLowerCase();
       final itemName = _formatItemName(fileName);
-      final price = priceMap[fileName] ?? 200; // Default 200 if not in map
+      final price = hatPrices[fileName] ?? 200; // Default 200 if not in map
 
       await db.insert('item', {
         'item_name': itemName,
@@ -239,7 +253,20 @@ class AppDatabase {
       });
     }
 
-    print('✅ Auto-added ${hatImages.length} hats');
+    // Add food
+    for (var imagePath in foodImages) {
+      final fileName = imagePath.split('/').last.split('.').first.toLowerCase();
+      final itemName = _formatItemName(fileName);
+      final price = foodPrices[fileName] ?? 100; // Default 100 for food
+
+      await db.insert('item', {
+        'item_name': itemName,
+        'image_path': imagePath,
+        'quantity': 1,
+        'price': price,
+        'type': 'food',
+      });
+    }
   }
 
   String _formatItemName(String fileName) {
