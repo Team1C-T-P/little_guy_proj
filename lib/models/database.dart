@@ -195,10 +195,10 @@ class AppDatabase {
     });
 
     // Auto-detect and add hats
-    await _autoAddHatsFromAssets();
+    await _autoAddItemsFromAssets();
   }
 
-  Future<void> _autoAddHatsFromAssets() async {
+  Future<void> _autoAddItemsFromAssets() async {
     final db = await database;
 
     // Scan for all images in hats and food
@@ -217,7 +217,7 @@ class AppDatabase {
         .listAssets()
         .where(
           (path) =>
-              path.startsWith('assets/images/food') &&
+              path.startsWith('assets/images/food/') &&
               (path.endsWith('.png') || path.endsWith('.jpeg')),
         )
         .toList();
