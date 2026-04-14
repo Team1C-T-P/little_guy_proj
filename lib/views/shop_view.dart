@@ -19,25 +19,31 @@ class _ShopState extends State<Shop> {
   List<Map<String, dynamic>> _items = [];
   Set<int> _ownedItemIds = {};
   bool _isLoading = true;
+  String _currentType = 'hat';
 
   @override
   void initState() {
     super.initState();
-    _loadShopData();
+    _loadShopData('hat');
   }
 
-  Future<void> _loadShopData() async {
+  Future<void> _loadShopData(String type) async {
     // load user currency and shop items from the database
     // Assuming user ID 1 for now
 
+    setState(() {
+      _isLoading = true;
+    });
+
     final currency = await _shopDb.getUserCurrency(1);
-    final items = await _shopDb.getAllItems();
+    final items = await _shopDb.getItemsByType(type);
     final ownedIds = await _shopDb.getUserItems(1);
 
     setState(() {
       _coinBalance = currency;
       _items = items;
       _ownedItemIds = ownedIds.toSet();
+      _currentType = type;
       _isLoading = false;
     });
   }
@@ -96,7 +102,7 @@ class _ShopState extends State<Shop> {
                       backgroundColor: Colors.green,
                     ),
                   );
-                  _loadShopData(); // Refresh data after purchase
+                  _loadShopData(_currentType); // Refresh data after purchase
                 } else if (result == 'already_owned') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -238,11 +244,25 @@ class _ShopState extends State<Shop> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: GreenButton(buttonText: 'Food', onPressed: () {}),
+                  child: GreenButton(
+                    buttonText: 'Food',
+                    onPressed: () {
+                      setState(() {
+                        _loadShopData('food');
+                      });
+                    },
+                  ),
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: GreenButton(buttonText: 'Clothes', onPressed: () {}),
+                  child: GreenButton(
+                    buttonText: 'Clothes',
+                    onPressed: () {
+                      setState(() {
+                        _loadShopData('hat');
+                      });
+                    },
+                  ),
                 ),
               ],
             ),
@@ -252,3 +272,6 @@ class _ShopState extends State<Shop> {
     );
   }
 }
+
+
+// fix loadShopData

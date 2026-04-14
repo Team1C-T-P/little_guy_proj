@@ -2,10 +2,10 @@
 import 'database.dart';
 
 class ShopDatabase {
-  // get items from shop
-  Future<List<Map<String, dynamic>>> getAllItems() async {
+  // get items from database by type
+  Future<List<Map<String, dynamic>>> getItemsByType(String type) async {
     final db = await AppDatabase.instance.database;
-    return await db.query('item');
+    return await db.query('item', where: 'type = ?', whereArgs: [type]);
   }
 
   // get user currency
