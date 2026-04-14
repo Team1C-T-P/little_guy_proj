@@ -79,7 +79,65 @@ class ShopDatabase {
         where: 'user_id = ?',
         whereArgs: [userId],
       );
+
+      // add/update inventory
+      final exists = await txn.query(
+        'inventory',
+        where: 'user_id = ? AND item_id = ?',
+        whereArgs: [userId, itemId],
+      );
+
+      if (exists.isNotEmpty) {
+        // food exists in inventory, increment quantity
+        final currentQuantity = exists.first['quantity'] as int;
+        await txn.update(
+          'inventory',
+          {'quantity': currentQuantity + 1},
+          where: 'user_id = ? AND item_id = ?',
+          whereArgs: [userId, itemId],
+        );
+      } else {
+        // new food item - add to inventory
+        await txn.insert('inventory', {
+          'user_id': userId,
+          'item_id': itemId,
+          'quantity': 1,
+        });
+      }
     });
+
+    return 'success';
+  }
+
+  // get quantity of specific item user owns
+  Future<int> getItemQuantity(int userId, int itemId) async {
+    final db = await AppDatabase.instance.database;
+    final result = await db.query(
+      'inventory',
+      columns: ['quantity'],
+      where: 'user_id = ? AND item_id = ?',
+      whereArgs: [userId, itemId],
+    );
+
+    if (result.isEmpty) return 0;
+    return result.first['quantity'] as int;
+  }
+
+  // get quantities for all user's inventory
+  Future<Map<int, int>> getUserItemQuantities(int userId) async {
+    final db = await AppDatabase.instance.database;
+    final inventory = await db.query(
+      'inventory',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    Map<int, int> quantities = {};
+    for (var item in inventory) {
+      quantities[item['item_id'] as int] = item['quantity'] as int;
+    }
+
+    return quantities;
   }
 
   // get lists of items owned by user

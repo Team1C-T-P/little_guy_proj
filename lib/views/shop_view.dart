@@ -18,6 +18,7 @@ class _ShopState extends State<Shop> {
   int _coinBalance = 0;
   List<Map<String, dynamic>> _items = [];
   Set<int> _ownedItemIds = {};
+  Map<int, int> _itemQuantities = {};
   bool _isLoading = true;
   String _currentType = 'hat';
 
@@ -38,11 +39,13 @@ class _ShopState extends State<Shop> {
     final currency = await _shopDb.getUserCurrency(1);
     final items = await _shopDb.getItemsByType(type);
     final ownedIds = await _shopDb.getUserItems(1);
+    final quantities = await _shopDb.getUserItemQuantities(1);
 
     setState(() {
       _coinBalance = currency;
       _items = items;
       _ownedItemIds = ownedIds.toSet();
+      _itemQuantities = quantities;
       _currentType = type;
       _isLoading = false;
     });
@@ -52,7 +55,9 @@ class _ShopState extends State<Shop> {
     final itemId = item['item_id'] as int;
     final itemName = item['item_name'] as String;
     final price = item['price'] as int;
+    final itemType = item['type'] as String;
     final alreadyOwned = _ownedItemIds.contains(itemId);
+    final quantity = _itemQuantities[itemId] ?? 0;
 
     showDialog(
       context: context,
@@ -66,15 +71,24 @@ class _ShopState extends State<Shop> {
             SizedBox(height: 10),
             Text('Your Balance: $_coinBalance coins'),
             SizedBox(height: 10),
-            if (alreadyOwned)
+            // show quantity of food owned, and owned for hats
+            if (itemType == 'food' && quantity > 0)
               Text(
-                'You already own this item.',
+                'You own: $quantity',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            else if (itemType == 'hat' && alreadyOwned)
+              Text(
+                'You already own this item',
                 style: TextStyle(
                   color: Colors.orange,
                   fontWeight: FontWeight.bold,
                 ),
-              )
-            else if (_coinBalance < price)
+              ),
+            if (_coinBalance < price)
               Text(
                 'You do not have enough coins to purchase this item.',
                 style: TextStyle(
@@ -89,7 +103,8 @@ class _ShopState extends State<Shop> {
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel'),
           ),
-          if (!alreadyOwned && _coinBalance >= price)
+          // allow purchase if have enough money if food or new hat
+          if (_coinBalance >= price && (itemType == 'food' || !alreadyOwned))
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
@@ -102,18 +117,18 @@ class _ShopState extends State<Shop> {
                       backgroundColor: Colors.green,
                     ),
                   );
-                  _loadShopData(_currentType); // Refresh data after purchase
+                  _loadShopData(_currentType);
                 } else if (result == 'already_owned') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('You already own this item!'),
+                      content: Text('You already own this item'),
                       backgroundColor: Colors.orange,
                     ),
                   );
                 } else if (result == 'insufficient_funds') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Not enough funds to purchase this item.'),
+                      content: Text('Not enough funds to purchase this item'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -177,7 +192,9 @@ class _ShopState extends State<Shop> {
                   itemBuilder: (context, index) {
                     final item = _items[index];
                     final itemId = item['item_id'] as int;
+                    final itemType = item['type'] as String;
                     final isOwned = _ownedItemIds.contains(itemId);
+                    final quantity = _itemQuantities[itemId] ?? 0;
 
                     return Column(
                       children: [
@@ -190,13 +207,15 @@ class _ShopState extends State<Shop> {
                                 icon: Image.asset(
                                   item['image_path'] as String,
                                   fit: BoxFit.cover,
-                                  color: isOwned ? Colors.grey : null,
+                                  color: (itemType == 'hat' && isOwned)
+                                      ? Colors.grey
+                                      : null,
                                   colorBlendMode: isOwned
                                       ? BlendMode.saturation
                                       : null,
                                 ),
                               ),
-                              if (isOwned)
+                              if (itemType == 'hat' && isOwned)
                                 Positioned(
                                   top: 0,
                                   right: 0,
@@ -210,7 +229,30 @@ class _ShopState extends State<Shop> {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      'Owned',
+                                      '✓',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else if (itemType == 'food' && quantity > 0)
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'x$quantity',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 10,
@@ -223,11 +265,14 @@ class _ShopState extends State<Shop> {
                           ),
                         ),
                         Text(
-                          isOwned ? 'OWNED' : '${item['price']} coins',
+                          (itemType == 'hat' && isOwned)
+                              ? 'OWNED'
+                              : '${item['price']} coins',
                           style: TextStyle(
-                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: isOwned ? Colors.green : Colors.black,
+                            color: (itemType == 'hat' && isOwned)
+                                ? Colors.green
+                                : Colors.black,
                           ),
                         ),
                       ],
