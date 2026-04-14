@@ -218,7 +218,7 @@ class AppDatabase {
         .where(
           (path) =>
               path.startsWith('assets/images/food/') &&
-              (path.endsWith('.png') || path.endsWith('.jpeg')),
+              (path.endsWith('.png') || path.endsWith('.jpg')),
         )
         .toList();
 
