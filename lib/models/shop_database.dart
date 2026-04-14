@@ -36,12 +36,28 @@ class ShopDatabase {
   Future<String> purchaseItem(int userId, int itemId) async {
     final db = await AppDatabase.instance.database;
 
-    // check if user owns item selected
-    if (await userOwnsItem(userId, itemId)) {
-      return 'You already own this item!';
+    /*
+    get item type
+    - if hat can buy normally
+    - if food, check if in inventory, if yes then increment quantity
+    */
+    final items = await db.query(
+      'item',
+      where: 'item_id = ?',
+      whereArgs: [itemId],
+    );
+
+    if (items.isEmpty) return 'Item not found';
+
+    final itemType = items.first['type'] as String;
+    final itemPrice = items.first['price'] as int;
+
+    // check if user already owns a hat
+    if (itemType == 'hat' && await userOwnsItem(userId, itemId)) {
+      return 'already_owned';
     }
 
-    // get user and item
+    // get user currency
     final users = await db.query(
       'user',
       columns: ['currency'],
@@ -49,39 +65,21 @@ class ShopDatabase {
       whereArgs: [userId],
     );
 
-    final items = await db.query(
-      'item',
-      columns: ['price'],
-      where: 'item_id = ?',
-      whereArgs: [itemId],
-    );
-
-    if (users.isEmpty || items.isEmpty) {
-      return 'User or item not found!';
-    }
-
-    // check if user has enough currency
     final userCurrency = users.first['currency'] as int;
-    final itemPrice = items.first['price'] as int;
+
+    // check if user has enough money
     if (userCurrency < itemPrice) return 'insufficient_funds';
 
-    // deduct price from user's currency using transaction
+    // purchase transaction
     await db.transaction((txn) async {
+      // deduct money
       await txn.update(
         'user',
         {'currency': userCurrency - itemPrice},
         where: 'user_id = ?',
         whereArgs: [userId],
       );
-
-      // add item to user inventory
-      await txn.insert('inventory', {
-        'user_id': userId,
-        'item_id': itemId,
-        'quantity': 1,
-      });
     });
-    return 'success';
   }
 
   // get lists of items owned by user
@@ -99,7 +97,8 @@ class ShopDatabase {
 
 /*
 Need:
-- Get all items
-- update db so item has an id for categories e.g. food or clothing
-- load each separately in the shop view
+- Link items bought to the user
+- make sure food items can be bought again after initial purchase
+- increment the amount held by the user when bought again
+
 */
