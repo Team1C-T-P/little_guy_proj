@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter/services.dart';
 
 class AppDatabase {
   static final AppDatabase instance = AppDatabase._init();
@@ -85,7 +86,8 @@ class AppDatabase {
         item_name TEXT NOT NULL,
         image_path TEXT NOT NULL,
         quantity INTEGER NOT NULL CHECK (quantity >= 0),
-        price INTEGER NOT NULL CHECK (price >= 0)
+        price INTEGER NOT NULL CHECK (price >= 0),
+        type TEXT NOT NULL
       );
     ''');
 
@@ -172,18 +174,18 @@ class AppDatabase {
   Future<void> initializeDefaultData() async {
     final db = await database;
 
-    // check if already initialized
+    // Check if already initialized
     final users = await db.query('user');
     if (users.isNotEmpty) return;
 
-    // create user
+    // Create user
     await db.insert('user', {
       'user_name': 'Default User',
-      'currency': 1000, // 10 coins
+      'currency': 1000,
       'last_online': DateTime.now().toIso8601String(),
     });
 
-    // create a little guy
+    // Create little guy
     await db.insert('little_guy', {
       'user_id': 1,
       'little_guy_name': 'Buddy',
@@ -192,67 +194,89 @@ class AppDatabase {
       'enjoyment_level': 100,
     });
 
-    // create some items
-    final hats = [
-      {'name': 'Band', 'path': 'assets/images/hats/band.png', 'price': 100},
-      {
-        'name': 'Cheese Hat',
-        'path': 'assets/images/hats/cheese.png',
-        'price': 150,
-      },
-      {
-        'name': 'Devil Hat',
-        'path': 'assets/images/hats/Deeevilhat.png',
-        'price': 300,
-      },
-      {
-        'name': 'Mushroom Cap',
-        'path': 'assets/images/hats/mushroomcap.png',
-        'price': 200,
-      },
-      {
-        'name': 'Pompom Hat',
-        'path': 'assets/images/hats/pompom.png',
-        'price': 250,
-      },
-      {
-        'name': 'Sleepy Slime',
-        'path': 'assets/images/hats/sleepyslime.png',
-        'price': 400,
-      },
-      {
-        'name': 'Sun Hat',
-        'path': 'assets/images/hats/SunHat.png',
-        'price': 180,
-      },
-      {
-        'name': 'Top Hat',
-        'path': 'assets/images/hats/tophat.png',
-        'price': 350,
-      },
-      {
-        'name': 'Witch Hat',
-        'path': 'assets/images/hats/witchhat.png',
-        'price': 500,
-      },
-    ];
+    // Auto-detect and add hats
+    await _autoAddItemsFromAssets();
+  }
 
-    for (var hat in hats) {
+  Future<void> _autoAddItemsFromAssets() async {
+    final db = await database;
+
+    // Scan for all images in hats and food
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
+    final hatImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/hats/') &&
+              (path.endsWith('.png') || path.endsWith('.jpg')),
+        )
+        .toList();
+
+    final foodImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/food/') &&
+              (path.endsWith('.png') || path.endsWith('.jpg')),
+        )
+        .toList();
+
+    // Price mapping for hats
+    final hatPrices = {
+      'band': 100,
+      'cheese': 150,
+      'deeevilhat': 300,
+      'mushroomcap': 200,
+      'pompom': 250,
+      'sleepyslime': 400,
+      'sunhat': 180,
+      'tophat': 350,
+      'witchhat': 500,
+    };
+
+    // Price mapping for food
+    final foodPrices = {'bread': 100};
+
+    // Add hats
+    for (var imagePath in hatImages) {
+      final fileName = imagePath.split('/').last.split('.').first.toLowerCase();
+      final itemName = _formatItemName(fileName);
+      final price = hatPrices[fileName] ?? 200; // Default 200 if not in map
+
       await db.insert('item', {
-        'item_name': hat['name'],
-        'image_path': hat['path'],
+        'item_name': itemName,
+        'image_path': imagePath,
         'quantity': 1,
-        'price': hat['price'],
+        'price': price,
+        'type': 'hat',
       });
     }
 
-    print('Default data initialized with ${hats.length} hats.');
+    // Add food
+    for (var imagePath in foodImages) {
+      final fileName = imagePath.split('/').last.split('.').first.toLowerCase();
+      final itemName = _formatItemName(fileName);
+      final price = foodPrices[fileName] ?? 100; // Default 100 for food
+
+      await db.insert('item', {
+        'item_name': itemName,
+        'image_path': imagePath,
+        'quantity': 1,
+        'price': price,
+        'type': 'food',
+      });
+    }
   }
 
-  Future close() async {
-    final db = _database;
-    if (db != null) {
-      await db.close();
-    }
+  String _formatItemName(String fileName) {
+    // Convert filename to nice name
+    final formatted = fileName
+        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[0]}')
+        .trim();
+
+    if (formatted.isEmpty) return fileName;
+
+    return formatted[0].toUpperCase() + formatted.substring(1);
   }
 }
