@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'feed_view.dart';
+import 'clean_view.dart';
+import 'play_view.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -53,9 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: GreenButton(
                           buttonText: "Feed",
                           onPressed: () {
-                            setState(() {
-                              hunger = incrementBar(hunger);
-                            });
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const FeedScreen(),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -81,10 +86,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: GreenButton(
                             buttonText: "Play",
                             onPressed: () {
-                              setState(() {
-                                enjoyment = incrementBar(enjoyment);
-                              });
-                            },
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const PlayScreen(),
+                              ),
+                            );
+                          },
                           ),
                         ),
                       ),
@@ -96,10 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: GreenButton(
                             buttonText: "Clean",
                             onPressed: () {
-                              setState(() {
-                                hygiene = incrementBar(hygiene);
-                              });
-                            },
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const CleanScreen(),
+                              ),
+                            );
+                          },
                           ),
                         ),
                       ),
