@@ -27,8 +27,24 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 24),
-            child: Image.asset('assets/images/cloud.png'),
             color: Color.fromARGB(255, 213, 248, 255),
+            child: Image.asset('assets/images/cloud.png')
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerRight,
+              child: Image.asset('assets/images/cloud.png')
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.center,
+              child: Image.asset('assets/images/cloud.png')
+            ),
           ),
           Expanded(
             flex: 10,
