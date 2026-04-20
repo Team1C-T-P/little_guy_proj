@@ -1,6 +1,7 @@
 import 'main_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 
 
@@ -16,7 +17,7 @@ class _CleanScreenState extends State<CleanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feed'),
+        title: const Text('Clean'),
         backgroundColor: const Color.fromARGB(219, 150, 242, 176),
       ),
       body: Column(
@@ -41,6 +42,23 @@ class _CleanScreenState extends State<CleanScreen> {
             alignment: Alignment.bottomCenter,
             color: Color.fromARGB(255, 221, 249, 255),
             child: Center(child: LittleGuy()),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            color: Color.fromARGB(219, 150, 242, 176),
+            width: MediaQuery.of(context).size.width,
+            alignment: Alignment.center,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Color.fromARGB(219, 246, 255, 226),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ProgressBar(
+                iconPath: 'assets/images/hygiene.png',
+                progress: hygiene.toDouble() / 100,
+              ),
+            ),
           ),
         ],
       ),

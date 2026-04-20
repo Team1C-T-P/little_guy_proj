@@ -1,6 +1,7 @@
 import 'main_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 
 
@@ -43,8 +44,22 @@ class _FeedScreenState extends State<FeedScreen> {
             child: Center(child: LittleGuy()),
           ),
           Container(
-            
-          )
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            color: Color.fromARGB(219, 150, 242, 176),
+            width: MediaQuery.of(context).size.width,
+            alignment: Alignment.center,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Color.fromARGB(219, 246, 255, 226),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ProgressBar(
+                iconPath: 'assets/images/hunger.png',
+                progress: hunger.toDouble() / 100,
+              ),
+            ),
+          ),
         ],
       )
     );

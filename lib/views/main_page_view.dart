@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'feed_view.dart';
 import 'clean_view.dart';
 import 'play_view.dart';
@@ -110,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           ),
                         ),
-                      ),
+                      ),  
                       Spacer(),
                       SizedBox(
                         width: 150,
@@ -151,27 +152,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
-                              SizedBox(
-                                width: 40,
-                                height: 40,
-                                child: Image.asset('assets/images/hunger.png'),
-                              ),
-                              SizedBox(
-                                width: 100,
-                                child: LinearProgressIndicator(
-                                  minHeight: 10,
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
-                                  ),
-                                  value: hunger.toDouble() / 100,
-                                  backgroundColor: Color.fromARGB(
-                                    255,
-                                    246,
-                                    255,
-                                    226,
-                                  ),
-                                  color: Color.fromARGB(255, 159, 239, 167),
-                                ),
+                              ProgressBar(
+                                iconPath: 'assets/images/hunger.png',
+                                progress: hunger.toDouble() / 100,
                               ),
                             ],
                           ),
@@ -185,29 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
-                                  SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Image.asset(
-                                      'assets/images/enjoyment.png',
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 100,
-                                    child: LinearProgressIndicator(
-                                      minHeight: 10,
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(10),
-                                      ),
-                                      value: enjoyment.toDouble() / 100,
-                                      backgroundColor: Color.fromARGB(
-                                        255,
-                                        248,
-                                        255,
-                                        233,
-                                      ),
-                                      color: Color.fromARGB(255, 159, 239, 167),
-                                    ),
+                                  ProgressBar(
+                                    iconPath: 'assets/images/enjoyment.png',
+                                    progress: enjoyment.toDouble() / 100,
                                   ),
                                 ],
                               ),
@@ -216,29 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
-                                  SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Image.asset(
-                                      'assets/images/hygiene.png',
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 100,
-                                    child: LinearProgressIndicator(
-                                      minHeight: 10,
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(10),
-                                      ),
-                                      value: hygiene.toDouble() / 100,
-                                      backgroundColor: Color.fromARGB(
-                                        255,
-                                        246,
-                                        255,
-                                        226,
-                                      ),
-                                      color: Color.fromARGB(255, 159, 239, 167),
-                                    ),
+                                  ProgressBar(
+                                    iconPath: 'assets/images/hygiene.png',
+                                    progress: hygiene.toDouble() / 100,
                                   ),
                                 ],
                               ),
