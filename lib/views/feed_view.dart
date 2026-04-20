@@ -38,8 +38,13 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  Future<void> _useFood(int foodId, int petId) async {
-    // Implementation for using food
+  Future<void> _useFood(int foodId, int petId, int userId) async {
+    if (_food.firstWhere((item) => item['item_id'] == foodId)['quantity'] <= 0 || _hunger >= 1.0) {
+      return;
+    }
+    await _foodDB.useFood(foodId, userId);
+    await _petStatsDB.updatePetStat(petId, 'hunger_level', _hunger+0.2); // Update pet's hunger level
+    _loadPetHunger(); // Refresh data after using food
   }
 
   @override
@@ -128,37 +133,42 @@ class _FeedScreenState extends State<FeedScreen> {
                           return Column(
                             children: [
                               Expanded(
-                                child: IconButton(
-                                  padding: EdgeInsets.all(8),
-                                  onPressed: () => _useFood(foodId, 1), // Assuming petId is 1 for now, will be dynamic later
-                                  icon:Image.asset(foodImagePath),
-                                )
-                              ),
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Color.fromARGB(219, 150, 242, 176),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'x$quantity',
-                                    style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                                child: Stack(
+                                  children: [
+                                    IconButton(
+                                      padding: EdgeInsets.all(8),
+                                      onPressed: () => _useFood(foodId, 1, 1), // Assuming petId & userId are 1 for now, will be dynamic later
+                                      icon:Image.asset(foodImagePath),
+                                      iconSize: 48,
                                     ),
-                                  ),
-                                ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Color.fromARGB(219, 150, 242, 176),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'x$quantity',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ]
+                                )  
                               )
                             ]
                           );
-                        }
+                        },
                       )
                     )
                   )

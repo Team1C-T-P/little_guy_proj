@@ -12,6 +12,17 @@ class PetStatsDatabase {
     if (stats.isEmpty) return 0;
     return (stats.first[stat] as int).toDouble() / 100; 
   }
+
+  Future<void> updatePetStat(int petId, String stat, double value) async {
+    final db = await AppDatabase.instance.database;
+    await db.update(
+      'little_guy',
+      {stat: (value * 100).toInt()},
+      where: 'little_guy_id = ?',
+      whereArgs: [petId]
+    );
+  }
+
 }
 
 class InventoryDatabase {
@@ -24,5 +35,16 @@ class InventoryDatabase {
       WHERE inv.user_id = ? AND it.type = ?
     ''', [userId, 'food']);
     return food;
+  }
+
+  Future<void> useFood(int foodId, int userId) async {
+    final db = await AppDatabase.instance.database;
+
+    // Decrease quantity in inventory
+    await db.rawUpdate('''
+      UPDATE inventory
+      SET quantity = quantity - 1
+      WHERE user_id = ? AND item_id = ? AND quantity > 0
+    ''', [userId, foodId]);
   }
 }
