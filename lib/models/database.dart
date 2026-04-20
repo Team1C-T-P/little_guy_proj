@@ -189,9 +189,9 @@ class AppDatabase {
     await db.insert('little_guy', {
       'user_id': 1,
       'little_guy_name': 'Buddy',
-      'hygiene_level': 100,
-      'hunger_level': 100,
-      'enjoyment_level': 100,
+      'hygiene_level': 20,
+      'hunger_level': 60,
+      'enjoyment_level': 80,
     });
 
     // Auto-detect and add hats

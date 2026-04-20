@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
+import '../models/pet_maintainment_database.dart';
 
 
 class PlayScreen extends StatefulWidget {
@@ -13,6 +14,26 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
+  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  
+  // Dummy values will be replaced with actual values from the database
+  double _enjoyment = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPetStats();
+  }
+
+  Future<void> _loadPetStats() async {
+    // load pet stats, assuming petId is 1 for now, will be dynamic later
+    final enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
+
+    setState(() {
+      _enjoyment = enjoyment;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +77,7 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
               child: ProgressBar(
                 iconPath: 'assets/images/enjoyment.png',
-                progress: enjoyment.toDouble() / 100,
+                progress: _enjoyment,
               ),
             ),
           ),

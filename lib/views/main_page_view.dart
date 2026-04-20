@@ -6,11 +6,7 @@ import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'feed_view.dart';
 import 'clean_view.dart';
 import 'play_view.dart';
-
-// Dummy values for the progress bars - will need to be replaced with actual values later on
-int hunger = 50;
-int enjoyment = 50;
-int hygiene = 50;
+import '../models/pet_maintainment_database.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +16,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  
+  // Dummy values will be replaced with actual values from the database
+  double _hunger = 0;
+  double _enjoyment = 0;
+  double _hygiene = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPetStats();
+  }
+
+  Future<void> _loadPetStats() async {
+    // load pet stats, assuming petId is 1 for now, will be dynamic later
+
+    final hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
+    final enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
+    final hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
+
+    setState(() {
+      _hunger = hunger;
+      _enjoyment = enjoyment;
+      _hygiene = hygiene;
+    });
+    
+    print('Pet Stats Loaded:');
+    print('Hunger: $_hunger');
+    print('Enjoyment: $_enjoyment');
+    print('Hygiene: $_hygiene');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -154,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: <Widget>[
                               ProgressBar(
                                 iconPath: 'assets/images/hunger.png',
-                                progress: hunger.toDouble() / 100,
+                                progress: _hunger
                               ),
                             ],
                           ),
@@ -170,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: <Widget>[
                                   ProgressBar(
                                     iconPath: 'assets/images/enjoyment.png',
-                                    progress: enjoyment.toDouble() / 100,
+                                    progress: _enjoyment
                                   ),
                                 ],
                               ),
@@ -181,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: <Widget>[
                                   ProgressBar(
                                     iconPath: 'assets/images/hygiene.png',
-                                    progress: hygiene.toDouble() / 100,
+                                    progress: _hygiene
                                   ),
                                 ],
                               ),
