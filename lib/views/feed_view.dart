@@ -15,9 +15,11 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  final InventoryDatabase _foodDB = InventoryDatabase();
 
   // Dummy values will be replaced with actual values from the database
   double _hunger = 0;
+  List<Map<String, dynamic>> _food = [];
   
   @override 
   void initState() {
@@ -26,11 +28,18 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _loadPetHunger() async {
+     // Assuming userId is 1 for now, will be dynamic later
     final hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
+    final food = await _foodDB.getFoodByUserId(1);
 
     setState(() {
       _hunger = hunger;
+      _food = food;
     });
+  }
+
+  Future<void> _useFood(int foodId, int petId) async {
+    // Implementation for using food
   }
 
   @override
@@ -95,28 +104,63 @@ class _FeedScreenState extends State<FeedScreen> {
                     ),
                   ),
                   const Gap(16),
+                  const Gap(16),
                   Expanded(
                     flex: 2,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(219, 246, 255, 226),
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      //child: GridView.builder(
-                        //padding: const EdgeInsets.all(8),
-                        //gridDelegate: , 
-                        //itemBuilder: itemBuilder
-                      //)
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ), 
+                        itemCount: _food.length,
+                        itemBuilder: (context, index) {
+                          final foodItem = _food[index];
+                          final foodId = foodItem['item_id'];
+                          final quantity = foodItem['quantity'];
+                          final foodImagePath = foodItem['image_path'];
+                          return Column(
+                            children: [
+                              Expanded(
+                                child: IconButton(
+                                  padding: EdgeInsets.all(8),
+                                  onPressed: () => _useFood(foodId, 1), // Assuming petId is 1 for now, will be dynamic later
+                                  icon:Image.asset(foodImagePath),
+                                )
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(219, 150, 242, 176),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'x$quantity',
+                                    style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ]
+                          );
+                        }
+                      )
                     )
-                  ),
-                  const Gap(16),
-                  GreenButton(
-                    buttonText: "Feed", 
-                    onPressed: (){
-                      setState(() {
-                      });
-                    },
                   )
                 ]
               ),
