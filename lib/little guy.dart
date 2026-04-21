@@ -199,7 +199,7 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
               Image.asset(_currentPetImage, width: 360),
 
               // Soap Image and animation
-              if (_controller.value < 0.75)
+              if (_controller.value < 0.75 && _controller.value > 0.0)
                 Transform.translate(
                   offset: Offset(_soapAnimationX.value, _soapAnimationY.value),
                   child: Image.asset('assets/images/hygiene.png', width: 50),
