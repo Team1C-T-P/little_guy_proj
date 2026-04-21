@@ -119,12 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: FittedBox(
                         child: GreenButton(
                           buttonText: "Feed",
-                          onPressed: () {
-                            Navigator.of(context).push(
+                          onPressed: () async {
+                            await Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => const FeedScreen(),
                               ),
                             );
+                            await _loadPetStats(); 
                           },
                         ),
                       ),
@@ -149,12 +150,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Play",
-                            onPressed: () {
-                            Navigator.of(context).push(
+                            onPressed: () async {
+                            await Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => const PlayScreen(),
                               ),
                             );
+                            await _loadPetStats(); 
                           },
                           ),
                         ),
@@ -166,12 +168,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Clean",
-                            onPressed: () {
-                            Navigator.of(context).push(
+                            onPressed: () async {
+                            await Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => const CleanScreen(),
                               ),
                             );
+                            await _loadPetStats(); // Refresh stats after cleaning
                           },
                           ),
                         ),
