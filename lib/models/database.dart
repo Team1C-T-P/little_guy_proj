@@ -24,7 +24,7 @@ class AppDatabase {
   Future _createDB(Database db, int version) async {
     /* user table info:
       - currency is stored in pennies, so when used divide by 100, and updating multiply by 100
-      - last_online is stored in the ISO-8601 format, doing this through text
+      - last_online is stored in the ISO-8601 format, doing this through text, this is stored as UTC.
     */
     await db.execute('''
       CREATE TABLE user (
