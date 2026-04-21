@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../models/pet_maintainment_database.dart';
@@ -89,6 +88,7 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
           // Main content of the page
           Expanded(
+            flex: 3,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
               color: const Color.fromARGB(219, 150, 242, 176),
@@ -109,9 +109,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     ),
                   ),
                   const Gap(16),
-                  const Gap(16),
                   Expanded(
-                    flex: 2,
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(219, 246, 255, 226),
