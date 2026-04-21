@@ -14,6 +14,7 @@ class CleanScreen extends StatefulWidget {
 
 class _CleanScreenState extends State<CleanScreen> {
   final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  final ValueNotifier<bool> _cleanTrigger = ValueNotifier(false);
   
   // Dummy values will be replaced with actual values from the database
   double _hygiene = 0;
@@ -31,6 +32,18 @@ class _CleanScreenState extends State<CleanScreen> {
     setState(() {
       _hygiene = hygiene;
     });
+  }
+
+  Future<void> _cleanPet() async {
+    if (_hygiene >= 1.0) {
+      return;
+    }
+    // Start cleaning animation
+    _cleanTrigger.value = true;
+    
+    // Update pet's hygiene level in the database after animation starts
+    await _petStatsDB.updatePetStat(1, 'hygiene_level', 1.0); // Update pet's hygiene level
+    _loadPetHygiene(); // Refresh data after cleaning
   }
 
   @override
@@ -73,7 +86,7 @@ class _CleanScreenState extends State<CleanScreen> {
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
-              child: Center(child: CleaningLittleGuy()),
+              child: Center(child: CleaningLittleGuy(trigger: _cleanTrigger)),
             ),
           ),
           Expanded(
@@ -107,6 +120,7 @@ class _CleanScreenState extends State<CleanScreen> {
                       icon: Image.asset('assets/images/hygiene.png'),
                       iconSize: 50,
                       onPressed: () {
+                        _cleanPet();
                       },
                     )
                   )

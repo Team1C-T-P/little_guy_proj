@@ -78,7 +78,9 @@ class _LittleGuyState extends State<LittleGuy>
 }
 
 class CleaningLittleGuy extends StatefulWidget {
-  const CleaningLittleGuy({super.key});
+  final ValueNotifier<bool> trigger;
+
+  const CleaningLittleGuy({super.key, required this.trigger});
 
   @override
   State<CleaningLittleGuy> createState() => _CleaningLittleGuyState();
@@ -101,6 +103,13 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
   @override
   void initState() {
     super.initState();
+
+    widget.trigger.addListener(() {
+      if (widget.trigger.value) {
+        startCleaningAnimation();
+        widget.trigger.value = false; // reset trigger
+      }
+    });
 
     _controller = AnimationController(
       vsync: this,
@@ -212,7 +221,7 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
               ),
 
               // Rain falls down animation
-              if (_controller.value >= 0.75)
+              if (_controller.value >= 0.75 && _controller.value < 1.0)
                 Transform.translate(
                   offset: Offset(0, _rainFallAnimation.value),
                   child: Image.asset('assets/images/rain.png', width: 360),
