@@ -182,7 +182,7 @@ class AppDatabase {
     await db.insert('user', {
       'user_name': 'Default User',
       'currency': 1000,
-      'last_online': DateTime.now().toIso8601String(),
+      'last_online': '2026-04-20T10:30:00Z',
     });
 
     // Create little guy

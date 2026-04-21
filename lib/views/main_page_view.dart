@@ -32,20 +32,39 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadPetStats() async {
     // load pet stats, assuming petId is 1 for now, will be dynamic later
 
-    final hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
-    final enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
-    final hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
+    double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
+    double enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
+    double hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
+    String? lastOnlineIso = await _petStatsDB.getLastOnlineByUserId(1);
+    lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
+
+    // convert lastOnlineIso to DateTime
+    DateTime lastOnline = DateTime.parse(lastOnlineIso);
+    DateTime now = DateTime.now().toUtc();
+
+    // Calculate hours since last online
+    int hoursSinceLastOnline = now.difference(lastOnline).inHours;
+
+    // Decrease stats by 10% per 2 hours since last online
+    double decayBy = 0.1 * (hoursSinceLastOnline / 2);
+
+    hunger = hunger - decayBy > 0 ? hunger - decayBy : 0;
+    enjoyment = enjoyment - decayBy > 0 ? enjoyment - decayBy : 0;
+    hygiene = hygiene - decayBy > 0 ? hygiene - decayBy : 0;
+
+    // Update the database with decayed stats and new last online time
+    await _petStatsDB.updatePetStat(1, 'hunger_level', hunger);
+    await _petStatsDB.updatePetStat(1, 'enjoyment_level', enjoyment);
+    await _petStatsDB.updatePetStat(1, 'hygiene_level', hygiene);
+    await _petStatsDB.updateLastOnlineByUserId(1, now.toIso8601String());
 
     setState(() {
       _hunger = hunger;
       _enjoyment = enjoyment;
       _hygiene = hygiene;
     });
-    
-    print('Pet Stats Loaded:');
-    print('Hunger: $_hunger');
-    print('Enjoyment: $_enjoyment');
-    print('Hygiene: $_hygiene');
+
+    print('Pet stats loaded and decayed based on last online time. Hunger: $_hunger, Enjoyment: $_enjoyment, Hygiene: $_hygiene');
   }
 
   @override
@@ -227,12 +246,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-// Dummy function to increment progress bars on button press, will be removed with backend integration
-int incrementBar(int value) {
-  if (value >= 100) {
-    return 0;
-  }
-  return value + 10;
 }
