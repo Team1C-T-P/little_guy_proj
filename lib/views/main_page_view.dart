@@ -63,8 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _enjoyment = enjoyment;
       _hygiene = hygiene;
     });
-
-    print('Pet stats loaded and decayed based on last online time. Hunger: $_hunger, Enjoyment: $_enjoyment, Hygiene: $_hygiene');
   }
 
   @override
