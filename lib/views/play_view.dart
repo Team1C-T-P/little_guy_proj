@@ -15,6 +15,7 @@ class PlayScreen extends StatefulWidget {
 
 class _PlayScreenState extends State<PlayScreen> {
   final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  final ValueNotifier<bool> _petTrigger = ValueNotifier(false);
   
   // Dummy values will be replaced with actual values from the database
   double _enjoyment = 0;
@@ -43,42 +44,58 @@ class _PlayScreenState extends State<PlayScreen> {
       ),
       body: Column(
         children: <Widget>[
-          Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.only(left: 24),
-            color: Color.fromARGB(255, 213, 248, 255),
-            child: Image.asset('assets/images/cloud.png')
-          ),
-          Container(
-            color: Color.fromARGB(255, 221, 249, 255),
-            alignment: Alignment.centerLeft,
-            child: Image.asset('assets/images/cloud.png')
-          ),
-          Container(
-            color: Color.fromARGB(255, 221, 249, 255),
-            alignment: Alignment.centerRight,
-            child: Image.asset('assets/images/cloud.png')
-          ),
-          Container(
-            alignment: Alignment.bottomCenter,
-            color: Color.fromARGB(255, 221, 249, 255),
-            child: Center(child: LittleGuy()),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-            color: Color.fromARGB(219, 150, 242, 176),
-            width: MediaQuery.of(context).size.width,
-            alignment: Alignment.center,
+          Expanded(
+            flex: 1,
             child: Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.only(left: 24),
+              color: Color.fromARGB(255, 213, 248, 255),
+              child: Image.asset('assets/images/cloud.png')
+            )
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerLeft,
+              child: Image.asset('assets/images/cloud.png')
+            )
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerRight,
+              child: Image.asset('assets/images/cloud.png')
+            )
+          ),
+          Expanded(
+            flex: 3,
+            child: Container(
+              alignment: Alignment.bottomCenter,
+              color: Color.fromARGB(255, 221, 249, 255),
+              child: Center(child: PetLittleGuy(trigger: _petTrigger)),
+            )
+          ),
+          Expanded(
+            flex: 1,
+            child: 
+            Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Color.fromARGB(219, 246, 255, 226),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: ProgressBar(
-                iconPath: 'assets/images/enjoyment.png',
-                progress: _enjoyment,
-              ),
+              color: Color.fromARGB(219, 150, 242, 176),
+              width: MediaQuery.of(context).size.width,
+              alignment: Alignment.center,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(219, 246, 255, 226),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: ProgressBar(
+                  iconPath: 'assets/images/enjoyment.png',
+                  progress: _enjoyment,
+                ),
+              )
             ),
           ),
         ],
