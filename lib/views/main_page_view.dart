@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -16,6 +17,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final StepGoalController controller = StepGoalController();
+  int stepGoal = 0;
+  int totalSteps = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Future<void> loadData() async {
+    final goal = await controller.loadGoal();
+    final steps = await controller.loadTotalSteps();
+
+    setState(() {
+      stepGoal = goal;
+      totalSteps = steps;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,6 +62,80 @@ class _HomeScreenState extends State<HomeScreen> {
 
             child: Column(
               children: <Widget>[
+                
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Column(
+                    children: <Widget>[
+
+                      Row(
+                        children: [
+
+                          SizedBox(
+                            width: 120,
+                            height: 40,
+                            child: FittedBox(
+                              child: GreenButton(
+                                buttonText: "+250",
+                                onPressed: () async {
+                                  final newGoal = stepGoal + 250;
+                                  await controller.updateGoal(newGoal);
+
+                                  setState(() {
+                                    stepGoal = newGoal;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(
+                            width: 120,
+                            height: 40,
+                            child: FittedBox(
+                              child: GreenButton(
+                                buttonText: "-250",
+                                onPressed: () async {
+                                  final newGoal = (stepGoal - 250).clamp(0, 999999);
+                                  await controller.updateGoal(newGoal);
+
+                                  setState(() {
+                                    stepGoal = newGoal;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+
+                          Spacer(),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "Today's Goal",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "$totalSteps / $stepGoal steps",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(width: 18),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 Row(
                   children: [
                     Image.asset('assets/images/clover.png'),
