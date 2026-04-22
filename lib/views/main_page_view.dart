@@ -7,6 +7,7 @@ import 'feed_view.dart';
 import 'clean_view.dart';
 import 'play_view.dart';
 import '../models/pet_maintainment_database.dart';
+import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadPetStats();
+    loadGoalData();
   }
 
   Future<void> _loadPetStats() async {
@@ -62,6 +64,21 @@ class _HomeScreenState extends State<HomeScreen> {
       _hunger = hunger;
       _enjoyment = enjoyment;
       _hygiene = hygiene;
+    });
+  }
+
+  final StepGoalController controller = StepGoalController();
+  int stepGoal = 0;
+  int totalSteps = 0;
+
+
+  Future<void> loadGoalData() async {
+    final goal = await controller.loadGoal();
+    final steps = await controller.loadTotalSteps();
+
+    setState(() {
+      stepGoal = goal;
+      totalSteps = steps;
     });
   }
 
@@ -106,6 +123,80 @@ class _HomeScreenState extends State<HomeScreen> {
 
             child: Column(
               children: <Widget>[
+                
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Column(
+                    children: <Widget>[
+
+                      Row(
+                        children: [
+
+                          SizedBox(
+                            width: 120,
+                            height: 40,
+                            child: FittedBox(
+                              child: GreenButton(
+                                buttonText: "+250",
+                                onPressed: () async {
+                                  final newGoal = stepGoal + 250;
+                                  await controller.updateGoal(newGoal);
+
+                                  setState(() {
+                                    stepGoal = newGoal;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(
+                            width: 120,
+                            height: 40,
+                            child: FittedBox(
+                              child: GreenButton(
+                                buttonText: "-250",
+                                onPressed: () async {
+                                  final newGoal = (stepGoal - 250).clamp(0, 999999);
+                                  await controller.updateGoal(newGoal);
+
+                                  setState(() {
+                                    stepGoal = newGoal;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+
+                          Spacer(),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "Today's Goal",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "$totalSteps / $stepGoal steps",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(width: 18),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 Row(
                   children: [
                     Image.asset('assets/images/clover.png'),
