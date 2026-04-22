@@ -24,7 +24,7 @@ class AppDatabase {
   Future _createDB(Database db, int version) async {
     /* user table info:
       - currency is stored in pennies, so when used divide by 100, and updating multiply by 100
-      - last_online is stored in the ISO-8601 format, doing this through text
+      - last_online is stored in the ISO-8601 format, doing this through text, this is stored as UTC.
     */
     await db.execute('''
       CREATE TABLE user (
@@ -182,16 +182,16 @@ class AppDatabase {
     await db.insert('user', {
       'user_name': 'Default User',
       'currency': 1000,
-      'last_online': DateTime.now().toIso8601String(),
+      'last_online': '2026-04-20T10:30:00Z',
     });
 
     // Create little guy
     await db.insert('little_guy', {
       'user_id': 1,
       'little_guy_name': 'Buddy',
-      'hygiene_level': 100,
-      'hunger_level': 100,
-      'enjoyment_level': 100,
+      'hygiene_level': 20,
+      'hunger_level': 60,
+      'enjoyment_level': 80,
     });
 
     // Auto-detect and add hats
