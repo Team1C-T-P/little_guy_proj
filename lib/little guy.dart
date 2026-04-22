@@ -266,7 +266,7 @@ class _PetLittleGuyState extends State<PetLittleGuy> with SingleTickerProviderSt
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 250),
     );
 
     _petAnimation = TweenSequence(

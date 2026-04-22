@@ -1,6 +1,4 @@
-import 'main_page_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../models/pet_maintainment_database.dart';
@@ -33,6 +31,18 @@ class _PlayScreenState extends State<PlayScreen> {
     setState(() {
       _enjoyment = enjoyment;
     });
+  }
+
+  Future<void> _playWithPet() async {
+    if (_enjoyment >= 1.0) {
+      return;
+    }
+    // Start playing animation
+    _petTrigger.value = true;
+    
+    // Update pet's enjoyment level in the database after animation starts
+    await _petStatsDB.updatePetStat(1, 'enjoyment_level', _enjoyment + 0.25 > 1.0 ? 1.0 : _enjoyment + 0.25); // Update pet's enjoyment level to max of 1.0
+    _loadPetStats(); // Refresh data after playing
   }
 
   @override
@@ -74,7 +84,14 @@ class _PlayScreenState extends State<PlayScreen> {
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
-              child: Center(child: PetLittleGuy(trigger: _petTrigger)),
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    _playWithPet();
+                  },
+                  child: PetLittleGuy(trigger: _petTrigger)
+                ),
+              )
             )
           ),
           Expanded(
