@@ -57,38 +57,42 @@ class _FeedScreenState extends State<FeedScreen> {
         children: <Widget>[
           // Decoration for the background
           Expanded(
-            flex: 2,
-            child: Column(
-              children: [
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.only(left: 24),
-                  color: Color.fromARGB(255, 213, 248, 255),
-                  child: Image.asset('assets/images/cloud.png')
-                ),
-                Container(
-                  color: Color.fromARGB(255, 221, 249, 255),
-                  alignment: Alignment.centerLeft,
-                  child: Image.asset('assets/images/cloud.png')
-                ),
-                Container(
-                  color: Color.fromARGB(255, 221, 249, 255),
-                  alignment: Alignment.centerRight,
-                  child: Image.asset('assets/images/cloud.png')
-                ),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.bottomCenter,
-                    color: Color.fromARGB(255, 221, 249, 255),
-                    child: Center(child: LittleGuy()),
-                  ),
-                ),
-              ],
+            flex: 1,
+            child: Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.only(left: 24),
+              color: Color.fromARGB(255, 213, 248, 255),
+              child: Image.asset('assets/images/cloud.png')
+            )
+          ),
+          Expanded(
+            flex: 1,
+            child: 
+            Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerLeft,
+              child: Image.asset('assets/images/cloud.png')
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerRight,
+              child: Image.asset('assets/images/cloud.png')
+            ),
+          ),
+          Expanded(
+            flex: 6,
+            child: Container(
+              alignment: Alignment.bottomCenter,
+              color: Color.fromARGB(255, 221, 249, 255),
+              child: Center(child: LittleGuy()),
             ),
           ),
           // Main content of the page
           Expanded(
-            flex: 3,
+            flex: 5,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
               color: const Color.fromARGB(219, 150, 242, 176),
@@ -110,6 +114,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   ),
                   const Gap(16),
                   Expanded(
+                    flex: 3,
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(219, 246, 255, 226),
@@ -169,7 +174,8 @@ class _FeedScreenState extends State<FeedScreen> {
                         },
                       )
                     )
-                  )
+                  ),
+                  const Gap(16)
                 ]
               ),
             ),
