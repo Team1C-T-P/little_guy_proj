@@ -100,17 +100,17 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
     _controller.forward(from: 0.0);
   }
 
+  void _onTrigger() {
+    if (widget.trigger.value) {
+      startCleaningAnimation();
+      widget.trigger.value = false; // reset trigger
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-
-    widget.trigger.addListener(() {
-      if (widget.trigger.value) {
-        startCleaningAnimation();
-        widget.trigger.value = false; // reset trigger
-      }
-    });
-
+    
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -193,6 +193,8 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
     _controller.addListener(() {
      setState(() {});
     });
+
+    widget.trigger.addListener(_onTrigger);
   }
 
   Widget build(BuildContext context) {
@@ -227,6 +229,90 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
                   child: Image.asset('assets/images/rain.png', width: 360),
                 ),
             ]
+          )
+        )
+      ],
+    );
+  }
+}
+
+class PetLittleGuy extends StatefulWidget {
+  final ValueNotifier<bool> trigger;
+
+  const PetLittleGuy({super.key, required this.trigger});
+
+  @override
+  State<PetLittleGuy> createState() => _PetLittleGuyState();
+}
+
+class _PetLittleGuyState extends State<PetLittleGuy> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _petAnimation;
+
+  void startPettingAnimation() {
+    _controller.forward(from: 0.0);
+  }
+
+  void _onTrigger() {
+    if (widget.trigger.value) {
+      startPettingAnimation();
+      widget.trigger.value = false; // reset trigger
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+
+    _petAnimation = TweenSequence(
+      [
+        TweenSequenceItem(
+          tween: Tween(
+            begin: 1.0,
+            end: 0.7,
+          ).chain(CurveTween(curve: Curves.easeInOut
+          )), 
+          weight: 3,
+        ),
+        TweenSequenceItem(
+          tween: Tween(
+            begin: 0.7,
+            end: 1.1,
+          ).chain(CurveTween(curve: Curves.easeInOut)), 
+          weight: 2,
+        ),
+        TweenSequenceItem(
+          tween: Tween(
+            begin: 1.1,
+            end: 1.0,
+          ).chain(CurveTween(curve: Curves.easeInOut)), 
+          weight: 1,
+        )
+      ]
+    ).animate(_controller);
+
+    _controller.addListener(() {
+     setState(() {});
+    });
+
+    widget.trigger.addListener(_onTrigger);
+  }
+
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 360,
+          child: Transform.scale(
+            scaleX: 1,
+            scaleY: _petAnimation.value,
+            child: Image.asset('assets/images/funnyguy.png', width: 360)
           )
         )
       ],
