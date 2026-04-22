@@ -8,6 +8,8 @@ int enjoyment = 50;
 int hygiene = 50;
 
 class TestScreen extends StatefulWidget {
+  const TestScreen({super.key});
+
   @override
   _TestScreenState createState() => _TestScreenState();
 }
