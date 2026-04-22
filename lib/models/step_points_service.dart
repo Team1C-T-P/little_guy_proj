@@ -137,9 +137,20 @@ class StepPointsService {
 
       // Keep all user goals progressing with each recorded step batch.
       await txn.rawUpdate(
-        'UPDATE user_goal SET current_progress = current_progress + ? WHERE user_id = ?',
-        [steps, userId],
+        '''
+        UPDATE user_goal 
+        SET current_progress = current_progress + ? 
+        WHERE user_id = ? 
+        AND goal_id = (
+          SELECT goal_id FROM user_goal 
+          WHERE user_id = ? 
+          ORDER BY goal_id DESC 
+          LIMIT 1
+        )
+        ''',
+        [steps, userId, userId],
       );
+
 
       return StepRecordResult(
         recordedSteps: steps,
