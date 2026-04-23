@@ -168,6 +168,27 @@ class AppDatabase {
         FOREIGN KEY (reward_id) REFERENCES reward(reward_id) ON DELETE CASCADE
       );
     ''');
+
+    await db.execute('''
+      CREATE TABLE walk_summary(
+      summary_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      walk_date TEXT NOT NULL,
+      total_steps INTEGER NOT NULL,
+      start_lat REAL,
+      start_lng REAL,
+      end_lat REAL,
+      end_lng REAL,
+      FOREIGN KEY(user_id) REFERENCES user(user_id)
+      );
+    ''');
+
+
+  }
+
+  Future<int> insertWalkSummary(Map<String, dynamic> walkData) async {
+    final db = await instance.database;
+    return await db.insert('walk_summary', walkData);
   }
 
   // create default to user pet and item to initialize db

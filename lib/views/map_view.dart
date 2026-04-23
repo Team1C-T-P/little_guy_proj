@@ -8,6 +8,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/utils/location_service.dart';
+import 'package:flutter_flame_playground/views/summary_view.dart';
+import 'package:flutter_flame_playground/widgets/button.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -26,9 +28,12 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? _currentPosition;
   final MapController _mapController = MapController();
   
-  // NEW: Variables for real-time tracking
   StreamSubscription<Position>? _positionStreamSubscription;
   final List<LatLng> _route = [];
+
+  // Track session steps
+  int _initialSteps = -1;
+  int _sessionSteps = 0;
 
   @override
   void initState() {
@@ -45,7 +50,6 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _startLocationTracking() async {
     try {
-      // 1. Get initial position and permissions
       Position? initialPosition = await LocationService().determinePosition();
       if (initialPosition != null && mounted) {
         setState(() {
@@ -56,16 +60,14 @@ class _MapScreenState extends State<MapScreen> {
         _mapController.move(_currentPosition!, 16.0);
       }
 
-      // 2. Start listening to the live stream
       _positionStreamSubscription = LocationService().getLocationStream().listen((Position position) {
         if (mounted) {
           setState(() {
             _currentPosition = LatLng(position.latitude, position.longitude);
-            _route.add(_currentPosition!); // Add new coordinate to the trail
+            _route.add(_currentPosition!); 
             _locationDisplay = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
           });
           
-          // Optionally center the camera on the user as they walk
           _mapController.move(_currentPosition!, _mapController.camera.zoom);
         }
       });
@@ -81,6 +83,10 @@ class _MapScreenState extends State<MapScreen> {
   void onStepCount(StepCount event) {
     setState(() {
       _steps = event.steps.toString();
+      if (_initialSteps == -1) {
+        _initialSteps = event.steps;
+      }
+      _sessionSteps = event.steps - _initialSteps;
     });
   }
 
@@ -135,7 +141,6 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: const Color.fromARGB(219, 150, 242, 176),
       body: Column(
         children: [
-          // Top Area containing the Live Map
           Expanded(
             flex: 10,
             child: Container(
@@ -155,7 +160,7 @@ class _MapScreenState extends State<MapScreen> {
                       mapController: _mapController,
                       options: MapOptions(
                         initialCenter: _currentPosition!,
-                        initialZoom: 18.0, // Zoomed in closer for walking
+                        initialZoom: 18.0, 
                         interactionOptions: const InteractionOptions(
                           flags: InteractiveFlag.all,
                         ),
@@ -165,24 +170,22 @@ class _MapScreenState extends State<MapScreen> {
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                           userAgentPackageName: 'com.example.flutter_flame_playground',
                         ),
-                        // NEW: Draws the trail behind the user
                         PolylineLayer(
                           polylines: [
                             Polyline(
                               points: _route,
                               strokeWidth: 5.0,
-                              color: const Color.fromARGB(255, 77, 151, 86), // App's green theme
+                              color: const Color.fromARGB(255, 77, 151, 86), 
                             ),
                           ],
                         ),
-                        // Custom sprite at current location
                         MarkerLayer(
                           markers: [
                             Marker(
                               point: _currentPosition!,
                               width: 60,
                               height: 60,
-                              child: Image.asset('images/funnyguy.png'),
+                              child: Image.asset('assets/images/funnyguy.png'),
                             ),
                           ],
                         ),
@@ -191,7 +194,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           
-          // Bottom Stats Area
           Container(
             color: const Color.fromARGB(219, 150, 242, 176),
             width: MediaQuery.of(context).size.width,
@@ -225,8 +227,8 @@ class _MapScreenState extends State<MapScreen> {
                               children: [
                                 const Icon(Icons.directions_walk, size: 40, color: Color.fromARGB(255, 77, 151, 86)),
                                 const Gap(5),
-                                const Text('Device Steps', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text(_steps, style: const TextStyle(fontSize: 18)),
+                                const Text('Session Steps', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text('$_sessionSteps', style: const TextStyle(fontSize: 18)),
                               ],
                             ),
                             Column(
@@ -274,12 +276,31 @@ class _MapScreenState extends State<MapScreen> {
                   children: <Widget>[
                     Container(
                       alignment: Alignment.centerLeft,
-                      child: Image.asset("images/clover.png", height: 80),
+                      child: Image.asset("assets/images/clover.png", height: 80),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: GreenButton(
+                          buttonText: "End Walk",
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SummaryScreen(
+                                  totalSteps: _sessionSteps,
+                                  route: _route,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                     Container(
                       alignment: Alignment.bottomRight,
                       padding: const EdgeInsets.only(right: 18, top: 20),
-                      child: Image.asset("images/daisy.png", height: 80),
+                      child: Image.asset("assets/images/daisy.png", height: 80),
                     ),
                   ],
                 ),
