@@ -3,10 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/views/shop_view.dart';
 import '../widgets/button.dart';
-import 'main_page_view.dart';
-import 'settings_view.dart';
-import 'shop_view.dart';
-import 'dress_view.dart';
 
 class DressUp extends StatelessWidget {
   const DressUp({super.key});
@@ -83,7 +79,7 @@ class DressUp extends StatelessWidget {
           // bottom row, with the button to go to dress
           Stack(
             children: <Widget>[
-              Container(child: Image.asset("images/clover.png")),
+              Container(child: Image.asset("assets/images/clover.png")),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: SizedBox(
@@ -108,7 +104,7 @@ class DressUp extends StatelessWidget {
               Container(
                 alignment: Alignment.bottomRight,
                 padding: const EdgeInsets.only(right: 18),
-                child: Image.asset("images/daisy.png"),
+                child: Image.asset("assets/images/daisy.png"),
               ),
             ],
           ),

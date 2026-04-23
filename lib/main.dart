@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'models/database.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'views/main_page_view.dart';
 import 'views/settings_view.dart';
@@ -10,8 +11,35 @@ import 'views/community_view.dart';
 import 'views/profile_view.dart';
 import 'package:pedometer/pedometer.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Ensure the database is initialized before running the app
+  await AppDatabase.instance.database;
+  // Initialize default data if necessary
+  await AppDatabase.instance.initializeDefaultData();
+
+  await _printAllItems();
+
   runApp(const MyApp());
+}
+
+// test db by printing items in terminal
+
+Future<void> _printAllItems() async {
+  final db = await AppDatabase.instance.database;
+  final items = await db.query('item');
+
+  print('\n========================================');
+  print('ITEMS IN DATABASE: ${items.length}');
+  print('========================================');
+
+  for (var item in items) {
+    print(
+      'ID: ${item['item_id']} | ${item['item_name']} | ${item['price']} coins | ${item['image_path']}',
+    );
+  }
+
+  print('========================================\n');
 }
 
 class MyApp extends StatelessWidget {

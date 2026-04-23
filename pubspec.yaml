@@ -69,6 +69,7 @@ flutter:
   assets:
      - assets/images/
      - assets/images/hats/
+     - assets/images/food/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
