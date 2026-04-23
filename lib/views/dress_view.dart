@@ -1,23 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
-import 'package:flutter_flame_playground/views/shop_view.dart';
-import '../widgets/button.dart';
+import '../models/dress_database.dart';
 
-class DressUp extends StatelessWidget {
+class DressUp extends StatefulWidget {
   const DressUp({super.key});
 
-  // automatically load images in a folder for shop use
-  Future<List<String>> _loadImages() async {
-    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-    return manifest
-        .listAssets()
-        .where(
-          (path) =>
-              path.startsWith('assets/images/hats/') &&
-              (path.endsWith('.png') || path.endsWith('.jpg')),
-        )
-        .toList();
+  @override
+  State<DressUp> createState() => _DressUpState();
+}
+
+class _DressUpState extends State<DressUp> {
+  // allows hat to be chosen and applied to the little guy
+  int? _selectedHatId;
+  String? _selectedHatImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEquippedHat();
+  }
+
+  Future<void> _loadEquippedHat() async {
+    final dressDb = DressDatabase();
+    final equipped = await dressDb.getEquippedHat(1);
+    if (equipped != null) {
+      setState(() {
+        _selectedHatId = equipped['item_id'] as int;
+        _selectedHatImage = equipped['image_path'] as String;
+      });
+    }
+  }
+
+  // moved here from StatefulWidget class
+  Future<List<Map<String, dynamic>>> _loadOwnedHats() async {
+    final dressDb = DressDatabase();
+    return await dressDb.getHatsOwnedByUser(1);
   }
 
   @override
@@ -44,14 +61,15 @@ class DressUp extends StatelessWidget {
                   color: Color.fromARGB(219, 246, 255, 226),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: FutureBuilder<List<String>>(
-                  future: _loadImages(),
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _loadOwnedHats(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return Center(child: CircularProgressIndicator());
                     }
-                    // adds the images from the _loadiamges to the box
-                    // in rows of four
+                    if (snapshot.data!.isEmpty) {
+                      return Center(child: Text('No hats owned yet!'));
+                    }
                     return GridView.builder(
                       padding: EdgeInsets.all(8),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -60,47 +78,54 @@ class DressUp extends StatelessWidget {
                         mainAxisSpacing: 8,
                       ),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => IconButton(
-                        padding: EdgeInsets.all(8.0),
-                        onPressed: () {
-                          print('image was clicked');
-                        },
-                        icon: Image.asset(
-                          snapshot.data![index],
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                      itemBuilder: (context, index) {
+                        final hat = snapshot.data![index];
+                        final isSelected = _selectedHatId == hat['item_id'];
+                        return IconButton(
+                          padding: EdgeInsets.all(8.0),
+                          style: IconButton.styleFrom(
+                            backgroundColor: isSelected
+                                ? Colors.green.withValues(
+                                    alpha: 0.3,
+                                  ) // highlight selected hat
+                                : Colors
+                                      .transparent, // leaves unselected transparent
+                          ),
+                          onPressed: () async {
+                            final dressDb = DressDatabase();
+                            final itemId = hat['item_id'] as int;
+                            final imagePath = hat['image_path'] as String;
+
+                            if (_selectedHatId == itemId) {
+                              setState(() {
+                                _selectedHatId = null;
+                                _selectedHatImage = null;
+                              });
+                              await dressDb.unequipHat(1);
+                            } else {
+                              setState(() {
+                                _selectedHatId = itemId;
+                                _selectedHatImage = imagePath;
+                              });
+                              await dressDb.equipHat(1, itemId);
+                            }
+                          },
+                          icon: Image.asset(
+                            hat['image_path'],
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
               ),
             ),
           ),
-          // bottom row, with the button to go to dress
+          // bottom row
           Stack(
             children: <Widget>[
-              Container(child: Image.asset("assets/images/clover.png")),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: SizedBox(
-                  width: 10,
-                  height: 100,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: FittedBox(
-                      child: GreenButton(
-                        buttonText: "Shop",
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Shop()),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              Image.asset("assets/images/clover.png"),
               Container(
                 alignment: Alignment.bottomRight,
                 padding: const EdgeInsets.only(right: 18),

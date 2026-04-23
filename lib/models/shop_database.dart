@@ -152,11 +152,3 @@ class ShopDatabase {
     return inventory.map((item) => item['item_id'] as int).toSet();
   }
 }
-
-/*
-Need:
-- Link items bought to the user
-- make sure food items can be bought again after initial purchase
-- increment the amount held by the user when bought again
-
-*/
