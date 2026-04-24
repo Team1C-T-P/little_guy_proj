@@ -119,7 +119,7 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>
   late Animation<double> _rainFallAnimation;
 
   // variables used to control the visibility of soap
-  String _currentPetImage = 'assets/images/funnyguy.png';
+  final String _currentPetImage = 'assets/images/funnyguy.png';
 
   void startCleaningAnimation() {
     _controller.forward(from: 0.0);
