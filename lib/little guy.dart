@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/dress_database.dart';
 
 class LittleGuy extends StatefulWidget {
   const LittleGuy({super.key});
@@ -11,10 +12,15 @@ class _LittleGuyState extends State<LittleGuy>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _walkAnimation;
+  // allows hat to be selected and added to little guy
+  Future<Map<String, dynamic>?>? _equippedHatFuture;
 
   @override
   void initState() {
     super.initState();
+
+    _equippedHatFuture = DressDatabase().getEquippedHat(1);
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -71,7 +77,21 @@ class _LittleGuyState extends State<LittleGuy>
             child: child,
           );
         },
-        child: Image.asset('assets/images/funnyguy.png', width: 180),
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: _equippedHatFuture,
+          builder: (context, snapshot) {
+            final hatPath = snapshot.data?['image_path'] as String?;
+            return Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Image.asset('assets/images/funnguy.png', width: 180),
+                if (hatPath != null)
+                  Positioned(top: -20, child: Image.asset(hatPath, width: 90)),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
