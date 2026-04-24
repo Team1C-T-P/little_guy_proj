@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'controller/hat_state.dart';
 
 class LittleGuy extends StatefulWidget {
   const LittleGuy({super.key});
@@ -11,10 +12,16 @@ class _LittleGuyState extends State<LittleGuy>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _walkAnimation;
+  // allows hat to be selected and added to little guy
+  void _onHatChanged() => setState(() {});
 
   @override
   void initState() {
     super.initState();
+
+    HatState.instance.addListener(_onHatChanged);
+    HatState.instance.loadFromDb();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -55,12 +62,14 @@ class _LittleGuyState extends State<LittleGuy>
 
   @override
   void dispose() {
+    HatState.instance.removeListener(_onHatChanged);
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final hatPath = HatState.instance.equippedHatPath;
     return Align(
       alignment: Alignment.bottomCenter, // Aligns the widget to the bottom
       child: AnimatedBuilder(
@@ -71,7 +80,22 @@ class _LittleGuyState extends State<LittleGuy>
             child: child,
           );
         },
-        child: Image.asset('assets/images/funnyguy.png', width: 180),
+        child: Stack(
+          // UPDATED: was just Image.asset
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Image.asset('assets/images/funnyguy.png', width: 180),
+            if (hatPath != null)
+              Positioned(
+                top: -20,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 90, maxHeight: 60),
+                  child: Image.asset(hatPath, fit: BoxFit.contain),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -86,15 +110,16 @@ class CleaningLittleGuy extends StatefulWidget {
   State<CleaningLittleGuy> createState() => _CleaningLittleGuyState();
 }
 
-class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTickerProviderStateMixin {
+class _CleaningLittleGuyState extends State<CleaningLittleGuy>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _soapAnimationX;
   late Animation<double> _soapAnimationY;
   late Animation<double> _bubbleOpacityAnimation;
   late Animation<double> _rainFallAnimation;
 
-  // variables used to control the visibility of soap 
-  String _currentPetImage = 'assets/images/funnyguy.png';
+  // variables used to control the visibility of soap
+  final String _currentPetImage = 'assets/images/funnyguy.png';
 
   void startCleaningAnimation() {
     _controller.forward(from: 0.0);
@@ -110,88 +135,76 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     );
-  
-    _soapAnimationX = TweenSequence(
-      [
-        TweenSequenceItem(
-          tween: Tween(
-            begin: -90.0,
-            end: 180.0,
-          ).chain(CurveTween(curve: Curves.easeInOut)),
-          weight: 1,
-        ),
-        TweenSequenceItem(
-          tween: Tween(
-            begin: 180.0,
-            end: -180.0,
-          ).chain(CurveTween(curve: Curves.easeInOut)),
-          weight: 1,
-        ),
-        TweenSequenceItem(
-          tween: Tween(
-            begin: -180.0,
-            end: 90.0,
-          ).chain(CurveTween(curve: Curves.easeInOut)),
-          weight: 1,
-        ),
-      ]
-    ).animate(
+
+    _soapAnimationX =
+        TweenSequence([
+          TweenSequenceItem(
+            tween: Tween(
+              begin: -90.0,
+              end: 180.0,
+            ).chain(CurveTween(curve: Curves.easeInOut)),
+            weight: 1,
+          ),
+          TweenSequenceItem(
+            tween: Tween(
+              begin: 180.0,
+              end: -180.0,
+            ).chain(CurveTween(curve: Curves.easeInOut)),
+            weight: 1,
+          ),
+          TweenSequenceItem(
+            tween: Tween(
+              begin: -180.0,
+              end: 90.0,
+            ).chain(CurveTween(curve: Curves.easeInOut)),
+            weight: 1,
+          ),
+        ]).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.75, curve: Curves.linear),
+          ),
+        );
+
+    _soapAnimationY = Tween(begin: -160.0, end: 160.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.75, curve: Curves.linear)
-      )
+        curve: const Interval(0.0, 0.75, curve: Curves.linear),
+      ),
     );
 
-    _soapAnimationY = Tween(
-      begin: -160.0,
-      end: 160.0,
-    ).animate(
+    _bubbleOpacityAnimation = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 3,
+      ),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 3),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 1,
+      ),
+    ]).animate(_controller);
+
+    _rainFallAnimation = Tween(begin: -360.0, end: 180.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.75, curve: Curves.linear)
-      )
-    );
-
-    _bubbleOpacityAnimation = TweenSequence(
-      [
-        TweenSequenceItem(
-          tween: Tween(
-            begin: 0.0,
-            end: 1.0,
-          ).chain(CurveTween(curve: Curves.easeIn)),
-          weight: 3,
-        ),
-        TweenSequenceItem(
-          tween: ConstantTween(1.0),
-          weight: 3,
-        ),
-        TweenSequenceItem(
-          tween: Tween(
-            begin: 1.0,
-            end: 0.0,
-          ).chain(CurveTween(curve: Curves.easeOut)),
-          weight: 1,
-        ),
-      ]
-    ).animate(_controller);
-
-    _rainFallAnimation = Tween(
-      begin: -360.0,
-      end: 180.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.75, 1.0, curve: Curves.linear)
-      )
+        curve: const Interval(0.75, 1.0, curve: Curves.linear),
+      ),
     );
 
     _controller.addListener(() {
-     setState(() {});
+      setState(() {});
     });
 
     widget.trigger.addListener(_onTrigger);
@@ -215,7 +228,7 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
                   offset: Offset(_soapAnimationX.value, _soapAnimationY.value),
                   child: Image.asset('assets/images/hygiene.png', width: 50),
                 ),
-              
+
               // Bubble fade in animation
               Opacity(
                 opacity: _bubbleOpacityAnimation.value,
@@ -228,9 +241,9 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>  with SingleTicke
                   offset: Offset(0, _rainFallAnimation.value),
                   child: Image.asset('assets/images/rain.png', width: 360),
                 ),
-            ]
-          )
-        )
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -245,7 +258,8 @@ class PetLittleGuy extends StatefulWidget {
   State<PetLittleGuy> createState() => _PetLittleGuyState();
 }
 
-class _PetLittleGuyState extends State<PetLittleGuy> with SingleTickerProviderStateMixin {
+class _PetLittleGuyState extends State<PetLittleGuy>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _petAnimation;
 
@@ -269,35 +283,32 @@ class _PetLittleGuyState extends State<PetLittleGuy> with SingleTickerProviderSt
       duration: const Duration(milliseconds: 250),
     );
 
-    _petAnimation = TweenSequence(
-      [
-        TweenSequenceItem(
-          tween: Tween(
-            begin: 1.0,
-            end: 0.7,
-          ).chain(CurveTween(curve: Curves.easeInOut
-          )), 
-          weight: 3,
-        ),
-        TweenSequenceItem(
-          tween: Tween(
-            begin: 0.7,
-            end: 1.1,
-          ).chain(CurveTween(curve: Curves.easeInOut)), 
-          weight: 2,
-        ),
-        TweenSequenceItem(
-          tween: Tween(
-            begin: 1.1,
-            end: 1.0,
-          ).chain(CurveTween(curve: Curves.easeInOut)), 
-          weight: 1,
-        )
-      ]
-    ).animate(_controller);
+    _petAnimation = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 0.7,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 3,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.7,
+          end: 1.1,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 2,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.1,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 1,
+      ),
+    ]).animate(_controller);
 
     _controller.addListener(() {
-     setState(() {});
+      setState(() {});
     });
 
     widget.trigger.addListener(_onTrigger);
@@ -312,9 +323,9 @@ class _PetLittleGuyState extends State<PetLittleGuy> with SingleTickerProviderSt
           child: Transform.scale(
             scaleX: 1,
             scaleY: _petAnimation.value,
-            child: Image.asset('assets/images/funnyguy.png', width: 360)
-          )
-        )
+            child: Image.asset('assets/images/funnyguy.png', width: 360),
+          ),
+        ),
       ],
     );
   }

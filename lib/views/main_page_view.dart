@@ -18,8 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PetStatsDatabase _petStatsDB = PetStatsDatabase();
-  
-  // Dummy values will be replaced with actual values from the database
+
   double _hunger = 0;
   double _enjoyment = 0;
   double _hygiene = 0;
@@ -32,29 +31,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPetStats() async {
-    // load pet stats, assuming petId is 1 for now, will be dynamic later
-
     double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
     double enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
     double hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
     String? lastOnlineIso = await _petStatsDB.getLastOnlineByUserId(1);
     lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
 
-    // convert lastOnlineIso to DateTime
     DateTime lastOnline = DateTime.parse(lastOnlineIso);
     DateTime now = DateTime.now().toUtc();
 
-    // Calculate hours since last online
     int hoursSinceLastOnline = now.difference(lastOnline).inHours;
-
-    // Decrease stats by 10% per 2 hours since last online
     double decayBy = 0.1 * (hoursSinceLastOnline / 2);
 
     hunger = hunger - decayBy > 0 ? hunger - decayBy : 0;
     enjoyment = enjoyment - decayBy > 0 ? enjoyment - decayBy : 0;
     hygiene = hygiene - decayBy > 0 ? hygiene - decayBy : 0;
 
-    // Update the database with decayed stats and new last online time
     await _petStatsDB.updatePetStat(1, 'hunger_level', hunger);
     await _petStatsDB.updatePetStat(1, 'enjoyment_level', enjoyment);
     await _petStatsDB.updatePetStat(1, 'hygiene_level', hygiene);
@@ -70,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final StepGoalController controller = StepGoalController();
   int stepGoal = 0;
   int totalSteps = 0;
-
 
   Future<void> loadGoalData() async {
     final goal = await controller.loadGoal();
@@ -91,14 +82,14 @@ class _HomeScreenState extends State<HomeScreen> {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 24),
             color: Color.fromARGB(255, 213, 248, 255),
-            child: Image.asset('assets/images/cloud.png')
+            child: Image.asset('assets/images/cloud.png'),
           ),
           Expanded(
             flex: 1,
             child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
               alignment: Alignment.centerRight,
-              child: Image.asset('assets/images/cloud.png')
+              child: Image.asset('assets/images/cloud.png'),
             ),
           ),
           Expanded(
@@ -106,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
               alignment: Alignment.center,
-              child: Image.asset('assets/images/cloud.png')
+              child: Image.asset('assets/images/cloud.png'),
             ),
           ),
           Expanded(
@@ -120,83 +111,68 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             color: Color.fromARGB(219, 150, 242, 176),
             width: MediaQuery.of(context).size.width,
-
             child: Column(
               children: <Widget>[
-                
                 Padding(
-                  padding: const EdgeInsets.only(top: 20),
-                  child: Column(
-                    children: <Widget>[
-
-                      Row(
-                        children: [
-
-                          SizedBox(
-                            width: 120,
-                            height: 40,
-                            child: FittedBox(
+                  padding: const EdgeInsets.only(top: 20, left: 12, right: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
                               child: GreenButton(
                                 buttonText: "+250",
                                 onPressed: () async {
                                   final newGoal = stepGoal + 250;
                                   await controller.updateGoal(newGoal);
-
-                                  setState(() {
-                                    stepGoal = newGoal;
-                                  });
+                                  setState(() => stepGoal = newGoal);
                                 },
                               ),
                             ),
-                          ),
-
-                          SizedBox(
-                            width: 120,
-                            height: 40,
-                            child: FittedBox(
+                            Expanded(
                               child: GreenButton(
                                 buttonText: "-250",
                                 onPressed: () async {
-                                  final newGoal = (stepGoal - 250).clamp(0, 999999);
+                                  final newGoal = (stepGoal - 250).clamp(
+                                    0,
+                                    999999,
+                                  );
                                   await controller.updateGoal(newGoal);
-
-                                  setState(() {
-                                    stepGoal = newGoal;
-                                  });
+                                  setState(() => stepGoal = newGoal);
                                 },
                               ),
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
 
-                          Spacer(),
+                      const SizedBox(width: 10),
 
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "Today's Goal",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      // ✅ Text now flexible
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "Today's Goal",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
-                              SizedBox(height: 6),
-                              Text(
-                                "$totalSteps / $stepGoal steps",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(width: 18),
-                        ],
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "$totalSteps / $stepGoal steps",
+                              style: TextStyle(fontSize: 16),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-
                 Row(
                   children: [
                     Image.asset('assets/images/clover.png'),
@@ -214,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => const FeedScreen(),
                               ),
                             );
-                            await _loadPetStats(); 
+                            await _loadPetStats();
                           },
                         ),
                       ),
@@ -240,16 +216,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: GreenButton(
                             buttonText: "Play",
                             onPressed: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const PlayScreen(),
-                              ),
-                            );
-                            await _loadPetStats(); 
-                          },
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PlayScreen(),
+                                ),
+                              );
+                              await _loadPetStats();
+                            },
                           ),
                         ),
-                      ),  
+                      ),
                       Spacer(),
                       SizedBox(
                         width: 150,
@@ -258,13 +234,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: GreenButton(
                             buttonText: "Clean",
                             onPressed: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const CleanScreen(),
-                              ),
-                            );
-                            await _loadPetStats(); // Refresh stats after cleaning
-                          },
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const CleanScreen(),
+                                ),
+                              );
+                              await _loadPetStats();
+                            },
                           ),
                         ),
                       ),
@@ -283,49 +259,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 120,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 0),
-                          // Hunger Progress Bar
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              ProgressBar(
-                                iconPath: 'assets/images/hunger.png',
-                                progress: _hunger
-                              ),
-                            ],
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ProgressBar(
+                              iconPath: 'assets/images/hunger.png',
+                              progress: _hunger,
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              // Enjoyment Progress Bar
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  ProgressBar(
-                                    iconPath: 'assets/images/enjoyment.png',
-                                    progress: _enjoyment
-                                  ),
-                                ],
-                              ),
-                              Gap(MediaQuery.of(context).size.width * 0.1),
-                              // Hygiene Progress Bar
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  ProgressBar(
-                                    iconPath: 'assets/images/hygiene.png',
-                                    progress: _hygiene
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+
+                        const SizedBox(height: 10),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ProgressBar(
+                              iconPath: 'assets/images/enjoyment.png',
+                              progress: _enjoyment,
+                            ),
+
+                            Gap(MediaQuery.of(context).size.width * 0.1),
+
+                            ProgressBar(
+                              iconPath: 'assets/images/hygiene.png',
+                              progress: _hygiene,
+                            ),
+                          ],
                         ),
                       ],
                     ),

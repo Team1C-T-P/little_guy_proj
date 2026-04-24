@@ -111,7 +111,7 @@ class AppDatabase {
         item_id INTEGER NOT NULL,
         PRIMARY KEY (little_guy_id, item_id),
         FOREIGN KEY (little_guy_id) REFERENCES little_guy(little_guy_id) ON DELETE CASCADE,
-        FOREIGN KEY (item_id) REFERENCES inventory(item_id) ON DELETE CASCADE
+        FOREIGN KEY (item_id) REFERENCES item(item_id) ON DELETE CASCADE
       );
     ''');
 
@@ -182,8 +182,6 @@ class AppDatabase {
       FOREIGN KEY(user_id) REFERENCES user(user_id)
       );
     ''');
-
-
   }
 
   Future<int> insertWalkSummary(Map<String, dynamic> walkData) async {
