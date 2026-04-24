@@ -88,8 +88,11 @@ class _LittleGuyState extends State<LittleGuy>
             Image.asset('assets/images/funnyguy.png', width: 180),
             if (hatPath != null)
               Positioned(
-                top: -40, // tweak this to position the hat correctly
-                child: Image.asset(hatPath, width: 90),
+                top: -20,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 90, maxHeight: 60),
+                  child: Image.asset(hatPath, fit: BoxFit.contain),
+                ),
               ),
           ],
         ),
