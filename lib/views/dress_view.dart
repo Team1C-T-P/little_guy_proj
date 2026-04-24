@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../models/dress_database.dart';
+import '../controller/hat_state.dart';
 
 class DressUp extends StatefulWidget {
   const DressUp({super.key});
@@ -92,7 +93,6 @@ class _DressUpState extends State<DressUp> {
                                       .transparent, // leaves unselected transparent
                           ),
                           onPressed: () async {
-                            final dressDb = DressDatabase();
                             final itemId = hat['item_id'] as int;
                             final imagePath = hat['image_path'] as String;
 
@@ -101,13 +101,16 @@ class _DressUpState extends State<DressUp> {
                                 _selectedHatId = null;
                                 _selectedHatImage = null;
                               });
-                              await dressDb.unequipHat(1);
+                              await HatState.instance.unequipHat();
                             } else {
                               setState(() {
                                 _selectedHatId = itemId;
                                 _selectedHatImage = imagePath;
                               });
-                              await dressDb.equipHat(1, itemId);
+                              await HatState.instance.equipHat(
+                                itemId,
+                                imagePath,
+                              );
                             }
                           },
                           icon: Image.asset(

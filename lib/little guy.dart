@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/dress_database.dart';
+import 'controller/hat_state.dart';
 
 class LittleGuy extends StatefulWidget {
   const LittleGuy({super.key});
@@ -13,13 +13,14 @@ class _LittleGuyState extends State<LittleGuy>
   late AnimationController _controller;
   late Animation<double> _walkAnimation;
   // allows hat to be selected and added to little guy
-  Future<Map<String, dynamic>?>? _equippedHatFuture;
+  void _onHatChanged() => setState(() {});
 
   @override
   void initState() {
     super.initState();
 
-    _equippedHatFuture = DressDatabase().getEquippedHat(1);
+    HatState.instance.addListener(_onHatChanged);
+    HatState.instance.loadFromDb();
 
     _controller = AnimationController(
       vsync: this,
@@ -61,12 +62,14 @@ class _LittleGuyState extends State<LittleGuy>
 
   @override
   void dispose() {
+    HatState.instance.removeListener(_onHatChanged);
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final hatPath = HatState.instance.equippedHatPath;
     return Align(
       alignment: Alignment.bottomCenter, // Aligns the widget to the bottom
       child: AnimatedBuilder(
@@ -77,20 +80,18 @@ class _LittleGuyState extends State<LittleGuy>
             child: child,
           );
         },
-        child: FutureBuilder<Map<String, dynamic>?>(
-          future: _equippedHatFuture,
-          builder: (context, snapshot) {
-            final hatPath = snapshot.data?['image_path'] as String?;
-            return Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Image.asset('assets/images/funnguy.png', width: 180),
-                if (hatPath != null)
-                  Positioned(top: -20, child: Image.asset(hatPath, width: 90)),
-              ],
-            );
-          },
+        child: Stack(
+          // UPDATED: was just Image.asset
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Image.asset('assets/images/funnyguy.png', width: 180),
+            if (hatPath != null)
+              Positioned(
+                top: -40, // tweak this to position the hat correctly
+                child: Image.asset(hatPath, width: 90),
+              ),
+          ],
         ),
       ),
     );
