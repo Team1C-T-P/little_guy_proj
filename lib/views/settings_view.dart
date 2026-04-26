@@ -63,29 +63,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 // Notifications Switch
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Enable Notifications',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      Switch(
-                        value: _notificationsEnabled,
-                        onChanged: (bool value) {
-                          setState(() {
-                            _notificationsEnabled = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(
+                //     horizontal: 16.0,
+                //     vertical: 8.0,
+                //   ),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text(
+                //         'Enable Notifications',
+                //         style: TextStyle(fontSize: 16),
+                //       ),
+                //       Switch(
+                //         value: _notificationsEnabled,
+                //         onChanged: (bool value) {
+                //           setState(() {
+                //             _notificationsEnabled = value;
+                //           });
+                //         },
+                //       ),
+                //     ],
+                //   ),
+                // ),
                 // Volume Slider
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -95,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Sound Volume', style: TextStyle(fontSize: 16)),
+                      Text('some attribute', style: TextStyle(fontSize: 16)),
                       Slider(
                         value: _soundVolume,
                         onChanged: (double value) {
