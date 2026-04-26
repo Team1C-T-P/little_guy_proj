@@ -51,6 +51,26 @@ class PetStatsDatabase {
   }
 
   // Update Queries
+  Future<void> updateUserName(int userId, String newName) async {
+    final db = await AppDatabase.instance.database;
+    await db.update(
+      'user',
+      {'user_name': newName},
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<void> updatePetName(int userId, String newName) async {
+    final db = await AppDatabase.instance.database;
+    await db.update(
+      'little_guy',
+      {'little_guy_name': newName},
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+
   Future<void> updatePetStat(int petId, String stat, double value) async {
     final db = await AppDatabase.instance.database;
     await db.update(
