@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_flame_playground/views/community_view.dart';
+import 'package:flutter_flame_playground/views/profile_view.dart';
+import 'package:flutter_flame_playground/views/test_view.dart';
+import 'package:flutter_flame_playground/widgets/button.dart';
 
 class RoutesView extends StatefulWidget {
 	const RoutesView({super.key});
@@ -18,32 +22,55 @@ class _RoutesViewState extends State<RoutesView> {
 	Widget build(BuildContext context) {
 		return Scaffold(
 			backgroundColor: const Color.fromARGB(255, 213, 248, 255),
+			appBar: AppBar(
+				title: const Text(''),
+				backgroundColor: const Color.fromARGB(255, 213, 248, 255),
+				actions: [
+					IconButton(
+						icon: const Icon(Icons.bug_report),
+						tooltip: 'Test Screen',
+						onPressed: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(builder: (context) => const TestScreen()),
+							);
+						},
+					),
+					IconButton(
+						icon: const Icon(Icons.diversity_1),
+						tooltip: 'Community',
+						onPressed: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(builder: (context) => CommunityScreen()),
+							);
+						},
+					),
+					IconButton(
+						icon: const Icon(Icons.person),
+						tooltip: 'Profile',
+						onPressed: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(builder: (context) => ProfileScreen()),
+							);
+						},
+					),
+				],
+			),
 			body: SafeArea(
 				child: Padding(
 					padding: const EdgeInsets.all(16),
 					child: Column(
 						crossAxisAlignment: CrossAxisAlignment.stretch,
 						children: [
-							SizedBox(
-								height: 52,
-								child: ElevatedButton(
-									style: ElevatedButton.styleFrom(
-										backgroundColor: Colors.green,
-										foregroundColor: Colors.white,
-										shape: RoundedRectangleBorder(
-											borderRadius: BorderRadius.circular(12),
-										),
-									),
-									onPressed: () {
-										ScaffoldMessenger.of(context).showSnackBar(
-											const SnackBar(content: Text('Create Route tapped')),
-										);
-									},
-									child: const Text(
-										'Create Route',
-										style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-									),
-								),
+							GreenButton(
+								buttonText: 'Create Route',
+								onPressed: () {
+									ScaffoldMessenger.of(context).showSnackBar(
+										const SnackBar(content: Text('Create Route tapped')),
+									);
+								},
 							),
 							const SizedBox(height: 16),
 							Expanded(
