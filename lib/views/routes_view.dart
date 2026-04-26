@@ -15,23 +15,25 @@ class _RoutesViewState extends State<RoutesView> {
   final List<String> _savedRoutes = ['Campus', 'Gym', 'Shop'];
 
   Future<void> _showCreateRouteDialog() async {
-    final routeNameController = TextEditingController();
+    String routeName = '';
 
-    await showDialog<void>(
+    final newRouteName = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
-            final routeName = routeNameController.text.trim();
             final canSave = routeName.isNotEmpty;
 
             return AlertDialog(
               title: const Text('Create route'),
               content: TextField(
-                controller: routeNameController,
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Route name'),
-                onChanged: (_) => setDialogState(() {}),
+                onChanged: (value) {
+                  setDialogState(() {
+                    routeName = value.trim();
+                  });
+                },
               ),
               actions: [
                 TextButton(
@@ -41,10 +43,7 @@ class _RoutesViewState extends State<RoutesView> {
                 ElevatedButton(
                   onPressed: canSave
                       ? () {
-                          setState(() {
-                            _savedRoutes.add(routeName);
-                          });
-                          Navigator.pop(dialogContext);
+                          Navigator.pop(dialogContext, routeName);
                         }
                       : null,
                   child: const Text('Save'),
@@ -56,7 +55,13 @@ class _RoutesViewState extends State<RoutesView> {
       },
     );
 
-    routeNameController.dispose();
+    if (!mounted || newRouteName == null || newRouteName.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _savedRoutes.add(newRouteName);
+    });
   }
 
   Future<void> _showStartRouteDialog(String routeName) async {

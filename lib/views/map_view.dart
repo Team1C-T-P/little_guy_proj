@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/utils/location_service.dart';
+import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:flutter_flame_playground/views/routes_view.dart';
 import 'package:flutter_flame_playground/views/summary_view.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
@@ -30,7 +31,10 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
 
   StreamSubscription<Position>? _positionStreamSubscription;
+  Timer? _routeCompletionTimer;
   final List<LatLng> _route = [];
+  int _testRoutePoints = 0;
+  final StepPointsService _stepPointsService = StepPointsService();
 
   // Track session steps
   int _initialSteps = -1;
@@ -46,6 +50,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
+    _routeCompletionTimer?.cancel();
     super.dispose();
   }
 
@@ -101,6 +106,46 @@ class _MapScreenState extends State<MapScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$startedRouteName route has been started')),
     );
+
+    _routeCompletionTimer?.cancel();
+    _routeCompletionTimer = Timer(const Duration(seconds: 10), () async {
+      if (!mounted) {
+        return;
+      }
+
+      try {
+        final updatedCurrency = await _stepPointsService.awardBonusPoints(
+          userId: 1,
+          points: 10,
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _testRoutePoints += 10;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$startedRouteName route completed! +10 points. Balance: $updatedCurrency coins',
+            ),
+          ),
+        );
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Route completed, but points could not be saved.'),
+          ),
+        );
+      }
+    });
   }
 
   void onStepCount(StepCount event) {

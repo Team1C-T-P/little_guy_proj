@@ -33,6 +33,50 @@ class StepPointsService {
 
   final int stepsPerPoint;
 
+  Future<int> awardBonusPoints({
+    required int userId,
+    required int points,
+  }) async {
+    if (points <= 0) {
+      throw ArgumentError.value(
+        points,
+        'points',
+        'Points must be greater than 0',
+      );
+    }
+
+    final db = await AppDatabase.instance.database;
+
+    return db.transaction((txn) async {
+      final userRows = await txn.query(
+        'user',
+        columns: ['currency'],
+        where: 'user_id = ?',
+        whereArgs: [userId],
+        limit: 1,
+      );
+
+      if (userRows.isEmpty) {
+        throw StateError('User with id $userId does not exist');
+      }
+
+      final currentCurrency = userRows.first['currency'] as int;
+      final nextCurrency = currentCurrency + points;
+
+      await txn.update(
+        'user',
+        {
+          'currency': nextCurrency,
+          'last_online': DateTime.now().toIso8601String(),
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+
+      return nextCurrency;
+    });
+  }
+
   Future<void> _ensureStepLedgerTable() async {
     final db = await AppDatabase.instance.database;
     await db.execute('''
@@ -150,7 +194,6 @@ class StepPointsService {
         ''',
         [steps, userId, userId],
       );
-
 
       return StepRecordResult(
         recordedSteps: steps,

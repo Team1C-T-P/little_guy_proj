@@ -28,6 +28,12 @@ class _ShopState extends State<Shop> {
     _loadShopData('hat');
   }
 
+  @override
+  void activate() {
+    super.activate();
+    _loadShopData(_currentType);
+  }
+
   Future<void> _loadShopData(String type) async {
     // load user currency and shop items from the database
     // Assuming user ID 1 for now
