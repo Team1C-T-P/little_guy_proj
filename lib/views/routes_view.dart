@@ -59,6 +59,32 @@ class _RoutesViewState extends State<RoutesView> {
     routeNameController.dispose();
   }
 
+  Future<void> _showStartRouteDialog(String routeName) async {
+    final shouldStart = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Start route?'),
+          content: Text('Do you want to start "$routeName"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Start'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldStart == true && mounted) {
+      Navigator.pop(context, routeName);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,7 +151,7 @@ class _RoutesViewState extends State<RoutesView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Saved routes',
+                        'Saved Routes',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -139,6 +165,8 @@ class _RoutesViewState extends State<RoutesView> {
                           separatorBuilder: (_, __) =>
                               const Divider(height: 1, thickness: 1),
                           itemBuilder: (context, index) {
+                            final routeName = _savedRoutes[index];
+
                             return ListTile(
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -147,7 +175,8 @@ class _RoutesViewState extends State<RoutesView> {
                                 Icons.route,
                                 color: Colors.green,
                               ),
-                              title: Text(_savedRoutes[index]),
+                              title: Text(routeName),
+                              onTap: () => _showStartRouteDialog(routeName),
                             );
                           },
                         ),

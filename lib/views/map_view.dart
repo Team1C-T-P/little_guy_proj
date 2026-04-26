@@ -88,6 +88,21 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _openRoutes() async {
+    final startedRouteName = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(builder: (context) => const RoutesView()),
+    );
+
+    if (!mounted || startedRouteName == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$startedRouteName route has been started')),
+    );
+  }
+
   void onStepCount(StepCount event) {
     setState(() {
       _steps = event.steps.toString();
@@ -352,14 +367,7 @@ class _MapScreenState extends State<MapScreen> {
                           children: [
                             GreenButton(
                               buttonText: "Routes",
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const RoutesView(),
-                                  ),
-                                );
-                              },
+                              onPressed: _openRoutes,
                             ),
                             const Gap(12),
                             GreenButton(
