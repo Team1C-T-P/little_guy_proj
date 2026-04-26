@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_flame_playground/widgets/button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,7 +9,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notificationsEnabled = true;
+  // bool _notificationsEnabled = true;
   double _soundVolume = 0.5;
   final TextEditingController _petNameController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
@@ -110,6 +111,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ],
+            ),
+            Container(
+              child: GreenButton(
+                buttonText: "Submit",
+                onPressed: () {
+                  // Handle submit action here
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Settings saved')));
+                },
+              ),
             ),
             Container(
               alignment: Alignment.bottomRight,
