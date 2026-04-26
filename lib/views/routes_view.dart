@@ -176,6 +176,18 @@ class _RoutesViewState extends State<RoutesView> {
                                 color: Colors.green,
                               ),
                               title: Text(routeName),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.redAccent,
+                                ),
+                                tooltip: 'Delete route',
+                                onPressed: () {
+                                  setState(() {
+                                    _savedRoutes.removeAt(index);
+                                  });
+                                },
+                              ),
                               onTap: () => _showStartRouteDialog(routeName),
                             );
                           },
