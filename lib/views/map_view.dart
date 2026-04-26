@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/utils/location_service.dart';
+import 'package:flutter_flame_playground/views/routes_view.dart';
 import 'package:flutter_flame_playground/views/summary_view.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 
@@ -346,19 +347,36 @@ class _MapScreenState extends State<MapScreen> {
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 20),
-                        child: GreenButton(
-                          buttonText: "End Walk",
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SummaryScreen(
-                                  totalSteps: _sessionSteps,
-                                  route: _route,
-                                ),
-                              ),
-                            );
-                          },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GreenButton(
+                              buttonText: "Routes",
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const RoutesView(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const Gap(12),
+                            GreenButton(
+                              buttonText: "End Walk",
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SummaryScreen(
+                                      totalSteps: _sessionSteps,
+                                      route: _route,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
