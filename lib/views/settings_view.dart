@@ -47,9 +47,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            Padding(padding: const EdgeInsets.all(16.0)),
-            // settings title
-            Text('Settings', style: TextStyle(fontSize: 32)),
             // clover image
             Container(
               alignment: Alignment.topLeft,
