@@ -39,7 +39,9 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     initPlatformState();
-    _startLocationTracking();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startLocationTracking();
+    });
   }
 
   @override
@@ -61,7 +63,11 @@ class _MapScreenState extends State<MapScreen> {
           _locationDisplay =
               '${initialPosition.latitude.toStringAsFixed(4)}, ${initialPosition.longitude.toStringAsFixed(4)}';
         });
-        _mapController.move(_currentPosition!, 16.0);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _mapController.move(_currentPosition!, 16.0);
+          }
+        });
       }
 
       _positionStreamSubscription = LocationService().getLocationStream().listen((
@@ -75,13 +81,21 @@ class _MapScreenState extends State<MapScreen> {
                 '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
           });
 
-          _mapController.move(_currentPosition!, _mapController.camera.zoom);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _mapController.move(
+                _currentPosition!,
+                _mapController.camera.zoom,
+              );
+            }
+          });
         }
       });
     } catch (e) {
       if (mounted) {
         setState(() {
-          _locationDisplay = 'Location Error';
+          _locationDisplay = 'Error $e';
+          print('error: $e');
         });
       }
     }
@@ -207,7 +221,7 @@ class _MapScreenState extends State<MapScreen> {
 
           Container(
             color: const Color.fromARGB(219, 150, 242, 176),
-            width: double.infinity, // fills available space naturally
+            width: MediaQuery.of(context).size.width,
             child: Column(
               children: [
                 const Gap(20),
@@ -218,8 +232,7 @@ class _MapScreenState extends State<MapScreen> {
                       color: const Color.fromARGB(219, 246, 255, 226),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    width: double
-                        .infinity, // fills parent (already inset by padding)
+                    width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -235,53 +248,41 @@ class _MapScreenState extends State<MapScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(
-                              // ADD Expanded so columns share space equally
-                              child: Column(
-                                children: [
-                                  const Icon(
-                                    Icons.directions_walk,
-                                    size: 40,
-                                    color: Color.fromARGB(255, 77, 151, 86),
-                                  ),
-                                  const Gap(5),
-                                  const Text(
-                                    'Session Steps',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Text(
-                                    '$_sessionSteps',
-                                    style: const TextStyle(fontSize: 18),
-                                  ),
-                                ],
-                              ),
+                            Column(
+                              children: [
+                                const Icon(
+                                  Icons.directions_walk,
+                                  size: 40,
+                                  color: Color.fromARGB(255, 77, 151, 86),
+                                ),
+                                const Gap(5),
+                                const Text(
+                                  'Session Steps',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  '$_sessionSteps',
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ],
                             ),
-                            Expanded(
-                              // ADD Expanded here too
-                              child: Column(
-                                children: [
-                                  const Icon(
-                                    Icons.accessibility_new,
-                                    size: 40,
-                                    color: Color.fromARGB(255, 77, 151, 86),
-                                  ),
-                                  const Gap(5),
-                                  const Text(
-                                    'Global Steps',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Text(
-                                    '${StepCounter().stepCount}',
-                                    style: const TextStyle(fontSize: 18),
-                                  ),
-                                ],
-                              ),
+                            Column(
+                              children: [
+                                const Icon(
+                                  Icons.accessibility_new,
+                                  size: 40,
+                                  color: Color.fromARGB(255, 77, 151, 86),
+                                ),
+                                const Gap(5),
+                                const Text(
+                                  'Global Steps',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  '${StepCounter().stepCount}',
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ],
                             ),
                             Column(
                               children: [
