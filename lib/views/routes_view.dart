@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_flame_playground/views/community_view.dart';
-import 'package:flutter_flame_playground/views/profile_view.dart';
-import 'package:flutter_flame_playground/views/test_view.dart';
-import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:flutter_flame_playground/models/route_service.dart';
 
 class RoutesView extends StatefulWidget {
   const RoutesView({super.key});
@@ -12,82 +10,22 @@ class RoutesView extends StatefulWidget {
 }
 
 class _RoutesViewState extends State<RoutesView> {
-  final List<String> _savedRoutes = ['Campus', 'Gym', 'Shop'];
+  final RouteService _routeService = RouteService();
+  List<Map<String, dynamic>> _savedRoutes = [];
+  bool _isLoading = true;
 
-  Future<void> _showCreateRouteDialog() async {
-    String routeName = '';
-
-    final newRouteName = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            final canSave = routeName.isNotEmpty;
-
-            return AlertDialog(
-              title: const Text('Create route'),
-              content: TextField(
-                autofocus: true,
-                decoration: const InputDecoration(hintText: 'Route name'),
-                onChanged: (value) {
-                  setDialogState(() {
-                    routeName = value.trim();
-                  });
-                },
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: canSave
-                      ? () {
-                          Navigator.pop(dialogContext, routeName);
-                        }
-                      : null,
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    if (!mounted || newRouteName == null || newRouteName.isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _savedRoutes.add(newRouteName);
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadRoutes();
   }
 
-  Future<void> _showStartRouteDialog(String routeName) async {
-    final shouldStart = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Start route?'),
-          content: Text('Do you want to start "$routeName"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Start'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldStart == true && mounted) {
-      Navigator.pop(context, routeName);
-    }
+  Future<void> _loadRoutes() async {
+    final routes = await _routeService.getSavedRoutes(1);
+    setState(() {
+      _savedRoutes = routes;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -95,117 +33,38 @@ class _RoutesViewState extends State<RoutesView> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 213, 248, 255),
       appBar: AppBar(
-        title: const Text(''),
-        backgroundColor: const Color.fromARGB(255, 213, 248, 255),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report),
-            tooltip: 'Test Screen',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const TestScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.diversity_1),
-            tooltip: 'Community',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CommunityScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Profile',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
-              );
-            },
-          ),
-        ],
+        title: const Text('My Saved Routes'),
+        backgroundColor: const Color.fromARGB(219, 150, 242, 176),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              GreenButton(
-                buttonText: 'Create Route',
-                onPressed: _showCreateRouteDialog,
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Colors.green.shade300,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Saved Routes',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: ListView.separated(
-                          itemCount: _savedRoutes.length,
-                          separatorBuilder: (_, __) =>
-                              const Divider(height: 1, thickness: 1),
-                          itemBuilder: (context, index) {
-                            final routeName = _savedRoutes[index];
-
-                            return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              leading: const Icon(
-                                Icons.route,
-                                color: Colors.green,
-                              ),
-                              title: Text(routeName),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.redAccent,
-                                ),
-                                tooltip: 'Delete route',
-                                onPressed: () {
-                                  setState(() {
-                                    _savedRoutes.removeAt(index);
-                                  });
-                                },
-                              ),
-                              onTap: () => _showStartRouteDialog(routeName),
-                            );
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : _savedRoutes.isEmpty
+              ? const Center(child: Text("You haven't saved any routes yet!\nFinish a walk to save one.", textAlign: TextAlign.center))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _savedRoutes.length,
+                  itemBuilder: (context, index) {
+                    final route = _savedRoutes[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.map, color: Colors.green),
+                        title: Text(route['route_name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('${(route['route_path'] as List).length} coordinate points'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            await _routeService.deleteRoute(route['route_id']);
+                            _loadRoutes();
                           },
                         ),
+                        onTap: () {
+                          // Pass the coordinate path back to the map to be highlighted!
+                          Navigator.pop(context, route['route_path']);
+                        },
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
