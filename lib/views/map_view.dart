@@ -151,10 +151,25 @@ class _MapScreenState extends State<MapScreen> {
   void onStepCount(StepCount event) {
     setState(() {
       _steps = event.steps.toString();
+      
+      // 1. Initialize the baseline if this is the first step detected
       if (_initialSteps == -1) {
         _initialSteps = event.steps;
       }
-      _sessionSteps = event.steps - _initialSteps;
+      
+      // 2. Calculate how many steps have occurred in this exact session
+      int currentSessionSteps = event.steps - _initialSteps;
+      
+      // 3. Figure out how many NEW steps happened since the last event fired
+      int newSteps = currentSessionSteps - _sessionSteps;
+      
+      // 4. Update the global app counter so the UI reacts
+      for (int i = 0; i < newSteps; i++) {
+        StepCounter().addStep();
+      }
+      
+      // 5. Save the current state
+      _sessionSteps = currentSessionSteps;
     });
   }
 
