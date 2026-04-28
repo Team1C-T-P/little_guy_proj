@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/models/step_points_service.dart';
-import 'package:flutter_flame_playground/models/goal_service.dart';
+import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -8,39 +8,44 @@ int enjoyment = 50;
 int hygiene = 50;
 
 class TestScreen extends StatefulWidget {
+  const TestScreen({super.key});
+
   @override
   _TestScreenState createState() => _TestScreenState();
 }
 
 class _TestScreenState extends State<TestScreen> {
   final StepPointsService _stepPointsService = StepPointsService();
-  final GoalService _goalService = GoalService();
+  final StepGoalController _goalController = StepGoalController();
+  
   int _totalSteps = 0;
   int _currency = 0;
   int _leftoverSteps = 0;
-  int _currentSteps = 0; // Steps since last goal reset
   String _status = '';
-  int _stepGoal = 0;
 
   @override
   void initState() {
     super.initState();
     _loadSummary();
+  
+    // Listener for any goal controller changes
+    _goalController.addListener(() {
+      if (mounted) {
+        setState(() {});
+        }
+      });
   }
 
   Future<void> _loadSummary() async {
     try {
       final summary = await _stepPointsService.getAccountSummary(1);
-      final currentSteps = await _goalService.getCurrentSteps(1);
-      final stepGoal = await _goalService.getDailyStepGoal(1);
+      await _goalController.loadData();
 
       if (!mounted) return;
       setState(() {
         _totalSteps = summary.totalSteps;      // lifetime steps
         _currency = summary.currency;
         _leftoverSteps = summary.unconvertedSteps;
-        _currentSteps = currentSteps;          // steps since last reset
-        _stepGoal = stepGoal ?? 0;
       });
     } catch (e) {
       if (!mounted) return;
@@ -57,9 +62,11 @@ class _TestScreenState extends State<TestScreen> {
         steps: steps,
       );
 
-      // Load updated current steps and goal
-      int currentSteps = await _goalService.getCurrentSteps(1);
-      int stepGoal = await _goalService.getDailyStepGoal(1) ?? 0;
+      // Load updated steps and goal
+      if (_goalController.currentSteps >= _goalController.stepGoal) {
+        _status = '🎉 Goal reached! +25 currency awarded';
+      }
+      await _goalController.refreshSteps();
 
       // update UI with the new values
       if (!mounted) return;
@@ -67,30 +74,9 @@ class _TestScreenState extends State<TestScreen> {
         _totalSteps = result.totalSteps;
         _currency = result.updatedCurrency;
         _leftoverSteps = result.unconvertedSteps;
-        _currentSteps = currentSteps;
-        _stepGoal = stepGoal;
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
       });
-
-      // check if goal is reached
-      if (currentSteps >= stepGoal && stepGoal > 0) {
-        await _goalService.resetGoal(1);
-
-        final summary = await _stepPointsService.getAccountSummary(1);
-        currentSteps = 0;
-        stepGoal = 250;
-
-        if (!mounted) return;
-        setState(() {
-          _totalSteps = summary.totalSteps;
-          _currency = summary.currency;
-          _leftoverSteps = summary.unconvertedSteps;
-          _currentSteps = currentSteps;
-          _stepGoal = stepGoal;
-          _status = '🎉 Goal reached! +10 currency awarded';
-        });
-      }
 
     } catch (e) {
       if (!mounted) return;
@@ -114,12 +100,12 @@ class _TestScreenState extends State<TestScreen> {
               style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
             ),
             Text(
-              'Current Steps: $_currentSteps',
+              'Current Steps: ${_goalController.currentSteps}',
               style: const TextStyle(fontSize: 24),
             ),
             const SizedBox(height: 8),
             Text(
-              'Goal: $_stepGoal',
+              'Goal: ${_goalController.stepGoal}',
               style: const TextStyle(fontSize: 20),
             ),
             const SizedBox(height: 8),
@@ -140,11 +126,12 @@ class _TestScreenState extends State<TestScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final newGoal = _stepGoal + 250;
-                await _goalService.setDailyStepGoal(1, newGoal);
+                final newGoal = _goalController.stepGoal + 250;
+                await _goalController.updateGoal(newGoal);
+
                 setState(() {
-                  _stepGoal = newGoal;
-                });
+                  _goalController.stepGoal = newGoal;
+                  });
               },
               child: const Text('Increase Goal by 250'),
             ),
