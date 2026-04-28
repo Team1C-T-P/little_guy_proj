@@ -8,7 +8,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/utils/location_service.dart';
-import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:flutter_flame_playground/views/routes_view.dart';
 import 'package:flutter_flame_playground/views/summary_view.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
@@ -31,10 +30,10 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
 
   StreamSubscription<Position>? _positionStreamSubscription;
-  Timer? _routeCompletionTimer;
+  
+  // Route Tracking
   final List<LatLng> _route = [];
-  int _testRoutePoints = 0;
-  final StepPointsService _stepPointsService = StepPointsService();
+  List<LatLng> _highlightedRoute = []; // Stores the saved route loaded from the database
 
   // Track session steps
   int _initialSteps = -1;
@@ -50,7 +49,6 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
-    _routeCompletionTimer?.cancel();
     super.dispose();
   }
 
@@ -94,58 +92,25 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _openRoutes() async {
-    final startedRouteName = await Navigator.push<String?>(
+    // Wait for the RoutesView to return the List of LatLngs from the database
+    final selectedRoutePath = await Navigator.push<List<LatLng>?>(
       context,
       MaterialPageRoute(builder: (context) => const RoutesView()),
     );
 
-    if (!mounted || startedRouteName == null) {
-      return;
+    if (selectedRoutePath != null && mounted) {
+      setState(() {
+        _highlightedRoute = selectedRoutePath;
+      });
+      
+      // Snap the camera to the start of the loaded route
+      if (_highlightedRoute.isNotEmpty) {
+        _mapController.move(_highlightedRoute.first, 16.0);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Route loaded! Follow the blue trail.')),
+        );
+      }
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$startedRouteName route has been started')),
-    );
-
-    _routeCompletionTimer?.cancel();
-    _routeCompletionTimer = Timer(const Duration(seconds: 10), () async {
-      if (!mounted) {
-        return;
-      }
-
-      try {
-        final updatedCurrency = await _stepPointsService.awardBonusPoints(
-          userId: 1,
-          points: 10,
-        );
-
-        if (!mounted) {
-          return;
-        }
-
-        setState(() {
-          _testRoutePoints += 10;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '$startedRouteName route completed! +10 points. Balance: $updatedCurrency coins',
-            ),
-          ),
-        );
-      } catch (_) {
-        if (!mounted) {
-          return;
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Route completed, but points could not be saved.'),
-          ),
-        );
-      }
-    });
   }
 
   void onStepCount(StepCount event) {
@@ -259,6 +224,14 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                         PolylineLayer(
                           polylines: [
+                            // 1. Draw the loaded ghost trail (in Blue)
+                            if (_highlightedRoute.isNotEmpty)
+                              Polyline(
+                                points: _highlightedRoute,
+                                strokeWidth: 8.0,
+                                color: Colors.blue.withOpacity(0.5), 
+                              ),
+                            // 2. Draw the live active route (in Green)
                             Polyline(
                               points: _route,
                               strokeWidth: 5.0,
@@ -283,7 +256,7 @@ class _MapScreenState extends State<MapScreen> {
 
           Container(
             color: const Color.fromARGB(219, 150, 242, 176),
-            width: double.infinity, // fills available space naturally
+            width: double.infinity,
             child: Column(
               children: [
                 const Gap(20),
@@ -294,8 +267,7 @@ class _MapScreenState extends State<MapScreen> {
                       color: const Color.fromARGB(219, 246, 255, 226),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    width: double
-                        .infinity, // fills parent (already inset by padding)
+                    width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -312,7 +284,6 @@ class _MapScreenState extends State<MapScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Expanded(
-                              // ADD Expanded so columns share space equally
                               child: Column(
                                 children: [
                                   const Icon(
@@ -336,7 +307,6 @@ class _MapScreenState extends State<MapScreen> {
                               ),
                             ),
                             Expanded(
-                              // ADD Expanded here too
                               child: Column(
                                 children: [
                                   const Icon(
