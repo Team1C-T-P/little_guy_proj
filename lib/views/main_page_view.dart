@@ -18,28 +18,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PetStatsDatabase _petStatsDB = PetStatsDatabase();
-  final StepGoalController _goalController = StepGoalController();
-  
-  // Dummy values will be replaced with actual values from the database
+
   double _hunger = 0;
   double _enjoyment = 0;
   double _hygiene = 0;
-  int totalSteps = 0;
-
-  //int stepGoal = 0;
 
   @override
   void initState() {
     super.initState();
     _loadPetStats();
-    _loadGoalData();
-
-    // Listener for any goal changes
-    _goalController.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    loadGoalData();
   }
 
   Future<void> _loadPetStats() async {
@@ -71,8 +59,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _loadGoalData() async {
-    await _goalController.loadData();
+  final StepGoalController controller = StepGoalController();
+  int stepGoal = 0;
+  int totalSteps = 0;
+
+  Future<void> loadGoalData() async {
+    final goal = await controller.loadGoal();
+    final steps = await controller.loadTotalSteps();
+
+    setState(() {
+      stepGoal = goal;
+      totalSteps = steps;
+    });
   }
 
   @override
@@ -126,12 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GreenButton(
                                 buttonText: "+250",
                                 onPressed: () async {
-                                  final newGoal = _goalController.stepGoal + 250;
-                                  await _goalController.updateGoal(newGoal);
-
-                                  setState(() {
-                                    _goalController.stepGoal = newGoal;
-                                  });
+                                  final newGoal = stepGoal + 250;
+                                  await controller.updateGoal(newGoal);
+                                  setState(() => stepGoal = newGoal);
                                 },
                               ),
                             ),
@@ -139,12 +134,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GreenButton(
                                 buttonText: "-250",
                                 onPressed: () async {
-                                  final newGoal = (_goalController.stepGoal - 250).clamp(0, 999999);
-                                  await _goalController.updateGoal(newGoal);
-
-                                  setState(() {
-                                    _goalController.stepGoal = newGoal;
-                                  });
+                                  final newGoal = (stepGoal - 250).clamp(
+                                    0,
+                                    999999,
+                                  );
+                                  await controller.updateGoal(newGoal);
+                                  setState(() => stepGoal = newGoal);
                                 },
                               ),
                             ),
@@ -168,15 +163,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             SizedBox(height: 6),
                             Text(
-                              "${_goalController.currentSteps} / ${_goalController.stepGoal} steps",
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
+                              "$totalSteps / $stepGoal steps",
+                              style: TextStyle(fontSize: 16),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(width: 18),
                     ],
                   ),
                 ),
