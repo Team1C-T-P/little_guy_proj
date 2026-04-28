@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/widgets/progress_bar.dart';
+import 'feed_view.dart';
+import 'clean_view.dart';
+import 'play_view.dart';
+import '../models/pet_maintainment_database.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
-
-// Dummy values for the progress bars - will need to be replaced with actual values later on
-int hunger = 50;
-int enjoyment = 50;
-int hygiene = 50;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,24 +17,62 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final StepGoalController controller = StepGoalController();
-  int stepGoal = 0;
+  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  final StepGoalController _goalController = StepGoalController();
+  
+  // Dummy values will be replaced with actual values from the database
+  double _hunger = 0;
+  double _enjoyment = 0;
+  double _hygiene = 0;
   int totalSteps = 0;
+
+  //int stepGoal = 0;
 
   @override
   void initState() {
     super.initState();
-    loadData();
+    _loadPetStats();
+    _loadGoalData();
+
+    // Listener for any goal changes
+    _goalController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
-  Future<void> loadData() async {
-    final goal = await controller.loadGoal();
-    final steps = await controller.loadTotalSteps();
+  Future<void> _loadPetStats() async {
+    double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
+    double enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
+    double hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
+    String? lastOnlineIso = await _petStatsDB.getLastOnlineByUserId(1);
+    lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
+
+    DateTime lastOnline = DateTime.parse(lastOnlineIso);
+    DateTime now = DateTime.now().toUtc();
+
+    int hoursSinceLastOnline = now.difference(lastOnline).inHours;
+    double decayBy = 0.1 * (hoursSinceLastOnline / 2);
+
+    hunger = hunger - decayBy > 0 ? hunger - decayBy : 0;
+    enjoyment = enjoyment - decayBy > 0 ? enjoyment - decayBy : 0;
+    hygiene = hygiene - decayBy > 0 ? hygiene - decayBy : 0;
+
+    await _petStatsDB.updatePetStat(1, 'hunger_level', hunger);
+    await _petStatsDB.updatePetStat(1, 'enjoyment_level', enjoyment);
+    await _petStatsDB.updatePetStat(1, 'hygiene_level', hygiene);
+    await _petStatsDB.updateLastOnlineByUserId(1, now.toIso8601String());
 
     setState(() {
-      stepGoal = goal;
-      totalSteps = steps;
+      _hunger = hunger;
+      _enjoyment = enjoyment;
+      _hygiene = hygiene;
     });
+  }
+
+  Future<void> _loadGoalData() async {
+    await _goalController.loadData();
   }
 
   @override
@@ -45,8 +83,24 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 24),
-            child: Image.asset('assets/images/cloud.png'),
             color: Color.fromARGB(255, 213, 248, 255),
+            child: Image.asset('assets/images/cloud.png'),
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerRight,
+              child: Image.asset('assets/images/cloud.png'),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.center,
+              child: Image.asset('assets/images/cloud.png'),
+            ),
           ),
           Expanded(
             flex: 10,
@@ -59,83 +113,73 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             color: Color.fromARGB(219, 150, 242, 176),
             width: MediaQuery.of(context).size.width,
-
             child: Column(
               children: <Widget>[
-                
                 Padding(
-                  padding: const EdgeInsets.only(top: 20),
-                  child: Column(
-                    children: <Widget>[
-
-                      Row(
-                        children: [
-
-                          SizedBox(
-                            width: 120,
-                            height: 40,
-                            child: FittedBox(
+                  padding: const EdgeInsets.only(top: 20, left: 12, right: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
                               child: GreenButton(
                                 buttonText: "+250",
                                 onPressed: () async {
-                                  final newGoal = stepGoal + 250;
-                                  await controller.updateGoal(newGoal);
+                                  final newGoal = _goalController.stepGoal + 250;
+                                  await _goalController.updateGoal(newGoal);
 
                                   setState(() {
-                                    stepGoal = newGoal;
+                                    _goalController.stepGoal = newGoal;
                                   });
                                 },
                               ),
                             ),
-                          ),
-
-                          SizedBox(
-                            width: 120,
-                            height: 40,
-                            child: FittedBox(
+                            Expanded(
                               child: GreenButton(
                                 buttonText: "-250",
                                 onPressed: () async {
-                                  final newGoal = (stepGoal - 250).clamp(0, 999999);
-                                  await controller.updateGoal(newGoal);
+                                  final newGoal = (_goalController.stepGoal - 250).clamp(0, 999999);
+                                  await _goalController.updateGoal(newGoal);
 
                                   setState(() {
-                                    stepGoal = newGoal;
+                                    _goalController.stepGoal = newGoal;
                                   });
                                 },
                               ),
                             ),
-                          ),
-
-                          Spacer(),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "Today's Goal",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                "$totalSteps / $stepGoal steps",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(width: 18),
-                        ],
+                          ],
+                        ),
                       ),
+
+                      const SizedBox(width: 10),
+
+                      // ✅ Text now flexible
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "Today's Goal",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              "${_goalController.currentSteps} / ${_goalController.stepGoal} steps",
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 18),
                     ],
                   ),
                 ),
-
                 Row(
                   children: [
                     Image.asset('assets/images/clover.png'),
@@ -147,10 +191,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: FittedBox(
                         child: GreenButton(
                           buttonText: "Feed",
-                          onPressed: () {
-                            setState(() {
-                              hunger = incrementBar(hunger);
-                            });
+                          onPressed: () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const FeedScreen(),
+                              ),
+                            );
+                            await _loadPetStats();
                           },
                         ),
                       ),
@@ -175,10 +222,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Play",
-                            onPressed: () {
-                              setState(() {
-                                enjoyment = incrementBar(enjoyment);
-                              });
+                            onPressed: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PlayScreen(),
+                                ),
+                              );
+                              await _loadPetStats();
                             },
                           ),
                         ),
@@ -190,10 +240,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Clean",
-                            onPressed: () {
-                              setState(() {
-                                hygiene = incrementBar(hygiene);
-                              });
+                            onPressed: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const CleanScreen(),
+                                ),
+                              );
+                              await _loadPetStats();
                             },
                           ),
                         ),
@@ -213,107 +266,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 120,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 0),
-                          // Hunger Progress Bar
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              SizedBox(
-                                width: 40,
-                                height: 40,
-                                child: Image.asset('assets/images/hunger.png'),
-                              ),
-                              SizedBox(
-                                width: 100,
-                                child: LinearProgressIndicator(
-                                  minHeight: 10,
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
-                                  ),
-                                  value: hunger.toDouble() / 100,
-                                  backgroundColor: Color.fromARGB(
-                                    255,
-                                    246,
-                                    255,
-                                    226,
-                                  ),
-                                  color: Color.fromARGB(255, 159, 239, 167),
-                                ),
-                              ),
-                            ],
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ProgressBar(
+                              iconPath: 'assets/images/hunger.png',
+                              progress: _hunger,
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              // Enjoyment Progress Bar
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Image.asset(
-                                      'assets/images/enjoyment.png',
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 100,
-                                    child: LinearProgressIndicator(
-                                      minHeight: 10,
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(10),
-                                      ),
-                                      value: enjoyment.toDouble() / 100,
-                                      backgroundColor: Color.fromARGB(
-                                        255,
-                                        248,
-                                        255,
-                                        233,
-                                      ),
-                                      color: Color.fromARGB(255, 159, 239, 167),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Gap(MediaQuery.of(context).size.width * 0.1),
-                              // Hygiene Progress Bar
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Image.asset(
-                                      'assets/images/hygiene.png',
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 100,
-                                    child: LinearProgressIndicator(
-                                      minHeight: 10,
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(10),
-                                      ),
-                                      value: hygiene.toDouble() / 100,
-                                      backgroundColor: Color.fromARGB(
-                                        255,
-                                        246,
-                                        255,
-                                        226,
-                                      ),
-                                      color: Color.fromARGB(255, 159, 239, 167),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+
+                        const SizedBox(height: 10),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ProgressBar(
+                              iconPath: 'assets/images/enjoyment.png',
+                              progress: _enjoyment,
+                            ),
+
+                            Gap(MediaQuery.of(context).size.width * 0.1),
+
+                            ProgressBar(
+                              iconPath: 'assets/images/hygiene.png',
+                              progress: _hygiene,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -326,12 +306,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-// Dummy function to increment progress bars on button press, will be removed with backend integration
-int incrementBar(int value) {
-  if (value >= 100) {
-    return 0;
-  }
-  return value + 10;
 }
