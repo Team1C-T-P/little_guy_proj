@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/utils/location_service.dart';
+import 'package:flutter_flame_playground/views/routes_view.dart';
 import 'package:flutter_flame_playground/views/summary_view.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 
@@ -29,7 +30,11 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
 
   StreamSubscription<Position>? _positionStreamSubscription;
+
+  // Route Tracking
   final List<LatLng> _route = [];
+  List<LatLng> _highlightedRoute =
+      []; // Stores the saved route loaded from the database
 
   // Track session steps
   int _initialSteps = -1;
@@ -101,13 +106,50 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _openRoutes() async {
+    // Wait for the RoutesView to return the List of LatLngs from the database
+    final selectedRoutePath = await Navigator.push<List<LatLng>?>(
+      context,
+      MaterialPageRoute(builder: (context) => const RoutesView()),
+    );
+
+    if (selectedRoutePath != null && mounted) {
+      setState(() {
+        _highlightedRoute = selectedRoutePath;
+      });
+
+      // Snap the camera to the start of the loaded route
+      if (_highlightedRoute.isNotEmpty) {
+        _mapController.move(_highlightedRoute.first, 16.0);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Route loaded! Follow the blue trail.')),
+        );
+      }
+    }
+  }
+
   void onStepCount(StepCount event) {
     setState(() {
       _steps = event.steps.toString();
+
+      // 1. Initialize the baseline if this is the first step detected
       if (_initialSteps == -1) {
         _initialSteps = event.steps;
       }
-      _sessionSteps = event.steps - _initialSteps;
+
+      // 2. Calculate how many steps have occurred in this exact session
+      int currentSessionSteps = event.steps - _initialSteps;
+
+      // 3. Figure out how many NEW steps happened since the last event fired
+      int newSteps = currentSessionSteps - _sessionSteps;
+
+      // 4. Update the global app counter so the UI reacts
+      for (int i = 0; i < newSteps; i++) {
+        StepCounter().addStep();
+      }
+
+      // 5. Save the current state
+      _sessionSteps = currentSessionSteps;
     });
   }
 
@@ -197,6 +239,14 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                         PolylineLayer(
                           polylines: [
+                            // 1. Draw the loaded ghost trail (in Blue)
+                            if (_highlightedRoute.isNotEmpty)
+                              Polyline(
+                                points: _highlightedRoute,
+                                strokeWidth: 8.0,
+                                color: Colors.blue.withOpacity(0.5),
+                              ),
+                            // 2. Draw the live active route (in Green)
                             Polyline(
                               points: _route,
                               strokeWidth: 5.0,
@@ -221,7 +271,7 @@ class _MapScreenState extends State<MapScreen> {
 
           Container(
             color: const Color.fromARGB(219, 150, 242, 176),
-            width: MediaQuery.of(context).size.width,
+            width: double.infinity,
             child: Column(
               children: [
                 const Gap(20),
@@ -232,7 +282,7 @@ class _MapScreenState extends State<MapScreen> {
                       color: const Color.fromARGB(219, 246, 255, 226),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    width: MediaQuery.of(context).size.width,
+                    width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -248,41 +298,51 @@ class _MapScreenState extends State<MapScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Column(
-                              children: [
-                                const Icon(
-                                  Icons.directions_walk,
-                                  size: 40,
-                                  color: Color.fromARGB(255, 77, 151, 86),
-                                ),
-                                const Gap(5),
-                                const Text(
-                                  'Session Steps',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '$_sessionSteps',
-                                  style: const TextStyle(fontSize: 18),
-                                ),
-                              ],
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.directions_walk,
+                                    size: 40,
+                                    color: Color.fromARGB(255, 77, 151, 86),
+                                  ),
+                                  const Gap(5),
+                                  const Text(
+                                    'Session Steps',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    '$_sessionSteps',
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Column(
-                              children: [
-                                const Icon(
-                                  Icons.accessibility_new,
-                                  size: 40,
-                                  color: Color.fromARGB(255, 77, 151, 86),
-                                ),
-                                const Gap(5),
-                                const Text(
-                                  'Global Steps',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '${StepCounter().stepCount}',
-                                  style: const TextStyle(fontSize: 18),
-                                ),
-                              ],
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.accessibility_new,
+                                    size: 40,
+                                    color: Color.fromARGB(255, 77, 151, 86),
+                                  ),
+                                  const Gap(5),
+                                  const Text(
+                                    'Global Steps',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    '${StepCounter().stepCount}',
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                ],
+                              ),
                             ),
                             Column(
                               children: [
@@ -347,19 +407,29 @@ class _MapScreenState extends State<MapScreen> {
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 20),
-                        child: GreenButton(
-                          buttonText: "End Walk",
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SummaryScreen(
-                                  totalSteps: _sessionSteps,
-                                  route: _route,
-                                ),
-                              ),
-                            );
-                          },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GreenButton(
+                              buttonText: "Routes",
+                              onPressed: _openRoutes,
+                            ),
+                            const Gap(12),
+                            GreenButton(
+                              buttonText: "End Walk",
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SummaryScreen(
+                                      totalSteps: _sessionSteps,
+                                      route: _route,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
