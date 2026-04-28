@@ -38,7 +38,7 @@ class LocationService {
   Stream<Position> getLocationStream() {
     final LocationSettings locationSettings = const LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 2, // Only update if the user moves at least 2 meters
+      distanceFilter: 0, // Only update if the user moves at least 2 meters
     );
     
     return Geolocator.getPositionStream(locationSettings: locationSettings);
