@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../models/goal_service.dart';
+import '../models/goal_service_database.dart';
 import '../models/step_points_service.dart';
 
 class StepGoalController extends ChangeNotifier {
