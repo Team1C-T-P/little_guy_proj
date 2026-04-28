@@ -24,6 +24,7 @@ class StepGoalController extends ChangeNotifier {
       currentSteps = await goalService.getCurrentSteps(userId);
       stepGoal = await loadGoal();
       totalSteps = await loadTotalSteps();
+      goalReached = false;
       
       notifyListeners();
     } catch (e) {
@@ -68,11 +69,10 @@ class StepGoalController extends ChangeNotifier {
         currentSteps = 0;
         stepGoal = 250;
         goalReached = true;
-
-        notifyListeners();
-        return;
     }
+
       notifyListeners();
+
     } catch (e) {
       print('Error refreshing data: $e');
     }

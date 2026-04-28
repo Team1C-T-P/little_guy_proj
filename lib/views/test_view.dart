@@ -21,6 +21,7 @@ class _TestScreenState extends State<TestScreen> {
   int _totalSteps = 0;
   int _currency = 0;
   int _leftoverSteps = 0;
+  int _currentSteps = 0;
   String _status = '';
 
   @override
@@ -43,7 +44,7 @@ class _TestScreenState extends State<TestScreen> {
 
       if (!mounted) return;
       setState(() {
-        _totalSteps = summary.totalSteps;      // lifetime steps
+        _totalSteps = summary.totalSteps;
         _currency = summary.currency;
         _leftoverSteps = summary.unconvertedSteps;
       });
@@ -63,9 +64,9 @@ class _TestScreenState extends State<TestScreen> {
       );
 
       // Load updated steps and goal
-      if (_goalController.currentSteps >= _goalController.stepGoal) {
-        _status = '🎉 Goal reached! +25 currency awarded';
-      }
+      // if (_goalController.currentSteps >= _goalController.stepGoal) {
+      //   _status = '🎉 Goal reached! +25 currency awarded';
+      // }
       await _goalController.refreshSteps();
 
       // update UI with the new values
@@ -74,6 +75,7 @@ class _TestScreenState extends State<TestScreen> {
         _totalSteps = result.totalSteps;
         _currency = result.updatedCurrency;
         _leftoverSteps = result.unconvertedSteps;
+        _currentSteps = _goalController.currentSteps;
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
       });
