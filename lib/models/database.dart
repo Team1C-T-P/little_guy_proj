@@ -45,20 +45,17 @@ class AppDatabase {
       );
     ''');
 
-    /* route table info:
-   - all coordinates are stored using decimal degrees
-  */
+/* route table info:
+     - route_path stores a serialized JSON list of all the LatLng points taken on the walk
+    */
     await db.execute('''
         CREATE TABLE route (
           route_id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER NOT NULL,
           route_name TEXT NOT NULL,
-          route_start_coordinate_lat NUMERIC NOT NULL CHECK (route_start_coordinate_lat >= -90 AND route_start_coordinate_lat <= 90),
-          route_start_coordinate_lon NUMERIC NOT NULL CHECK (route_start_coordinate_lon >= -180 AND route_start_coordinate_lon <= 180),
-          route_end_coordinate_lat NUMERIC NOT NULL CHECK (route_end_coordinate_lat >= -90 AND route_end_coordinate_lat <= 90),
-          route_end_coordinate_lon NUMERIC NOT NULL CHECK (route_end_coordinate_lon >= -180 AND route_end_coordinate_lon <= 180),
+          route_path TEXT NOT NULL,
           FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
-          );
+        );
       ''');
 
     /* little_guy table info:
