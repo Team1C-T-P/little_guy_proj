@@ -1,17 +1,22 @@
 // import db
-import 'database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class ShopDatabase {
+  final Database _db;
+
+  /* Accept an injected Database instance.
+  In production, pass: ShopDatabase(await AppDatabase.instance.database)
+  In tests, pass the in-memory DB from TestDatabase.createFresh()*/
+  ShopDatabase(this._db);
+
   // get items from database by type
   Future<List<Map<String, dynamic>>> getItemsByType(String type) async {
-    final db = await AppDatabase.instance.database;
-    return await db.query('item', where: 'type = ?', whereArgs: [type]);
+    return await _db.query('item', where: 'type = ?', whereArgs: [type]);
   }
 
   // get user currency
   Future<int> getUserCurrency(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final users = await db.query(
+    final users = await _db.query(
       'user',
       columns: ['currency'],
       where: 'user_id = ?',
@@ -23,8 +28,7 @@ class ShopDatabase {
 
   // check if user owns item
   Future<bool> userOwnsItem(int userId, int itemId) async {
-    final db = await AppDatabase.instance.database;
-    final result = await db.query(
+    final result = await _db.query(
       'inventory',
       where: 'user_id = ? AND item_id = ?',
       whereArgs: [userId, itemId],
@@ -34,14 +38,12 @@ class ShopDatabase {
 
   // purchase item if not owned
   Future<String> purchaseItem(int userId, int itemId) async {
-    final db = await AppDatabase.instance.database;
-
     /*
     get item type
     - if hat can buy normally
     - if food, check if in inventory, if yes then increment quantity
     */
-    final items = await db.query(
+    final items = await _db.query(
       'item',
       where: 'item_id = ?',
       whereArgs: [itemId],
@@ -58,7 +60,7 @@ class ShopDatabase {
     }
 
     // get user currency
-    final users = await db.query(
+    final users = await _db.query(
       'user',
       columns: ['currency'],
       where: 'user_id = ?',
@@ -71,7 +73,7 @@ class ShopDatabase {
     if (userCurrency < itemPrice) return 'insufficient_funds';
 
     // purchase transaction
-    await db.transaction((txn) async {
+    await _db.transaction((txn) async {
       // deduct money
       await txn.update(
         'user',
@@ -111,8 +113,7 @@ class ShopDatabase {
 
   // get quantity of specific item user owns
   Future<int> getItemQuantity(int userId, int itemId) async {
-    final db = await AppDatabase.instance.database;
-    final result = await db.query(
+    final result = await _db.query(
       'inventory',
       columns: ['quantity'],
       where: 'user_id = ? AND item_id = ?',
@@ -125,8 +126,7 @@ class ShopDatabase {
 
   // get quantities for all user's inventory
   Future<Map<int, int>> getUserItemQuantities(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final inventory = await db.query(
+    final inventory = await _db.query(
       'inventory',
       where: 'user_id = ?',
       whereArgs: [userId],
@@ -142,8 +142,7 @@ class ShopDatabase {
 
   // get lists of items owned by user
   Future<Set<int>> getUserItems(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final inventory = await db.query(
+    final inventory = await _db.query(
       'inventory',
       where: 'user_id = ?',
       whereArgs: [userId],
