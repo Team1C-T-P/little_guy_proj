@@ -30,10 +30,11 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
 
   StreamSubscription<Position>? _positionStreamSubscription;
-  
+
   // Route Tracking
   final List<LatLng> _route = [];
-  List<LatLng> _highlightedRoute = []; // Stores the saved route loaded from the database
+  List<LatLng> _highlightedRoute =
+      []; // Stores the saved route loaded from the database
 
   // Track session steps
   int _initialSteps = -1;
@@ -43,7 +44,9 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     initPlatformState();
-    _startLocationTracking();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startLocationTracking();
+    });
   }
 
   @override
@@ -65,7 +68,11 @@ class _MapScreenState extends State<MapScreen> {
           _locationDisplay =
               '${initialPosition.latitude.toStringAsFixed(4)}, ${initialPosition.longitude.toStringAsFixed(4)}';
         });
-        _mapController.move(_currentPosition!, 16.0);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _mapController.move(_currentPosition!, 16.0);
+          }
+        });
       }
 
       _positionStreamSubscription = LocationService().getLocationStream().listen((
@@ -79,13 +86,21 @@ class _MapScreenState extends State<MapScreen> {
                 '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
           });
 
-          _mapController.move(_currentPosition!, _mapController.camera.zoom);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _mapController.move(
+                _currentPosition!,
+                _mapController.camera.zoom,
+              );
+            }
+          });
         }
       });
     } catch (e) {
       if (mounted) {
         setState(() {
-          _locationDisplay = 'Location Error';
+          _locationDisplay = 'Error $e';
+          print('error: $e');
         });
       }
     }
@@ -102,7 +117,7 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _highlightedRoute = selectedRoutePath;
       });
-      
+
       // Snap the camera to the start of the loaded route
       if (_highlightedRoute.isNotEmpty) {
         _mapController.move(_highlightedRoute.first, 16.0);
@@ -116,23 +131,23 @@ class _MapScreenState extends State<MapScreen> {
   void onStepCount(StepCount event) {
     setState(() {
       _steps = event.steps.toString();
-      
+
       // 1. Initialize the baseline if this is the first step detected
       if (_initialSteps == -1) {
         _initialSteps = event.steps;
       }
-      
+
       // 2. Calculate how many steps have occurred in this exact session
       int currentSessionSteps = event.steps - _initialSteps;
-      
+
       // 3. Figure out how many NEW steps happened since the last event fired
       int newSteps = currentSessionSteps - _sessionSteps;
-      
+
       // 4. Update the global app counter so the UI reacts
       for (int i = 0; i < newSteps; i++) {
         StepCounter().addStep();
       }
-      
+
       // 5. Save the current state
       _sessionSteps = currentSessionSteps;
     });
@@ -229,7 +244,7 @@ class _MapScreenState extends State<MapScreen> {
                               Polyline(
                                 points: _highlightedRoute,
                                 strokeWidth: 8.0,
-                                color: Colors.blue.withOpacity(0.5), 
+                                color: Colors.blue.withOpacity(0.5),
                               ),
                             // 2. Draw the live active route (in Green)
                             Polyline(
