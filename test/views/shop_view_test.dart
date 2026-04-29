@@ -147,7 +147,7 @@ void main() {
     });
   });
 
-  group('purchaseItem', () async {
+  group('purchaseItem', () {
     // successful cases
     test('successfully purchases a hat user does not own', () async {
       final userId = await TestDatabase.seedUser(db, currency: 500);
