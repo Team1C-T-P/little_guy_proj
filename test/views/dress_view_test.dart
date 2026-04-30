@@ -169,4 +169,26 @@ void main() {
       expect(wearing.length, 1);
     });
   });
+
+  // unEquipHat
+  group('unEquip', () {
+    test('removes equipped hat from little guy', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
+      final hatId = await TestDatabase.seedHat(db);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId);
+      await dressDb.equipHat(littleGuyId, hatId);
+      await dressDb.unequipHat(littleGuyId);
+      final equipped = await dressDb.getEquippedHat(littleGuyId);
+      expect(equipped, isNull);
+    });
+
+    test('does nothing if no hat is equipped to little guy', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
+      await dressDb.unequipHat(littleGuyId);
+      final equipped = await dressDb.getEquippedHat(littleGuyId);
+      expect(equipped, isNull);
+    });
+  });
 }
