@@ -1,5 +1,4 @@
 // import db
-import 'database.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DressDatabase {
