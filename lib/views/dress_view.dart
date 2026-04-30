@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../models/dress_database.dart';
+import '../models/database.dart';
 import '../controller/hat_state.dart';
 
 class DressUp extends StatefulWidget {
@@ -22,7 +23,8 @@ class _DressUpState extends State<DressUp> {
   }
 
   Future<void> _loadEquippedHat() async {
-    final dressDb = DressDatabase();
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
     final equipped = await dressDb.getEquippedHat(1);
     if (equipped != null) {
       setState(() {
@@ -34,7 +36,8 @@ class _DressUpState extends State<DressUp> {
 
   // moved here from StatefulWidget class
   Future<List<Map<String, dynamic>>> _loadOwnedHats() async {
-    final dressDb = DressDatabase();
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
     return await dressDb.getHatsOwnedByUser(1);
   }
 
