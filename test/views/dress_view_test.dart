@@ -1,4 +1,3 @@
-import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/models/dress_database.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -92,7 +91,7 @@ void main() {
       final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
       final hatId = await TestDatabase.seedHat(
         db,
-        imagePath: 'assets/images/gats/tophat.png',
+        imagePath: 'assets/images/hats/tophat.png',
       );
       await TestDatabase.seedInventory(db, userId: userId, itemId: hatId);
       await TestDatabase.seedWearing(
@@ -103,7 +102,7 @@ void main() {
       final equipped = await dressDb.getEquippedHat(littleGuyId);
       expect(equipped, isNotNull);
       expect(equipped!['item_id'], hatId);
-      expect(equipped['image_path'], 'assets/images/hats/tophats.png');
+      expect(equipped['image_path'], 'assets/images/hats/tophat.png');
     });
 
     test('return null when little guy has not hat equipped', () async {
@@ -120,8 +119,54 @@ void main() {
       final hatId2 = await TestDatabase.seedHat(db, name: 'Witch Hat');
       await TestDatabase.seedInventory(db, userId: userId, itemId: hatId1);
       await TestDatabase.seedInventory(db, userId: userId, itemId: hatId2);
+      await dressDb.equipHat(littleGuyId, hatId1);
+      await dressDb.equipHat(littleGuyId, hatId2);
       final equipped = await dressDb.getEquippedHat(littleGuyId);
       expect(equipped!['item_id'], hatId2);
+    });
+  });
+
+  // equipHat
+  group('equipHat', () {
+    test('equip hat to little guy', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
+      final hatId = await TestDatabase.seedHat(db);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId);
+      await dressDb.equipHat(littleGuyId, hatId);
+      final equipped = await dressDb.getEquippedHat(littleGuyId);
+      expect(equipped, isNotNull);
+      expect(equipped!['item_id'], hatId);
+    });
+
+    test('replace previously equipped hat with new hat', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
+      final hatId1 = await TestDatabase.seedHat(db, name: 'Top Hat');
+      final hatId2 = await TestDatabase.seedHat(db, name: 'Witch Hat');
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId1);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId2);
+      await dressDb.equipHat(littleGuyId, hatId1);
+      await dressDb.equipHat(littleGuyId, hatId2);
+      final equipped = await dressDb.getEquippedHat(littleGuyId);
+      expect(equipped!['item_id'], hatId2);
+    });
+
+    test('little guy can only wear one hat at a time', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
+      final hatId1 = await TestDatabase.seedHat(db, name: 'Top Hat');
+      final hatId2 = await TestDatabase.seedHat(db, name: 'Witch Hat');
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId1);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId2);
+      await dressDb.equipHat(littleGuyId, hatId1);
+      await dressDb.equipHat(littleGuyId, hatId2);
+      final wearing = await db.query(
+        'little_guy_wearing',
+        where: 'little_guy_id = ?',
+        whereArgs: [littleGuyId],
+      );
+      expect(wearing.length, 1);
     });
   });
 }
