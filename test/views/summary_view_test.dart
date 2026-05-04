@@ -17,11 +17,9 @@ void main() {
   group('Summary View UI Tests', () {
     testWidgets('[TR-UI-01] Renders passed steps and UI elements correctly', (WidgetTester tester) async {
       
-      // FIX: Force the test environment to emulate a modern phone screen (1080x2400)
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       
-      // Cleanup the screen resize after the test finishes
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
@@ -38,7 +36,12 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      // FIX: Use runAsync to let the database save before checking the UI
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 500));
+      });
+      
+      await tester.pump();
 
       expect(find.text('1500 Steps'), findsOneWidget);
       expect(find.text('Walk Summary'), findsOneWidget);

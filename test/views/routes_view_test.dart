@@ -27,11 +27,14 @@ void main() {
         ),
       );
 
-      // FIX: Give the real background SQLite thread 500ms to fetch the empty data
-      await Future.delayed(const Duration(milliseconds: 500));
+      // FIX: Use runAsync to allow the real SQLite thread to fetch the data
+      // without deadlocking Flutter's fake test clock.
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(seconds: 1));
+      });
       
-      // Tell Flutter to render the new frame
-      await tester.pumpAndSettle();
+      // Render the exact frame, ignoring any infinite loading animations
+      await tester.pump();
 
       expect(find.text('My Saved Routes'), findsOneWidget);
 
