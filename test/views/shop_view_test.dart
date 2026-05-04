@@ -21,25 +21,30 @@ void main() {
 
   // test getUserCurrency
   group('getUserCurrency', () {
+    // Partition: user has currency > 0
     test('returns correct currency for a user', () async {
       await TestDatabase.seedUser(db, currency: 500);
       final currency = await shopDb.getUserCurrency(1);
       expect(currency, 500);
     });
 
-    test('returns 0 if a user doesnt exist', () async {
-      final currency = await shopDb.getUserCurrency(9);
-      expect(currency, 0);
-    });
-
+    // Partition: user has currency = 0
     test('returns 0 currency as the user is broke', () async {
       await TestDatabase.seedUser(db, currency: 0);
       final currency = await shopDb.getUserCurrency(1);
       expect(currency, 0);
     });
+
+    // Partition: user does not exist
+    test('returns 0 when user does not exist', () async {
+      final currency = await shopDb.getUserCurrency(999);
+      expect(currency, 0);
+    });
   });
+
   // test getItemsByType
   group('getItemsByType', () {
+    // Partition: valid type, exactly one match
     test('return only hats when selected type is hat', () async {
       await TestDatabase.seedHat(db, name: 'Top Hat');
       await TestDatabase.seedFood(db, name: 'Bread');
@@ -49,6 +54,7 @@ void main() {
       expect(hats.first['type'], 'hat');
     });
 
+    // Partition: valid type, exactly one match (food)
     test('returns only food when selected type is food', () async {
       await TestDatabase.seedHat(db, name: 'Top Hat');
       await TestDatabase.seedFood(db, name: 'Bread');
@@ -58,12 +64,7 @@ void main() {
       expect(food.first['type'], 'food');
     });
 
-    test('returns empty list when no items of selected type exists', () async {
-      await TestDatabase.seedHat(db);
-      final food = await shopDb.getItemsByType('food');
-      expect(food, isEmpty);
-    });
-
+    // Partition: valid type, multiple matches
     test('return multiple items with the same type', () async {
       await TestDatabase.seedHat(db, name: 'Top Hat');
       await TestDatabase.seedHat(db, name: 'Witch Hat');
@@ -72,13 +73,30 @@ void main() {
       expect(hats.length, 3);
     });
 
+    // Partition: valid type, no items of that type exist
+    test('returns empty list when no items of selected type exists', () async {
+      await TestDatabase.seedHat(db);
+      final food = await shopDb.getItemsByType('food');
+      expect(food, isEmpty);
+    });
+
+    // Partition: table is empty
     test('return empty list when item table is empty', () async {
       final result = await shopDb.getItemsByType('hat');
+      expect(result, isEmpty);
+    });
+
+    // Partition: unknown/invalid type
+    test('returns empty list for an unrecognised type', () async {
+      await TestDatabase.seedHat(db);
+      await TestDatabase.seedFood(db);
+      final result = await shopDb.getItemsByType('weapon');
       expect(result, isEmpty);
     });
   });
 
   group('getUserItems', () {
+    // Partition: user owns multiple items
     test('returns set of item ids owned by user', () async {
       final userId = await TestDatabase.seedUser(db);
       final hatId = await TestDatabase.seedHat(db);
@@ -90,11 +108,7 @@ void main() {
       expect(items.length, 2);
     });
 
-    test('returns empty set for non-existent user', () async {
-      final items = await shopDb.getUserItems(999);
-      expect(items, isEmpty);
-    });
-
+    // Partition: user owns one item
     test('returns no duplicates even with multiple inventory rows', () async {
       final userId = await TestDatabase.seedUser(db);
       final itemId = await TestDatabase.seedHat(db);
@@ -104,16 +118,27 @@ void main() {
         itemId: itemId,
         quantity: 1,
       );
-
       final items = await shopDb.getUserItems(userId);
-
-      // Sets inherently have no duplicates — just confirm length
       expect(items.length, 1);
       expect(items.contains(itemId), isTrue);
+    });
+
+    // Partition: user exists but owns nothing
+    test('returns empty set when user has no inventory', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final items = await shopDb.getUserItems(userId);
+      expect(items, isEmpty);
+    });
+
+    // Partition: user does not exist
+    test('returns empty set when user does not exist', () async {
+      final items = await shopDb.getUserItems(99);
+      expect(items, isEmpty);
     });
   });
 
   group('getUserItemQuantities', () {
+    // Partition: user has multiple items with varying quantities
     test('returns a map of all item quantities for a user', () async {
       final userId = await TestDatabase.seedUser(db);
       final foodId = await TestDatabase.seedFood(db);
@@ -135,20 +160,22 @@ void main() {
       expect(quantities[hatId], 1);
     });
 
+    // Partition: user exists, no inventory
     test('returns empty map when user has no inventory', () async {
       final userId = await TestDatabase.seedUser(db);
       final quantities = await shopDb.getUserItemQuantities(userId);
       expect(quantities, isEmpty);
     });
 
-    test('returns empty map for non-existent user', () async {
-      final quantities = await shopDb.getUserItemQuantities(999);
+    // Partition: user doesn't exist
+    test('returns empty map when user doesnt exist', () async {
+      final quantities = await shopDb.getUserItemQuantities(99);
       expect(quantities, isEmpty);
     });
   });
 
   group('purchaseItem', () {
-    // successful cases
+    // Partition: currency > price, hat not yet owned
     test('successfully purchases a hat user does not own', () async {
       final userId = await TestDatabase.seedUser(db, currency: 500);
       final itemId = await TestDatabase.seedHat(db, price: 100);
@@ -172,6 +199,7 @@ void main() {
       expect(owns, isTrue);
     });
 
+    // Partition: currency > price, food not yet owned
     test('successfully purchases food item not yet owned', () async {
       final userId = await TestDatabase.seedUser(db, currency: 500);
       final itemId = await TestDatabase.seedFood(db, price: 100);
@@ -179,6 +207,18 @@ void main() {
       expect(result, 'success');
     });
 
+    test(
+      'adds food to inventory with quantity 1 when not previously owned',
+      () async {
+        final userId = await TestDatabase.seedUser(db, currency: 500);
+        final itemId = await TestDatabase.seedFood(db, price: 100);
+        await shopDb.purchaseItem(userId, itemId);
+        final quantity = await shopDb.getItemQuantity(userId, itemId);
+        expect(quantity, 1);
+      },
+    );
+
+    // Partition: currency > price, food already owned
     test(
       'successfully purchases food item already owned (increments quantity)',
       () async {
@@ -212,17 +252,7 @@ void main() {
       },
     );
 
-    test(
-      'adds food to inventory with quantity 1 when not previously owned',
-      () async {
-        final userId = await TestDatabase.seedUser(db, currency: 500);
-        final itemId = await TestDatabase.seedFood(db, price: 100);
-        await shopDb.purchaseItem(userId, itemId);
-        final quantity = await shopDb.getItemQuantity(userId, itemId);
-        expect(quantity, 1);
-      },
-    );
-
+    // Partition: currency = price exactly
     test('purchase works when user has exactly enough currency', () async {
       final userId = await TestDatabase.seedUser(db, currency: 100);
       final itemId = await TestDatabase.seedHat(db, price: 100);
@@ -230,7 +260,7 @@ void main() {
       expect(result, 'success');
     });
 
-    // fail cases
+    // Partition: hat already owned
     test(
       'returns already_owned when purchasing a hat already in inventory',
       () async {
@@ -251,6 +281,7 @@ void main() {
       expect(currency, 500);
     });
 
+    // Partition: currency < price, hat
     test('returns insufficient_funds when user cannot afford hat', () async {
       final userId = await TestDatabase.seedUser(db, currency: 50);
       final itemId = await TestDatabase.seedHat(db, price: 100);
@@ -258,6 +289,7 @@ void main() {
       expect(result, 'insufficient_funds');
     });
 
+    // Partition: currency < price, food
     test('returns insufficient_funds when user cannot afford food', () async {
       final userId = await TestDatabase.seedUser(db, currency: 50);
       final itemId = await TestDatabase.seedFood(db, price: 100);
@@ -282,6 +314,13 @@ void main() {
       await shopDb.purchaseItem(userId, itemId);
       final owns = await shopDb.userOwnsItem(userId, itemId);
       expect(owns, isFalse);
+    });
+
+    // Partition: item does not exist
+    test('returns Item not found for non-existent item', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 500);
+      final result = await shopDb.purchaseItem(userId, 999);
+      expect(result, 'Item not found');
     });
   });
 }
