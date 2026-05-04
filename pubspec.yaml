@@ -43,6 +43,7 @@ dependencies:
   geolocator: ^14.0.2
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
+  sqflite_common_ffi: ^2.4.0+3
 
 dev_dependencies:
   flutter_test:
