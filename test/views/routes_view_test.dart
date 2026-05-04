@@ -14,7 +14,6 @@ void main() {
   });
   
   setUp(() async {
-    // Ensure the routes table is completely empty for the empty state test
     final db = await AppDatabase.instance.database;
     await db.delete('route'); 
   });
@@ -28,8 +27,11 @@ void main() {
         ),
       );
 
-      // FIX: Use pump with a duration to step past the spinning loading circle
-      await tester.pump(const Duration(seconds: 1));
+      // FIX: Give the real background SQLite thread 500ms to fetch the empty data
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Tell Flutter to render the new frame
+      await tester.pumpAndSettle();
 
       expect(find.text('My Saved Routes'), findsOneWidget);
 

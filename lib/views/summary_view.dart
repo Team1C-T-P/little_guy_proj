@@ -47,9 +47,14 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
     try {
       await AppDatabase.instance.insertWalkSummary(walkData);
-      setState(() {
-        _isSaved = true;
-      });
+      
+      // FIX: Ensure the widget is still on screen before updating the UI
+      // This prevents the "setState() called after dispose()" memory leak
+      if (mounted) {
+        setState(() {
+          _isSaved = true;
+        });
+      }
     } catch (e) {
       debugPrint("Database error: $e");
     }
@@ -128,7 +133,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
             ),
           ),
           Expanded(
-            flex: 6, // Slightly increased flex to fit the extra button comfortably
+            flex: 6, // Slightly increased flex to fit the extra buttons comfortably without overflowing
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -175,7 +180,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   if (_isSaved)
                     const Text("✓ Saved to Database", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                   
-                  // NEW: Save as Route Button
+                  // Save as Route Button
                   if (widget.route.isNotEmpty)
                     GreenButton(
                       buttonText: "Save as Route",
