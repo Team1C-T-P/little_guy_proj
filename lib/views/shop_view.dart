@@ -3,6 +3,7 @@ import 'package:flutter/serflutvices.dart';
 import '../little%20guy.dart';
 import '../widgets/button.dart';
 import '../models/shop_database.dart';
+import '../models/database.dart';
 
 class Shop extends StatefulWidget {
   const Shop({super.key});
@@ -12,7 +13,7 @@ class Shop extends StatefulWidget {
 }
 
 class _ShopState extends State<Shop> {
-  final ShopDatabase _shopDb = ShopDatabase();
+  late ShopDatabase _shopDb;
 
   // Placeholder for user's coin balance, will be fetched from DB
   int _coinBalance = 0;
@@ -25,7 +26,10 @@ class _ShopState extends State<Shop> {
   @override
   void initState() {
     super.initState();
-    _loadShopData('hat');
+    AppDatabase.instance.database.then((db) {
+      _shopDb = ShopDatabase(db);
+      _loadShopData('hat');
+    });
   }
 
   @override

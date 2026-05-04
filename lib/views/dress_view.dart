@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import '../models/dress_database.dart';
+import '../models/database.dart';
 import '../controller/hat_state.dart';
 
 class DressUp extends StatefulWidget {
@@ -13,7 +14,6 @@ class DressUp extends StatefulWidget {
 class _DressUpState extends State<DressUp> {
   // allows hat to be chosen and applied to the little guy
   int? _selectedHatId;
-  String? _selectedHatImage;
 
   @override
   void initState() {
@@ -22,19 +22,20 @@ class _DressUpState extends State<DressUp> {
   }
 
   Future<void> _loadEquippedHat() async {
-    final dressDb = DressDatabase();
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
     final equipped = await dressDb.getEquippedHat(1);
     if (equipped != null) {
       setState(() {
         _selectedHatId = equipped['item_id'] as int;
-        _selectedHatImage = equipped['image_path'] as String;
       });
     }
   }
 
   // moved here from StatefulWidget class
   Future<List<Map<String, dynamic>>> _loadOwnedHats() async {
-    final dressDb = DressDatabase();
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
     return await dressDb.getHatsOwnedByUser(1);
   }
 
@@ -99,13 +100,11 @@ class _DressUpState extends State<DressUp> {
                             if (_selectedHatId == itemId) {
                               setState(() {
                                 _selectedHatId = null;
-                                _selectedHatImage = null;
                               });
                               await HatState.instance.unequipHat();
                             } else {
                               setState(() {
                                 _selectedHatId = itemId;
-                                _selectedHatImage = imagePath;
                               });
                               await HatState.instance.equipHat(
                                 itemId,
