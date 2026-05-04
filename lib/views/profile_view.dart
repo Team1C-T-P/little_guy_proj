@@ -5,6 +5,7 @@ import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -12,6 +13,27 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileState extends State<ProfileScreen> {
+  String _userName = "";
+  String _petName = "";
+  final PetStatsDatabase _db = PetStatsDatabase();
+  final int _userId = 1; // Assuming single user per phone with ID 1
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final userName = await _db.getUserName(_userId);
+    final petName = await _db.getPetName(_userId);
+
+    setState(() {
+      _userName = userName ?? 'Unknown';
+      _petName = petName ?? 'Unknown';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,11 +78,11 @@ class _ProfileState extends State<ProfileScreen> {
                                 ),
                                 child: Row(
                                   children: <Widget>[
-                                    Container(child: Text("Username")),
+                                    Container(child: Text(_userName)),
                                     Container(child: Text(" | ")),
                                     Container(
-                                      child: const Text(
-                                        'Pet name',
+                                      child: Text(
+                                        _petName,
                                         style: TextStyle(
                                           fontWeight: FontWeight.normal,
                                         ),
