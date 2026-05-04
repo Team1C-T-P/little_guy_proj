@@ -9,7 +9,6 @@ import 'views/map_view.dart';
 import 'views/test_view.dart';
 import 'views/community_view.dart';
 import 'views/profile_view.dart';
-import 'package:pedometer/pedometer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,29 +16,7 @@ void main() async {
   await AppDatabase.instance.database;
   // Initialize default data if necessary
   await AppDatabase.instance.initializeDefaultData();
-
-  await _printAllItems();
-
   runApp(const MyApp());
-}
-
-// test db by printing items in terminal
-
-Future<void> _printAllItems() async {
-  final db = await AppDatabase.instance.database;
-  final items = await db.query('item');
-
-  print('\n========================================');
-  print('ITEMS IN DATABASE: ${items.length}');
-  print('========================================');
-
-  for (var item in items) {
-    print(
-      'ID: ${item['item_id']} | ${item['item_name']} | ${item['price']} coins | ${item['image_path']}',
-    );
-  }
-
-  print('========================================\n');
 }
 
 class MyApp extends StatelessWidget {
