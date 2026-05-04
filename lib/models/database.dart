@@ -186,6 +186,31 @@ class AppDatabase {
     return await db.insert('walk_summary', walkData);
   }
 
+// Fetches the most recent walks, capped at 10
+  Future<List<Map<String, dynamic>>> getRecentWalkSummaries(int userId) async {
+    final db = await instance.database;
+    return await db.query(
+      'walk_summary',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'walk_date DESC',
+      limit: 10,
+    );
+  }
+
+  // Fetches the walks with the highest steps, capped at 3
+  Future<List<Map<String, dynamic>>> getTopWalkSummaries(int userId) async {
+    final db = await instance.database;
+    return await db.query(
+      'walk_summary',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'total_steps DESC',
+      limit: 3,
+    );
+  }
+
+
   // create default to user pet and item to initialize db
   Future<void> initializeDefaultData() async {
     final db = await database;
