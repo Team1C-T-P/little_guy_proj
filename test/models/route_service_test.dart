@@ -5,17 +5,22 @@ import 'package:flutter_flame_playground/models/database.dart';
 import 'package:flutter_flame_playground/models/route_service.dart';
 
 void main() {
+  // FIX 1: Wake up the Flutter asset bundle for testing
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late RouteService routeService;
 
-  setUpAll(() {
+  setUpAll(() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    await AppDatabase.instance.initializeDefaultData(); 
   });
 
   setUp(() async {
-    final dbPath = inMemoryDatabasePath;
-    await databaseFactory.deleteDatabase(dbPath);
-    await AppDatabase.instance.initializeDefaultData(); 
+    // FIX 2: Explicitly clear the table so data doesn't bleed between tests
+    final db = await AppDatabase.instance.database;
+    await db.delete('route');
+    
     routeService = RouteService();
   });
 
@@ -31,7 +36,7 @@ void main() {
       
       final fetchedPath = routes.first['route_path'] as List<LatLng>;
       expect(fetchedPath.length, 2);
-      expect(fetchedPath.first.latitude, 50.7); // Proves Deserialization
+      expect(fetchedPath.first.latitude, 50.7); 
     });
 
     test('[TR-RT-02] Boundary test: Handles saving an empty route', () async {
