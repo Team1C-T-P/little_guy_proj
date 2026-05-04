@@ -34,6 +34,12 @@ void main() {
       final currency = await shopDb.getUserCurrency(1);
       expect(currency, 0);
     });
+
+    // Partition: user does not exist
+    test('returns 0 when user does not exist', () async {
+      final currency = await shopDb.getUserCurrency(999);
+      expect(currency, 0);
+    });
   });
 
   // test getItemsByType
@@ -123,6 +129,12 @@ void main() {
       final items = await shopDb.getUserItems(userId);
       expect(items, isEmpty);
     });
+
+    // Partition: user does not exist
+    test('returns empty set when user does not exist', () async {
+      final items = await shopDb.getUserItems(99);
+      expect(items, isEmpty);
+    });
   });
 
   group('getUserItemQuantities', () {
@@ -152,6 +164,12 @@ void main() {
     test('returns empty map when user has no inventory', () async {
       final userId = await TestDatabase.seedUser(db);
       final quantities = await shopDb.getUserItemQuantities(userId);
+      expect(quantities, isEmpty);
+    });
+
+    // Partition: user doesn't exist
+    test('returns empty map when user doesnt exist', () async {
+      final quantities = await shopDb.getUserItemQuantities(99);
       expect(quantities, isEmpty);
     });
   });
@@ -296,6 +314,13 @@ void main() {
       await shopDb.purchaseItem(userId, itemId);
       final owns = await shopDb.userOwnsItem(userId, itemId);
       expect(owns, isFalse);
+    });
+
+    // Partition: item does not exist
+    test('returns Item not found for non-existent item', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 500);
+      final result = await shopDb.purchaseItem(userId, 999);
+      expect(result, 'Item not found');
     });
   });
 }
