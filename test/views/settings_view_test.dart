@@ -37,7 +37,7 @@ void main() {
       expect(find.byType(TextField), findsNWidgets(2));
       expect(find.text('Try me'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
-      expect(find.text('some attribute'), findsOneWidget);
+      expect(find.text('probs font size'), findsOneWidget);
       expect(find.byType(Slider), findsOneWidget);
       expect(find.text('Submit'), findsOneWidget);
     });
@@ -47,9 +47,23 @@ void main() {
       await tester.pump();
 
       // Tap the switch and verify the state change
-      await tester.tap(find.byType(Switch));
-      await tester.pump();
+      await tester.tap(find.byType(Switch)); //taps the switch
+      await tester.pump(); // Rebuild the widget after the state change
+      expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text("6 7"), findsOneWidget);
+    });
+
+    testWidgets('change slider and check value', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump();
+
+      await tester.drag(
+        find.byType(Slider),
+        const Offset(-50, 0),
+      ); //simulates dragging; the Offset is how many pixels to move (negative = left, positive = right)
+      await tester.pump();
+
+      expect(find.text('0.3'), findsOneWidget);
     });
   });
 }
