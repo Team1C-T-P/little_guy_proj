@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import 'database.dart';
 
 class StepAccountSummary {
@@ -29,7 +31,8 @@ class StepRecordResult {
 }
 
 class StepPointsService {
-  StepPointsService({this.stepsPerPoint = 100});
+  final Database _db;
+  StepPointsService(this._db, {this.stepsPerPoint = 100});
 
   final int stepsPerPoint;
 
@@ -45,9 +48,7 @@ class StepPointsService {
       );
     }
 
-    final db = await AppDatabase.instance.database;
-
-    return db.transaction((txn) async {
+    return _db.transaction((txn) async {
       final userRows = await txn.query(
         'user',
         columns: ['currency'],
@@ -91,8 +92,7 @@ class StepPointsService {
   }
 
   Future<void> _ensureLedgerRow(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final rows = await db.query(
+    final rows = await _db.query(
       'step_ledger',
       columns: ['user_id'],
       where: 'user_id = ?',
@@ -101,7 +101,7 @@ class StepPointsService {
     );
 
     if (rows.isEmpty) {
-      await db.insert('step_ledger', {
+      await _db.insert('step_ledger', {
         'user_id': userId,
         'total_steps': 0,
         'unconverted_steps': 0,
@@ -121,9 +121,7 @@ class StepPointsService {
     await _ensureStepLedgerTable();
     await _ensureLedgerRow(userId);
 
-    final db = await AppDatabase.instance.database;
-
-    return db.transaction((txn) async {
+    return _db.transaction((txn) async {
       final userRows = await txn.query(
         'user',
         columns: ['currency'],
@@ -209,9 +207,7 @@ class StepPointsService {
     await _ensureStepLedgerTable();
     await _ensureLedgerRow(userId);
 
-    final db = await AppDatabase.instance.database;
-
-    final userRows = await db.query(
+    final userRows = await _db.query(
       'user',
       columns: ['currency'],
       where: 'user_id = ?',
@@ -223,7 +219,7 @@ class StepPointsService {
       throw StateError('User with id $userId does not exist');
     }
 
-    final ledgerRows = await db.query(
+    final ledgerRows = await _db.query(
       'step_ledger',
       columns: ['total_steps', 'unconverted_steps'],
       where: 'user_id = ?',

@@ -2,17 +2,22 @@ import 'package:sqflite/sqflite.dart';
 import 'database.dart';
 
 class GoalService {
+  final Database _db;
+  GoalService(this._db);
   Future<int> setDailyStepGoal(int userId, int stepGoal) async {
     final db = await AppDatabase.instance.database;
 
     // Check if user already has a goal
-    final existing = await db.rawQuery('''
+    final existing = await _db.rawQuery(
+      '''
       SELECT g.goal_id
       FROM goal g
       JOIN user_goal ug ON ug.goal_id = g.goal_id
       WHERE ug.user_id = ?
       LIMIT 1
-    ''', [userId]);
+    ''',
+      [userId],
+    );
 
     if (existing.isNotEmpty) {
       final goalId = existing.first['goal_id'] as int;
@@ -33,35 +38,28 @@ class GoalService {
     final weekStart = DateTime(now.year, now.month, now.day);
     final weekEnd = weekStart.add(Duration(days: 7));
 
-    final goalId = await db.insert(
-      'goal',
-      {
-        'target_goal': stepGoal,
-        'is_recurring': 1,
-        'target_deadline': now.toIso8601String(),
-        'min_allowed_value': 0,
-      },
-    );
+    final goalId = await db.insert('goal', {
+      'target_goal': stepGoal,
+      'is_recurring': 1,
+      'target_deadline': now.toIso8601String(),
+      'min_allowed_value': 0,
+    });
 
-    await db.insert(
-      'user_goal',
-      {
-        'user_id': userId,
-        'goal_id': goalId,
-        'current_progress': 0,
-        'reward_claimed': 0,
-        'week_start_date': weekStart.toIso8601String(),
-        'week_end_date': weekEnd.toIso8601String(),
-      },
-    );
+    await db.insert('user_goal', {
+      'user_id': userId,
+      'goal_id': goalId,
+      'current_progress': 0,
+      'reward_claimed': 0,
+      'week_start_date': weekStart.toIso8601String(),
+      'week_end_date': weekEnd.toIso8601String(),
+    });
 
     return goalId;
   }
 
   Future<int?> getDailyStepGoal(int userId) async {
-    final db = await AppDatabase.instance.database;
-
-    final rows = await db.rawQuery('''
+    final rows = await _db.rawQuery(
+      '''
       SELECT g.target_goal
       FROM goal g
       JOIN user_goal ug ON ug.goal_id = g.goal_id
@@ -69,7 +67,9 @@ class GoalService {
         AND g.is_recurring = 1
       ORDER BY g.goal_id DESC
       LIMIT 1
-    ''', [userId]);
+    ''',
+      [userId],
+    );
 
     if (rows.isNotEmpty) {
       return rows.first['target_goal'] as int;
@@ -79,16 +79,17 @@ class GoalService {
   }
 
   Future<int> getCurrentSteps(int userId) async {
-    final db = await AppDatabase.instance.database;
-
-    final rows = await db.rawQuery('''
+    final rows = await _db.rawQuery(
+      '''
       SELECT ug.current_progress
       FROM user_goal ug
       JOIN goal g ON g.goal_id = ug.goal_id
       WHERE ug.user_id = ?
       ORDER BY g.goal_id DESC
       LIMIT 1
-    ''', [userId]);
+    ''',
+      [userId],
+    );
 
     if (rows.isEmpty) return 0;
 
@@ -96,15 +97,16 @@ class GoalService {
   }
 
   Future<bool> hasUserReachedGoal(int userId) async {
-    final db = await AppDatabase.instance.database;
-
-    final rows = await db.rawQuery('''
+    final rows = await _db.rawQuery(
+      '''
       SELECT g.target_goal, ug.current_progress
       FROM goal g
       JOIN user_goal ug ON ug.goal_id = g.goal_id
       WHERE ug.user_id = ?
       LIMIT 1
-    ''', [userId]);
+    ''',
+      [userId],
+    );
 
     if (rows.isEmpty) return false;
 
@@ -115,23 +117,24 @@ class GoalService {
   }
 
   Future<void> resetGoal(int userId) async {
-    final db = await AppDatabase.instance.database;
-
-    final rows = await db.rawQuery('''
+    final rows = await _db.rawQuery(
+      '''
       SELECT g.goal_id
       FROM goal g
       JOIN user_goal ug ON ug.goal_id = g.goal_id
       WHERE ug.user_id = ?
       ORDER BY g.goal_id DESC
       LIMIT 1
-    ''', [userId]);
+    ''',
+      [userId],
+    );
 
     if (rows.isEmpty) return;
 
     final goalId = rows.first['goal_id'] as int;
     const int goalReward = 25;
 
-    await db.rawUpdate(
+    await _db.rawUpdate(
       '''
       UPDATE user
       SET currency = currency + ?
@@ -140,14 +143,14 @@ class GoalService {
       [goalReward, userId],
     );
 
-    await db.update(
+    await _db.update(
       'goal',
       {'target_goal': 250},
       where: 'goal_id = ?',
       whereArgs: [goalId],
     );
 
-    await db.update(
+    await _db.update(
       'user_goal',
       {'current_progress': 0},
       where: 'goal_id = ? AND user_id = ?',
