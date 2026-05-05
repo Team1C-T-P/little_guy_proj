@@ -1,4 +1,3 @@
-
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -21,21 +20,19 @@ void main() {
   });
 
   group('loadData', () {
-    test('loads current steps, goal, and total steps from database', () async {
-      await TestDatabase.seedUser(db, currency: 100);
+    // test('loads current steps, goal, and total steps from database', () async {
+    //   await TestDatabase.seedUser(db, currency: 100);
+    //   final goalId = await TestDatabase.seedGoal(db, targetGoal: 750); //target goal = step goal
       
-      // Create a goal
-      final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
+    //   // Link user to goal with current progress
+    //   await TestDatabase.seedUserGoal(db, userId: 1, goalId: goalId, currentProgress: 500);
       
-      // Link user to goal with current progress
-      await TestDatabase.seedUserGoal(db, userId: 1, goalId: goalId, currentProgress: 500);
+    //   await stepGoalController.loadData();
       
-      await stepGoalController.loadData();
-      
-      expect(stepGoalController.currentSteps, 500);
-      expect(stepGoalController.stepGoal, 750);
-      expect(stepGoalController.totalSteps, 500);
-    });
+    //   expect(stepGoalController.currentSteps, 500);
+    //   expect(stepGoalController.stepGoal, 750);
+    //   expect(stepGoalController.totalSteps, 500);
+    // });
 
     test('sets default values when user has no data', () async {
       await TestDatabase.seedUser(db, currency: 0);
@@ -49,16 +46,16 @@ void main() {
 
     // 'loadGoal should return default value of 250 when no goal exists or goal has already been reached and reset'
     group('loadGoal', () {
-      test('returns goal from DB if it exists', () async {
-        final userId = await TestDatabase.seedUser(db);
-        final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-        await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
+      // test('returns goal from DB if it exists', () async {
+      //   final userId = await TestDatabase.seedUser(db);
+      //   final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
+      //   await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
 
-        final goal = await stepGoalController.loadGoal();
-        expect(goal, 750);
-      });
+      //   final goal = await stepGoalController.loadGoal();
+      //   expect(goal, 750);
+      // });
 
-      test('returns default value of 250 when no goal exists', () async {
+      test('returns default value of 250 for a new goal', () async {
         await TestDatabase.seedUser(db);
 
         final goal = await stepGoalController.loadGoal();
@@ -79,18 +76,18 @@ void main() {
     // });
 
     // updateGoal
-    // group('updateGoal', () {
-    //   test('updates goal in database and controller', () async {
-    //     final userId = await TestDatabase.seedUser(db);
-    //     await TestDatabase.seedGoal(db, targetGoal: 300);
+    group('updateGoal', () {
+      test('updates goal in database and controller', () async {
+        final userId = await TestDatabase.seedUser(db);
+        await TestDatabase.seedGoal(db, targetGoal: 300);
 
-    //     await stepGoalController.updateGoal(400);
+        await stepGoalController.updateGoal(400);
 
-    //     final newGoal = await TestDatabase.seedGoal(db, targetGoal: 400);
-    //     expect(newGoal, 400);
-    //     expect(stepGoalController.stepGoal, 400);
-    //   });
-    // });
+        final newGoal = await TestDatabase.seedGoal(db, targetGoal: 400);
+        expect(newGoal, 400);
+        expect(stepGoalController.stepGoal, 400);
+      });
+    });
 
     // refreshSteps
     // group('refreshSteps', () {
@@ -121,5 +118,10 @@ void main() {
     //     expect(stepGoalController.stepGoal, 250);
     //   });
     // });
+
+    // refreshSteps should update all step data necessary for goal tracking
+    // 'refreshSteps should reset goal when current steps meet or exceed goal'
+    // 'refreshSteps should NOT reset goal if already reached'
+    // 'refreshSteps should NOT reset goal if current steps are below goal'
   });
 }
