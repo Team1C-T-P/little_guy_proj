@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'models/database.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'views/header.dart';
 import 'views/main_page_view.dart';
-import 'views/settings_view.dart';
 import 'views/shop_view.dart';
 import 'views/dress_view.dart';
 import 'views/map_view.dart';
-import 'views/test_view.dart';
-import 'views/community_view.dart';
 import 'views/profile_view.dart';
 import 'package:pedometer/pedometer.dart';
 
@@ -88,42 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(''),
-        backgroundColor: const Color.fromARGB(255, 213, 248, 255),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report), // Icon for the button
-            tooltip: 'Test Screen',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TestScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.diversity_1), // Icon for the button
-            tooltip: 'Community',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CommunityScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings), // Icon for the button
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: const MainHeader(),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
