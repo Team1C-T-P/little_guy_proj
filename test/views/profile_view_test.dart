@@ -28,17 +28,13 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(createTestWidget());
-      await tester.pump();
+      await tester.pump(); // Animations are fucking me over
 
       // Check that basic UI elements are present
-      // expect(find.text('User name'), findsOneWidget);
-      // expect(find.text('Pet name'), findsOneWidget);
-      // expect(find.byType(TextField), findsNWidgets(2));
-      // expect(find.text('Try me'), findsOneWidget);
-      // expect(find.byType(Switch), findsOneWidget);
-      // expect(find.text('probs font size'), findsOneWidget);
-      // expect(find.byType(Slider), findsOneWidget);
-      // expect(find.text('Submit'), findsOneWidget);
+      expect(find.textContaining('|'), findsOneWidget);
+      expect(find.textContaining('Total Steps'), findsOneWidget);
+      expect(find.textContaining('Items Collected'), findsOneWidget);
+      expect(find.text('Achievements'), findsOneWidget);
     });
   });
 }
