@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.person), // Icon for the button
+            icon: const Icon(Icons.settings), // Icon for the button
             tooltip: 'Settings',
             onPressed: () {
               Navigator.push(
@@ -156,8 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
             backgroundColor: const Color.fromARGB(219, 150, 242, 176),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.person),
+            label: 'Profile',
             backgroundColor: const Color.fromARGB(219, 150, 242, 176),
           ),
         ],
