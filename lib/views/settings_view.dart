@@ -43,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('Settings Screen')),
       backgroundColor: Color.fromARGB(219, 173, 230, 189),
       body: SingleChildScrollView(
         child: Column(
