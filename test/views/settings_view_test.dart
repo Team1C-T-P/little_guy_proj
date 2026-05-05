@@ -16,7 +16,7 @@ void main() {
 
   setUp(() async {
     final db = await AppDatabase.instance.database;
-    await db.delete('route');
+    await db.delete('route'); //fix as I am not working with routes
   });
 
   group('Settings Screen Tests', () {
@@ -24,6 +24,7 @@ void main() {
       return const MaterialApp(home: SettingsScreen());
     }
 
+    //copied from Mani's union shop as example
     testWidgets('should display settings screen with basic elements', (
       tester,
     ) async {
@@ -33,18 +34,22 @@ void main() {
       // Check that basic UI elements are present
       expect(find.text('User name'), findsOneWidget);
       expect(find.text('Pet name'), findsOneWidget);
+      expect(find.byType(TextField), findsNWidgets(2));
       expect(find.text('Try me'), findsOneWidget);
+      expect(find.byType(Switch), findsOneWidget);
       expect(find.text('some attribute'), findsOneWidget);
+      expect(find.byType(Slider), findsOneWidget);
       expect(find.text('Submit'), findsOneWidget);
     });
 
-    //copied from Mani's union shop as example
-    // testWidgets('should display size dropdown', (tester) async {
-    //   await tester.pumpWidget(createTestWidget());
-    //   await tester.pump();
+    testWidgets('pump switch and see snack', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump();
 
-    //   expect(find.text('Size'), findsOneWidget);
-    //   //expect(find.byType(DropdownButtonFormField<dynamic>), findsOneWidget);
-    // });
+      // Tap the switch and verify the state change
+      await tester.tap(find.byType(Switch));
+      await tester.pump();
+      expect(find.text("6 7"), findsOneWidget);
+    });
   });
 }
