@@ -10,7 +10,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // bool _notificationsEnabled = true;
+  bool _switchBtn = false;
   double _soundVolume = 0.5;
   final TextEditingController _petNameController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
@@ -81,29 +81,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 // Notifications Switch
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(
-                //     horizontal: 16.0,
-                //     vertical: 8.0,
-                //   ),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Text(
-                //         'Enable Notifications',
-                //         style: TextStyle(fontSize: 16),
-                //       ),
-                //       Switch(
-                //         value: _notificationsEnabled,
-                //         onChanged: (bool value) {
-                //           setState(() {
-                //             _notificationsEnabled = value;
-                //           });
-                //         },
-                //       ),
-                //     ],
-                //   ),
-                // ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Try me', style: TextStyle(fontSize: 16)),
+                      Switch(
+                        value: _switchBtn,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _switchBtn = value;
+
+                            if (_switchBtn) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '6 7',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              );
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
                 // Volume Slider
                 Padding(
                   padding: const EdgeInsets.symmetric(
