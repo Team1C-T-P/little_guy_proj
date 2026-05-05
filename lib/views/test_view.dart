@@ -113,7 +113,7 @@ class _TestScreenState extends State<TestScreen> {
             const SizedBox(height: 8),
             Text('Currency: $_currency', style: const TextStyle(fontSize: 20)),
             Text(
-              'Steps toward next point: $_leftoverSteps',
+              'Steps toward next goal: ${(_goalController.stepGoal - _totalSteps).clamp(0, double.infinity).toInt()}',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),

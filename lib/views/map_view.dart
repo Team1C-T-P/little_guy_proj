@@ -181,6 +181,39 @@ class _MapScreenState extends State<MapScreen> {
     return granted;
   }
 
+  Future<void> _confirmEndWalk() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('End Walk?'),
+          content: const Text('Are you sure you want to end this walk?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SummaryScreen(
+                      totalSteps: _sessionSteps,
+                      route: _route,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('End Walk'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> initPlatformState() async {
     bool granted = await _checkActivityRecognitionPermission();
     if (!granted) {
@@ -417,17 +450,7 @@ class _MapScreenState extends State<MapScreen> {
                             const Gap(12),
                             GreenButton(
                               buttonText: "End Walk",
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SummaryScreen(
-                                      totalSteps: _sessionSteps,
-                                      route: _route,
-                                    ),
-                                  ),
-                                );
-                              },
+                              onPressed: _confirmEndWalk,
                             ),
                           ],
                         ),
