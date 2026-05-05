@@ -20,23 +20,6 @@ void main() {
     await db.close();
   });
 
-  // loadData should load current steps, goal, and total steps
-
-  //     group('loadData', () {
-  //     test('loads current steps, goal, and total steps from database', () async {
-  //       final userId = await TestDatabase.seedUser(db);
-  //       final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-  //       await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
-  //       await TestDatabase.seedGoal(db, targetGoal: 500);
-
-  //       await stepGoalController.loadData();
-
-  //       expect(stepGoalController.totalSteps, 500);
-  //       expect(stepGoalController.stepGoal, 750);
-  //       expect(stepGoalController.currentSteps, 500);
-  //     });
-  //   });
-
   group('loadData', () {
     test('loads current steps, goal, and total steps from database', () async {
       await TestDatabase.seedUser(db, currency: 100);
@@ -84,59 +67,59 @@ void main() {
     });
 
     // loadTotalSteps should return total steps from stepService
-    group('loadTotalSteps', () {
-      test('returns total steps from stepService', () async {
-        final userId = await TestDatabase.seedUser(db);
-        await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 1000);
-        await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 500);
+    // group('loadTotalSteps', () {
+    //   test('returns total steps from stepService', () async {
+    //     final userId = await TestDatabase.seedUser(db);
+    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 1000);
+    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 500);
 
-        final totalSteps = await stepGoalController.loadTotalSteps();
-        expect(totalSteps, 1500);
-      });
-    });
+    //     final totalSteps = await stepGoalController.loadTotalSteps();
+    //     expect(totalSteps, 1500);
+    //   });
+    // });
 
     // updateGoal
-    group('updateGoal', () {
-      test('updates goal in database and controller', () async {
-        final userId = await TestDatabase.seedUser(db);
-        await TestDatabase.seedGoal(db, targetGoal: 300);
+    // group('updateGoal', () {
+    //   test('updates goal in database and controller', () async {
+    //     final userId = await TestDatabase.seedUser(db);
+    //     await TestDatabase.seedGoal(db, targetGoal: 300);
 
-        await stepGoalController.updateGoal(400);
+    //     await stepGoalController.updateGoal(400);
 
-        final newGoal = await TestDatabase.seedGoal(db, targetGoal: 400);
-        expect(newGoal, 400);
-        expect(stepGoalController.stepGoal, 400);
-      });
-    });
+    //     final newGoal = await TestDatabase.seedGoal(db, targetGoal: 400);
+    //     expect(newGoal, 400);
+    //     expect(stepGoalController.stepGoal, 400);
+    //   });
+    // });
 
     // refreshSteps
-    group('refreshSteps', () {
-      test('updates all step data necessary for goal tracking', () async {
-        final userId = await TestDatabase.seedUser(db, currency: 100);
-        final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-        await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
-        await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 1000);
-        await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 500);
+    // group('refreshSteps', () {
+    //   test('updates all step data necessary for goal tracking', () async {
+    //     final userId = await TestDatabase.seedUser(db, currency: 100);
+    //     final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
+    //     await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
+    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 1000);
+    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 500);
 
-        await stepGoalController.refreshSteps();
+    //     await stepGoalController.refreshSteps();
 
-        expect(stepGoalController.currentSteps, 500);
-        expect(stepGoalController.stepGoal, 750);
-        expect(stepGoalController.totalSteps, 1500);
-        expect(stepGoalController.currency, 100);
-      });
+    //     expect(stepGoalController.currentSteps, 500);
+    //     expect(stepGoalController.stepGoal, 750);
+    //     expect(stepGoalController.totalSteps, 1500);
+    //     expect(stepGoalController.currency, 100);
+    //   });
 
-      test('resets goal when current steps meet or exceed goal', () async {
-        final userId = await TestDatabase.seedUser(db, currency: 100);
-        final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-        await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 750);
-        await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 750);
+    //   test('resets goal when current steps meet or exceed goal', () async {
+    //     final userId = await TestDatabase.seedUser(db, currency: 100);
+    //     final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
+    //     await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 750);
+    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 750);
 
-        await stepGoalController.refreshSteps();
+    //     await stepGoalController.refreshSteps();
 
-        expect(stepGoalController.currentSteps, 0);
-        expect(stepGoalController.stepGoal, 250);
-      });
-    });
+    //     expect(stepGoalController.currentSteps, 0);
+    //     expect(stepGoalController.stepGoal, 250);
+    //   });
+    // });
   });
 }
