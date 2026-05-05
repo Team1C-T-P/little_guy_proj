@@ -1,14 +1,14 @@
 // import db
-import 'database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DressDatabase {
-  final db = AppDatabase.instance.database;
+  final Database _db;
+
+  DressDatabase(this._db);
 
   // return items owned by user
   Future<List<Map<String, dynamic>>> getHatsOwnedByUser(int userId) async {
-    final database = await db;
-
-    return await database.rawQuery(
+    return await _db.rawQuery(
       '''
       SELECT
         item.item_id,
@@ -27,17 +27,15 @@ class DressDatabase {
 
   // equip hat to the db
   Future<void> equipHat(int littleGuyId, int itemId) async {
-    final database = await db;
-
     // remove currently equipped hat
-    await database.delete(
+    await _db.delete(
       'little_guy_wearing',
       where: 'little_guy_id = ?',
       whereArgs: [littleGuyId],
     );
 
     // equip new hat
-    await database.insert('little_guy_wearing', {
+    await _db.insert('little_guy_wearing', {
       'little_guy_id': littleGuyId,
       'item_id': itemId,
     });
@@ -45,8 +43,7 @@ class DressDatabase {
 
   // unequip hat to the db
   Future<void> unequipHat(int littleGuyId) async {
-    final database = await db;
-    await database.delete(
+    await _db.delete(
       'little_guy_wearing',
       where: 'little_guy_id = ?',
       whereArgs: [littleGuyId],
@@ -55,9 +52,7 @@ class DressDatabase {
 
   // get equipped hat from db
   Future<Map<String, dynamic>?> getEquippedHat(int littleGuyId) async {
-    final database = await db;
-
-    final result = await database.rawQuery(
+    final result = await _db.rawQuery(
       '''
     SELECT item.item_id, item.image_path
     FROM little_guy_wearing
