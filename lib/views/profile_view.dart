@@ -82,15 +82,8 @@ class _ProfileState extends State<ProfileScreen> {
                                 ),
                                 child: Row(
                                   children: <Widget>[
-                                    Container(child: Text(_userName)),
-                                    Container(child: Text(" | ")),
                                     Container(
-                                      child: Text(
-                                        _petName,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ),
+                                      child: Text("$_userName | $_petName"),
                                     ),
                                     Container(child: Text(" --- ")),
                                     Container(child: Text("[Currency]")),
@@ -111,14 +104,14 @@ class _ProfileState extends State<ProfileScreen> {
                               Gap(10),
                               Container(
                                 child: const Text(
-                                  'Achivements',
+                                  'Achievements',
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                              Gap(10),
+                              Gap(5),
                               Row(
                                 children: [
                                   const Align(
@@ -137,7 +130,7 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text("Walk 5K"),
-                                            Text("Not yet completed!"),
+                                            Text("Not completed!"),
                                           ],
                                         ),
                                         Gap(10),
@@ -151,7 +144,7 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text("Set-up a route"),
-                                            Text("Not yet completed!"),
+                                            Text("Not completed!"),
                                           ],
                                         ),
                                       ],
@@ -174,7 +167,7 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text("Get 5 friends. Aww!"),
-                                            Text("Not yet completed!"),
+                                            Text("Not completed!"),
                                           ],
                                         ),
                                         Gap(10),
@@ -188,49 +181,49 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text("Get 10 Hats"),
-                                            Text("Not yet completed!"),
+                                            Text("Not completed!"),
                                           ],
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Spacer(),
-                                  const Align(
-                                    alignment: Alignment.topLeft,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Column(
-                                          children: [
-                                            const Text(
-                                              "Let's Play!",
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text("Play 20 times"),
-                                            Text("Not yet completed!"),
-                                          ],
-                                        ),
-                                        Gap(10),
-                                        Column(
-                                          children: [
-                                            const Text(
-                                              "Most Valuable Pet",
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text("Max lvl a pet"),
-                                            Text("Not yet completed!"),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  // Spacer(),
+                                  // const Align(
+                                  //   alignment: Alignment.topLeft,
+                                  //   child: Column(
+                                  //     crossAxisAlignment:
+                                  //         CrossAxisAlignment.center,
+                                  //     children: [
+                                  //       Column(
+                                  //         children: [
+                                  //           const Text(
+                                  //             "Let's Play!",
+                                  //             style: TextStyle(
+                                  //               fontSize: 15,
+                                  //               fontWeight: FontWeight.bold,
+                                  //             ),
+                                  //           ),
+                                  //           Text("Play 20 times"),
+                                  //           Text("Not completed!"),
+                                  //         ],
+                                  //       ),
+                                  //       Gap(10),
+                                  //       Column(
+                                  //         children: [
+                                  //           const Text(
+                                  //             "Most Valuable Pet",
+                                  //             style: TextStyle(
+                                  //               fontSize: 15,
+                                  //               fontWeight: FontWeight.bold,
+                                  //             ),
+                                  //           ),
+                                  //           Text("Max lvl a pet"),
+                                  //           Text("Not completed!"),
+                                  //         ],
+                                  //       ),
+                                  //     ],
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                             ],
