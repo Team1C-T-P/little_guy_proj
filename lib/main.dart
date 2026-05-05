@@ -76,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     MapScreen(),
     DressUp(),
     Shop(),
-    SettingsScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -114,11 +114,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.person), // Icon for the button
-            tooltip: 'Profile',
+            tooltip: 'Settings',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
               );
             },
           ),
