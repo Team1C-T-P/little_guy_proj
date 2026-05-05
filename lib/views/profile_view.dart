@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:gap/gap.dart';
-import 'package:flutter_flame_playground/little%20guy.dart';
+import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart'; // use step_points_service instead?
 

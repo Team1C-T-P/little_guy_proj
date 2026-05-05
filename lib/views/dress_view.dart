@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_flame_playground/little%20guy.dart';
+import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/dress_database.dart';
 import '../models/database.dart';
 import '../controller/hat_state.dart';
