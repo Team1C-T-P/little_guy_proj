@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/database.dart';
 import 'package:flutter_flame_playground/models/route_service.dart';
+import '../main.dart';
 
 class SummaryScreen extends StatefulWidget {
   final int totalSteps;
@@ -215,7 +216,13 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   GreenButton(
                     buttonText: "Return Home",
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyHomePage(title: 'FLittle Guy'),
+                        ),
+                        (route) => false,
+                      );
                     },
                   ),
                 ],
