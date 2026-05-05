@@ -59,7 +59,7 @@ void main() {
 
       await tester.drag(
         find.byType(Slider),
-        const Offset(-100, 0),
+        const Offset(-120, 0),
       ); //simulates dragging; the Offset is how many PIXELS to move (negative = left, positive = right) - pixels will be problematic as we don't know how to get it exactly
       // -330 is the last 0.0
       // -260 is the last 0.1
@@ -67,7 +67,7 @@ void main() {
       // -110 is the last 0.3
       await tester.pump();
 
-      expect(find.textContaining('0.3'), findsOneWidget);
+      expect(find.text('0.3'), findsOneWidget);
     });
   });
 }
