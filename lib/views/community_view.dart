@@ -4,7 +4,7 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:gap/gap.dart';
-import 'package:flutter_flame_playground/little%20guy.dart';
+import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 
 class CommunityScreen extends StatefulWidget {

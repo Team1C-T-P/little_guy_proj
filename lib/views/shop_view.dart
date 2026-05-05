@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../little%20guy.dart';
+import '../little_guy.dart';
 import '../widgets/button.dart';
 import '../models/shop_database.dart';
 import '../models/database.dart';

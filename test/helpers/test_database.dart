@@ -318,6 +318,7 @@ class TestDatabase {
       'week_end_date': weekEndDate,
       'reward_claimed': rewardClaimed ? 1 : 0,
     });
+    
   }
 
   static Future<int> seedReward(
