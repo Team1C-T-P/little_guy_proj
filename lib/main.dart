@@ -6,6 +6,7 @@ import 'views/main_page_view.dart';
 import 'views/shop_view.dart';
 import 'views/dress_view.dart';
 import 'views/map_view.dart';
+import 'views/nav_bar.dart';
 import 'views/profile_view.dart';
 import 'package:pedometer/pedometer.dart';
 
@@ -88,42 +89,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: const MainHeader(),
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: MainNavBar(
         currentIndex: _currentIndex,
-        backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-        selectedItemColor: const Color.fromARGB(255, 77, 151, 86),
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.spa),
-            label: 'Little Guy',
-            backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Map',
-            backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.checkroom),
-            label: 'Dress',
-            backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.tag),
-            label: 'Shop',
-            backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-            backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-          ),
-        ],
       ),
     );
   }
