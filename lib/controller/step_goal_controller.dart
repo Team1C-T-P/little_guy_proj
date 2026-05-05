@@ -55,6 +55,9 @@ class StepGoalController extends ChangeNotifier {
 
   // Update the user's daily goal
   Future<void> updateGoal(int newGoal) async {
+    if (newGoal <= 0) {
+      throw Exception('Invalid goal value');
+    }
     await goalService!.setDailyStepGoal(userId, newGoal);
     stepGoal = newGoal;
     goalReached = false;
