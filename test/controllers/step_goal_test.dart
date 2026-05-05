@@ -13,6 +13,7 @@ void main() {
   setUp(() async {
     db = await TestDatabase.createFresh();
     stepGoalController = StepGoalController();
+    await stepGoalController.init(testDb: db);
   });
 
   tearDown(() async {
@@ -20,6 +21,7 @@ void main() {
   });
 
   group('loadData', () {
+<<<<<<< HEAD
     // test('loads current steps, goal, and total steps from database', () async {
     //   await TestDatabase.seedUser(db, currency: 100);
     //   final goalId = await TestDatabase.seedGoal(db, targetGoal: 750); //target goal = step goal
@@ -33,12 +35,34 @@ void main() {
     //   expect(stepGoalController.stepGoal, 750);
     //   expect(stepGoalController.totalSteps, 500);
     // });
+=======
+    test('loads current steps, goal, and total steps from database', () async {
+      await TestDatabase.seedUser(db, currency: 100);
+
+      // Create a goal
+      final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
+
+      // Link user to goal with current progress
+      await TestDatabase.seedUserGoal(
+        db,
+        userId: 1,
+        goalId: goalId,
+        currentProgress: 500,
+      );
+
+      await stepGoalController.loadData();
+
+      expect(stepGoalController.currentSteps, 500);
+      expect(stepGoalController.stepGoal, 750);
+      expect(stepGoalController.totalSteps, 500);
+    });
+>>>>>>> 5be254c1679646334488bb9d39bb09283f0af54c
 
     test('sets default values when user has no data', () async {
       await TestDatabase.seedUser(db, currency: 0);
-      
+
       await stepGoalController.loadData();
-      
+
       expect(stepGoalController.currentSteps, 0);
       expect(stepGoalController.stepGoal, 250);
       expect(stepGoalController.totalSteps, 0);
@@ -46,10 +70,22 @@ void main() {
 
     // 'loadGoal should return default value of 250 when no goal exists or goal has already been reached and reset'
     group('loadGoal', () {
+<<<<<<< HEAD
       // test('returns goal from DB if it exists', () async {
       //   final userId = await TestDatabase.seedUser(db);
       //   final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
       //   await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
+=======
+      test('returns goal from DB if it exists', () async {
+        final userId = await TestDatabase.seedUser(db);
+        final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
+        await TestDatabase.seedUserGoal(
+          db,
+          userId: userId,
+          goalId: goalId,
+          currentProgress: 500,
+        );
+>>>>>>> 5be254c1679646334488bb9d39bb09283f0af54c
 
       //   final goal = await stepGoalController.loadGoal();
       //   expect(goal, 750);
