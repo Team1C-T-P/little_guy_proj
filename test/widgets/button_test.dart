@@ -44,7 +44,7 @@ void main() {
 		final elevated = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
 		final style = elevated.style;
 		final bgProp = style?.backgroundColor;
-		final resolved = bgProp?.resolve(<MaterialState>{});
+		final resolved = bgProp?.resolve(<WidgetState>{});
 
 		expect(resolved, equals(const Color.fromARGB(255, 159, 239, 167)));
 	});
