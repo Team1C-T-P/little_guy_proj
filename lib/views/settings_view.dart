@@ -121,6 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // if text changed then fix in testing as well
                       Text('probs font size', style: TextStyle(fontSize: 16)),
                       Slider(
                         value: _soundVolume,
