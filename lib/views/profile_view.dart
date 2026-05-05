@@ -19,7 +19,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileState extends State<ProfileScreen> {
   String _userName = "";
   String _petName = "";
+  int _totalSteps = 0;
+  int _currency = 0;
   final PetStatsDatabase _db = PetStatsDatabase();
+
   final int _userId = 1; // Assuming single user per phone with ID 1
 
   @override
@@ -29,12 +32,15 @@ class _ProfileState extends State<ProfileScreen> {
   }
 
   Future<void> _loadData() async {
+    final summary = await StepPointsService().getAccountSummary(_userId);
     final userName = await _db.getUserName(_userId);
     final petName = await _db.getPetName(_userId);
 
     setState(() {
       _userName = userName ?? 'Unknown';
       _petName = petName ?? 'Unknown';
+      _totalSteps = summary.totalSteps;
+      _currency = summary.currency;
     });
   }
 
@@ -86,7 +92,7 @@ class _ProfileState extends State<ProfileScreen> {
                                       child: Text("$_userName | $_petName"),
                                     ),
                                     Container(child: Text(" --- ")),
-                                    Container(child: Text("[Currency]")),
+                                    Container(child: Text("£$_currency")),
                                   ],
                                 ),
                               ),
@@ -95,7 +101,7 @@ class _ProfileState extends State<ProfileScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Total Steps: "),
+                                    Text("Total Steps: $_totalSteps"),
                                     Text("Items Collected:  "),
                                     Text("Total Friends:  "),
                                   ],
@@ -187,6 +193,7 @@ class _ProfileState extends State<ProfileScreen> {
                                       ],
                                     ),
                                   ),
+                                  // Commenting out temporarily because it causes error to fit on screen
                                   // Spacer(),
                                   // const Align(
                                   //   alignment: Alignment.topLeft,
