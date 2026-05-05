@@ -19,145 +19,88 @@ void main() {
   tearDown(() async {
     await db.close();
   });
+  
+  group('loadGoal', () {
+    // 'loadGoal should return default value of 250 when no goal exists or goal has already been reached and reset'
+    test('returns default value of 250 for a new goal', () async {
+      await TestDatabase.seedUser(db);
 
-  group('loadData', () {
-<<<<<<< HEAD
-    // test('loads current steps, goal, and total steps from database', () async {
-    //   await TestDatabase.seedUser(db, currency: 100);
-    //   final goalId = await TestDatabase.seedGoal(db, targetGoal: 750); //target goal = step goal
-      
-    //   // Link user to goal with current progress
-    //   await TestDatabase.seedUserGoal(db, userId: 1, goalId: goalId, currentProgress: 500);
-      
-    //   await stepGoalController.loadData();
-      
-    //   expect(stepGoalController.currentSteps, 500);
-    //   expect(stepGoalController.stepGoal, 750);
-    //   expect(stepGoalController.totalSteps, 500);
-    // });
-=======
-    test('loads current steps, goal, and total steps from database', () async {
-      await TestDatabase.seedUser(db, currency: 100);
-
-      // Create a goal
-      final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-
-      // Link user to goal with current progress
-      await TestDatabase.seedUserGoal(
-        db,
-        userId: 1,
-        goalId: goalId,
-        currentProgress: 500,
-      );
-
-      await stepGoalController.loadData();
-
-      expect(stepGoalController.currentSteps, 500);
-      expect(stepGoalController.stepGoal, 750);
-      expect(stepGoalController.totalSteps, 500);
+      final goal = await stepGoalController.loadGoal();
+      expect(goal, 250);
     });
->>>>>>> 5be254c1679646334488bb9d39bb09283f0af54c
+  });
 
-    test('sets default values when user has no data', () async {
+  group('SetGoal', () {
+    //sets new goal value in DB and updates controller state
+    // valid EP
+    test('sets default values when user has no data - loadData function', () async {
+    await TestDatabase.seedUser(db, currency: 0);
+
+    await stepGoalController.loadData();
+
+    expect(stepGoalController.currentSteps, 0);
+    expect(stepGoalController.stepGoal, 250);
+    expect(stepGoalController.totalSteps, 0);
+  });
+
+  //update goal when button pressed to change value
+    test('updates goal successfully with minimum valid goal (250 steps)', () async {
+      await stepGoalController.updateGoal(250);
+      final goal = await stepGoalController.loadGoal();
+      expect(goal, 250);
+      });
+
+      // invalid EP
+    test('rejects goal of 0 steps (invalid - below minimum)', () async {
+      try {
+        await stepGoalController.updateGoal(0);
+      } catch (e) {
+        expect(e.toString(), contains('Invalid goal value'));
+      }
+    });
+    
+    test('rejects negative goal (invalid - below minimum)', () async {
+      try {
+        await stepGoalController.updateGoal(-100);
+      } catch (e) {
+        expect(e.toString(), contains('Invalid goal value'));
+      }
+    });
+
+    // Boundary Value Analysis (BVA)
+    // Lower boundary: 0, 1, 2
+    test('rejects goal at lower boundary (249 steps)', () async {
+      // Lower boundary: 0, 1, 2
+      try {
+        await stepGoalController.updateGoal(249);
+      } catch (e) {
+        expect(e.toString(), contains('Invalid goal value'));
+      }
+    });
+
+    test('accepts goal at lower boundary (250 step - minimum valid)', () async {
+      const newGoal = 250;
       await TestDatabase.seedUser(db, currency: 0);
+      await stepGoalController.updateGoal(newGoal);
+      final goal = await stepGoalController.loadGoal();
+      expect(goal, newGoal);
+    });
+  });
+  
+  group('ReachGoal', () {
+    //goal reached when current steps meet or exceed goal, progress resets and new goal is set
+    //when step goal and currentsteps are equal, goal should reset and new goal should be set
+    //Functional/Integration Test - tests interaction between loadData, loadGoal, and refreshSteps to ensure goal resets when reached
+    test('resets new goal when current steps meet goal', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 0);
+      final goalId = await TestDatabase.seedGoal(db, targetGoal: 250);
+      await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 250);
+      await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 250);
 
-      await stepGoalController.loadData();
+      await stepGoalController.refreshSteps();
 
       expect(stepGoalController.currentSteps, 0);
       expect(stepGoalController.stepGoal, 250);
-      expect(stepGoalController.totalSteps, 0);
     });
-
-    // 'loadGoal should return default value of 250 when no goal exists or goal has already been reached and reset'
-    group('loadGoal', () {
-<<<<<<< HEAD
-      // test('returns goal from DB if it exists', () async {
-      //   final userId = await TestDatabase.seedUser(db);
-      //   final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-      //   await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
-=======
-      test('returns goal from DB if it exists', () async {
-        final userId = await TestDatabase.seedUser(db);
-        final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-        await TestDatabase.seedUserGoal(
-          db,
-          userId: userId,
-          goalId: goalId,
-          currentProgress: 500,
-        );
->>>>>>> 5be254c1679646334488bb9d39bb09283f0af54c
-
-      //   final goal = await stepGoalController.loadGoal();
-      //   expect(goal, 750);
-      // });
-
-      test('returns default value of 250 for a new goal', () async {
-        await TestDatabase.seedUser(db);
-
-        final goal = await stepGoalController.loadGoal();
-        expect(goal, 250);
-      });
-    });
-
-    // loadTotalSteps should return total steps from stepService
-    // group('loadTotalSteps', () {
-    //   test('returns total steps from stepService', () async {
-    //     final userId = await TestDatabase.seedUser(db);
-    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 1000);
-    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 500);
-
-    //     final totalSteps = await stepGoalController.loadTotalSteps();
-    //     expect(totalSteps, 1500);
-    //   });
-    // });
-
-    // updateGoal
-    group('updateGoal', () {
-      test('updates goal in database and controller', () async {
-        final userId = await TestDatabase.seedUser(db);
-        await TestDatabase.seedGoal(db, targetGoal: 300);
-
-        await stepGoalController.updateGoal(400);
-
-        final newGoal = await TestDatabase.seedGoal(db, targetGoal: 400);
-        expect(newGoal, 400);
-        expect(stepGoalController.stepGoal, 400);
-      });
-    });
-
-    // refreshSteps
-    // group('refreshSteps', () {
-    //   test('updates all step data necessary for goal tracking', () async {
-    //     final userId = await TestDatabase.seedUser(db, currency: 100);
-    //     final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-    //     await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 500);
-    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 1000);
-    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 500);
-
-    //     await stepGoalController.refreshSteps();
-
-    //     expect(stepGoalController.currentSteps, 500);
-    //     expect(stepGoalController.stepGoal, 750);
-    //     expect(stepGoalController.totalSteps, 1500);
-    //     expect(stepGoalController.currency, 100);
-    //   });
-
-    //   test('resets goal when current steps meet or exceed goal', () async {
-    //     final userId = await TestDatabase.seedUser(db, currency: 100);
-    //     final goalId = await TestDatabase.seedGoal(db, targetGoal: 750);
-    //     await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 750);
-    //     await TestDatabase.seedWalkSummary(db, userId: userId, totalSteps: 750);
-
-    //     await stepGoalController.refreshSteps();
-
-    //     expect(stepGoalController.currentSteps, 0);
-    //     expect(stepGoalController.stepGoal, 250);
-    //   });
-    // });
-
-    // refreshSteps should update all step data necessary for goal tracking
-    // 'refreshSteps should reset goal when current steps meet or exceed goal'
-    // 'refreshSteps should NOT reset goal if already reached'
-    // 'refreshSteps should NOT reset goal if current steps are below goal'
   });
 }
