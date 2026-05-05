@@ -1,8 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flutter_flame_playground/models/database.dart';
 import 'package:flutter_flame_playground/views/settings_view.dart';
 
 void main() {
+  // Copied from Sam's routes_view_test.dart (set up db for testing)
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+    await AppDatabase.instance.initializeDefaultData();
+  });
+
+  setUp(() async {
+    final db = await AppDatabase.instance.database;
+    await db.delete('route');
+  });
+
   group('Settings Screen Tests', () {
     Widget createTestWidget() {
       return const MaterialApp(home: SettingsScreen());
@@ -17,7 +33,9 @@ void main() {
       // Check that basic UI elements are present
       expect(find.text('User name'), findsOneWidget);
       expect(find.text('Pet name'), findsOneWidget);
+      expect(find.text('Try me'), findsOneWidget);
       expect(find.text('some attribute'), findsOneWidget);
+      expect(find.text('Submit'), findsOneWidget);
     });
 
     //copied from Mani's union shop as example
