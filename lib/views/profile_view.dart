@@ -9,8 +9,10 @@ import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart'; // use step_points_service instead?
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
-  _ProfileState createState() => _ProfileState();
+  State<ProfileScreen> createState() => _ProfileState();
 }
 
 //instead of getting data from pet_maintainment_database can we get it from step points service? - as there is a summary.
