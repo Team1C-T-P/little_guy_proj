@@ -121,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('some attribute', style: TextStyle(fontSize: 16)),
+                      Text('probs font size', style: TextStyle(fontSize: 16)),
                       Slider(
                         value: _soundVolume,
                         onChanged: (double value) {
@@ -131,6 +131,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                         min: 0,
                         max: 1,
+                      ),
+                      Text(
+                        _soundVolume.toStringAsFixed(1),
+                        style: TextStyle(fontSize: 12),
                       ),
                     ],
                   ),
