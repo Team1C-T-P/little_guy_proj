@@ -8,6 +8,7 @@ import 'clean_view.dart';
 import 'play_view.dart';
 import '../models/pet_maintainment_database.dart';
 import '../models/database.dart';
+import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late PetStatsDatabase _petStatsDB;
+  late StatDegradation _statDegradation;
   final StepGoalController _goalController = StepGoalController();
 
   double _hunger = 0;
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     AppDatabase.instance.database.then((db) {
       _petStatsDB = PetStatsDatabase(db);
+      _statDegradation = StatDegradation(petStatsDB: _petStatsDB);
       _loadPetStats();
     });
     _loadGoalData();
@@ -37,26 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   Future<void> _loadPetStats() async {
+    
+    await _statDegradation.degradeStats();
+
     double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
     double enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
     double hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
-    String? lastOnlineIso = await _petStatsDB.getLastOnlineByUserId(1);
-    lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
-
-    DateTime lastOnline = DateTime.parse(lastOnlineIso);
-    DateTime now = DateTime.now().toUtc();
-
-    int hoursSinceLastOnline = now.difference(lastOnline).inHours;
-    double decayBy = 0.1 * (hoursSinceLastOnline / 2);
-
-    hunger = hunger - decayBy > 0 ? hunger - decayBy : 0;
-    enjoyment = enjoyment - decayBy > 0 ? enjoyment - decayBy : 0;
-    hygiene = hygiene - decayBy > 0 ? hygiene - decayBy : 0;
-
-    await _petStatsDB.updatePetStat(1, 'hunger_level', hunger);
-    await _petStatsDB.updatePetStat(1, 'enjoyment_level', enjoyment);
-    await _petStatsDB.updatePetStat(1, 'hygiene_level', hygiene);
-    await _petStatsDB.updateLastOnlineByUserId(1, now.toIso8601String());
 
     setState(() {
       _hunger = hunger;

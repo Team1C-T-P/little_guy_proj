@@ -2,16 +2,19 @@ import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../helpers/test_database.dart';
+import 'package:flutter_flame_playground/views/main_page_view.dart';
 
 void main() {
   late Database db;
   late PetStatsDatabase petStatsDB;
+  late InventoryDatabase inventoryDB;
 
   setUpAll(() => TestDatabase.init());
 
   setUp(() async {
     db = await TestDatabase.createFresh();
     petStatsDB = PetStatsDatabase(db);
+    inventoryDB = InventoryDatabase(db);
   });
 
   tearDown(() async {
@@ -109,8 +112,22 @@ void main() {
 
     test('Throws an exception if trying to update a stat that doesnt exist', () async {
       expect(
-        () => petStatsDB.updatePetStat(999, 'hunger_level', 1), throwsA(isA<Exception>())
+        () => petStatsDB.updatePetStat(1, 'unknown_level', 1), throwsA(isA<Exception>())
       );
     });
   });
+
+  // test getLastOnlineByUserId
+
+  // test updateLastOnlineByUserId
+
+  // test _loadPetStats()
+  group('loadPetsStats', () {
+    
+  });
+
+  // test getFoodByUserId
+
+  // test useFood
+
 }
