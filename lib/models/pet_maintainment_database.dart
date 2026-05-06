@@ -32,6 +32,12 @@ class PetStatsDatabase {
   }
 
   Future<double> getPetStat(int petId, String stat) async {
+    const allowedStats = {'hunger_level', 'hygiene_level', 'enjoyment_level'};
+
+    if (!allowedStats.contains(stat)) {
+      throw Exception('Stat does not exist');
+    }
+
     final stats = await _db.query(
       'little_guy',
       columns: [stat],

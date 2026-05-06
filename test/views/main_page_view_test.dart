@@ -50,10 +50,20 @@ void main() {
       final enjoyment = await petStatsDB.getPetStat(999, 'enjoyment_level');
       expect(enjoyment, 0.0);
     });
+
+    test('Throws an exception if trying to get a stat that does not exist', () async{
+      final userId = await TestDatabase.seedUser(db);
+      final petId = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 0, hungerLevel: 100, enjoymentLevel: 50);
+
+      expect(
+        () => petStatsDB.getPetStat(petId, 'unknown_stat'),
+        throwsA(isA<Exception>()),
+      );
+    });
   });
 
   // test updatePetStat
-  group('setPetStat', () {
+  group('updatePetStat', () {
     test('Updates the pet stat correctly for a given petId and stat name', () async {
       // Insert test user and pet
       final userId = await TestDatabase.seedUser(db);
@@ -91,7 +101,13 @@ void main() {
       expect(hygiene, 1.0);
     });
 
-    test('Throws an exception if trying to update a stat for a pet id that doesnt exist',() async{
+    test('Throws an exception if trying to update a stat for a pet id that doesnt exist',() async {
+      expect(
+        () => petStatsDB.updatePetStat(999, 'hunger_level', 1), throwsA(isA<Exception>())
+      );
+    });
+
+    test('Throws an exception if trying to update a stat that doesnt exist', () async {
       expect(
         () => petStatsDB.updatePetStat(999, 'hunger_level', 1), throwsA(isA<Exception>())
       );
