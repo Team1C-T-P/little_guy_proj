@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainment_database.dart';
+import '../models/database.dart';
 
 
 class PlayScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  late PetStatsDatabase _petStatsDB;
   final ValueNotifier<bool> _petTrigger = ValueNotifier(false);
   
   // Dummy values will be replaced with actual values from the database
@@ -21,7 +22,10 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPetStats();
+    AppDatabase.instance.database.then((db) {
+      _petStatsDB = PetStatsDatabase(db);
+      _loadPetStats();
+    });
   }
 
   Future<void> _loadPetStats() async {

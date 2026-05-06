@@ -7,6 +7,7 @@ import 'feed_view.dart';
 import 'clean_view.dart';
 import 'play_view.dart';
 import '../models/pet_maintainment_database.dart';
+import '../models/database.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  late PetStatsDatabase _petStatsDB;
   final StepGoalController _goalController = StepGoalController();
 
   double _hunger = 0;
@@ -27,16 +28,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPetStats();
-    _loadGoalData();
-
-    // Listener for any goal changes
-    _goalController.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
+    AppDatabase.instance.database.then((db) {
+      _petStatsDB = PetStatsDatabase(db);
+      _loadPetStats();
     });
-  }
+    _loadGoalData();
+  } 
+
 
   Future<void> _loadPetStats() async {
     double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');

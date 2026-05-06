@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart'; // use step_points_service instead?
+import '../models/database.dart'; // needed to work with pet_maintainment_database, but if we switch to step_points_service then this can be removed
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,13 +20,16 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileState extends State<ProfileScreen> {
   String _userName = "";
   String _petName = "";
-  final PetStatsDatabase _db = PetStatsDatabase();
+  late PetStatsDatabase _db;
   final int _userId = 1; // Assuming single user per phone with ID 1
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    AppDatabase.instance.database.then((db) {
+      _db = PetStatsDatabase(db);
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
