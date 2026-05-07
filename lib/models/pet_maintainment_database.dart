@@ -61,7 +61,10 @@ class PetStatsDatabase {
 
   // Update Queries
   Future<void> updateUserName(int userId, String newName) async {
-    await _db.update(
+    final db = await AppDatabase.instance.database;
+    // if newName is empty, keep the old name. (?)
+    if (newName.isEmpty) return; // not tested
+    await db.update(
       'user',
       {'user_name': newName},
       where: 'user_id = ?',
@@ -70,7 +73,10 @@ class PetStatsDatabase {
   }
 
   Future<void> updatePetName(int userId, String newName) async {
-    await _db.update(
+    final db = await AppDatabase.instance.database;
+    // if newName is empty, keep the old name. (?)
+    if (newName.isEmpty) return; // not tested
+    await db.update(
       'little_guy',
       {'little_guy_name': newName},
       where: 'user_id = ?',
