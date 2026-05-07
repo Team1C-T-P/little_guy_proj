@@ -1,14 +1,16 @@
-import '../models/pet_maintainment_database.dart';
+import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
 
 class StatDegradation {
   PetStatsDatabase petStatsDB;
-  StatDegradation({required this.petStatsDB});
+  int userID;
+  int petID;
+  StatDegradation({required this.petStatsDB, required this.userID, required this.petID});
 
   Future<void> degradeStats() async {
-    double hunger = await petStatsDB.getPetStat(1, 'hunger_level');
-    double enjoyment = await petStatsDB.getPetStat(1, 'enjoyment_level');
-    double hygiene = await petStatsDB.getPetStat(1, 'hygiene_level');
-    String? lastOnlineIso = await petStatsDB.getLastOnlineByUserId(1);
+    double hunger = await petStatsDB.getPetStat(petID, 'hunger_level');
+    double enjoyment = await petStatsDB.getPetStat(petID, 'enjoyment_level');
+    double hygiene = await petStatsDB.getPetStat(petID, 'hygiene_level');
+    String? lastOnlineIso = await petStatsDB.getLastOnlineByUserId(userID);
     lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
 
     DateTime lastOnline = DateTime.parse(lastOnlineIso);
@@ -21,9 +23,9 @@ class StatDegradation {
     enjoyment = enjoyment - decayBy;
     hygiene = hygiene - decayBy;  
 
-    await petStatsDB.updatePetStat(1, 'hunger_level', hunger);
-    await petStatsDB.updatePetStat(1, 'enjoyment_level', enjoyment);
-    await petStatsDB.updatePetStat(1, 'hygiene_level', hygiene);
-    await petStatsDB.updateLastOnlineByUserId(1, now.toIso8601String());
+    await petStatsDB.updatePetStat(petID, 'hunger_level', hunger);
+    await petStatsDB.updatePetStat(petID, 'enjoyment_level', enjoyment);
+    await petStatsDB.updatePetStat(petID, 'hygiene_level', hygiene);
+    await petStatsDB.updateLastOnlineByUserId(userID, now.toIso8601String());
   }
 }

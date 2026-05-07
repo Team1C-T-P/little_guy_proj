@@ -22,6 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late PetStatsDatabase _petStatsDB;
   late StatDegradation _statDegradation;
   final StepGoalController _goalController = StepGoalController();
+  int userId = 1;
+  int petId = 1;
 
   double _hunger = 0;
   double _enjoyment = 0;
@@ -32,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     AppDatabase.instance.database.then((db) {
       _petStatsDB = PetStatsDatabase(db);
-      _statDegradation = StatDegradation(petStatsDB: _petStatsDB);
+      _statDegradation = StatDegradation(petStatsDB: _petStatsDB, userID: userId, petID: petId);
       _loadPetStats();
     });
     _loadGoalData();
@@ -43,9 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
     
     await _statDegradation.degradeStats();
 
-    double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
-    double enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
-    double hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
+    double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
+    double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
+    double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
 
     setState(() {
       _hunger = hunger;

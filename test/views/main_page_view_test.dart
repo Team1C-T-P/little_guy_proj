@@ -2,7 +2,7 @@ import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../helpers/test_database.dart';
-import 'package:flutter_flame_playground/views/main_page_view.dart';
+import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 
 void main() {
   late Database db;
@@ -118,6 +118,17 @@ void main() {
   });
 
   // test getLastOnlineByUserId
+  group('getLastOnlineByUserId', (){
+    test('Returns the correct last online time', () async{
+      String lastOnline = DateTime.now().toUtc().toIso8601String();
+      await TestDatabase.seedUser(db, lastOnline: lastOnline);
+
+      String? retrievedLastOnline = await petStatsDB.getLastOnlineByUserId(1);
+      expect(retrievedLastOnline, lastOnline);
+    });
+
+
+  });
 
   // test updateLastOnlineByUserId
 
