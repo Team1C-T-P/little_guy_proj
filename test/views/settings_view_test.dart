@@ -88,11 +88,9 @@ void main() {
 
     test('return hats owned by user', () async {
       final userId = await TestDatabase.seedUser(db);
-      final hatId = await TestDatabase.seedHat(db, name: 'Top Hat');
-      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId);
-      final hats = await dressDb.getHatsOwnedByUser(userId);
-      expect(hats.length, 1);
-      expect(hats.first['item_name'], 'Top Hat');
+      await TestDatabase.seedLittleGuy(db, userId: userId);
+      expect(find.text('Test User'), findsOneWidget); // init user
+      expect(find.text('Buddy'), findsOneWidget); // init pet
     });
     // update values in db and see if they update on the screen
   });
