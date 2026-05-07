@@ -33,7 +33,7 @@ class _ProfileState extends State<ProfileScreen> {
   }
 
   Future<void> _loadData() async {
-    final summary = await StepPointsService().getAccountSummary(_userId);
+    // final summary = await StepPointsService().getAccountSummary(_userId);
     final userName = await _db.getUserName(_userId);
     final petName = await _db.getPetName(_userId);
     // final boughtCount = (await ShopDatabase(_db).getUserItems(_userId)).length;
@@ -42,8 +42,8 @@ class _ProfileState extends State<ProfileScreen> {
     setState(() {
       _userName = userName ?? 'Unknown';
       _petName = petName ?? 'Unknown';
-      _totalSteps = summary.totalSteps;
-      _currency = summary.currency;
+      // _totalSteps = summary.totalSteps;
+      // _currency = summary.currency;
     });
   }
 
