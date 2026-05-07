@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_flame_playground/models/step_points_service.dart';
+import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import '../models/database.dart';
-import '../models/step_points_service.dart';
-import '../controller/step_goal_controller.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -17,7 +17,7 @@ class TestScreen extends StatefulWidget {
 
 class _TestScreenState extends State<TestScreen> {
   late StepPointsService _stepPointsService;
-  late StepGoalController _goalController;
+  final StepGoalController _goalController = StepGoalController();
 
   int _totalSteps = 0;
   int _currency = 0;
@@ -30,13 +30,14 @@ class _TestScreenState extends State<TestScreen> {
     super.initState();
     AppDatabase.instance.database.then((db) {
       _stepPointsService = StepPointsService(db);
-      _goalController.init(testDb: db).then((_) {
-        _loadSummary();
-      });
+      _loadSummary();
     });
 
+    // Listener for any goal controller changes
     _goalController.addListener(() {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
