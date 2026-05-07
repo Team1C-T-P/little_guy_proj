@@ -3,7 +3,12 @@ import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    // required this.db? OR
+    // required this.userName,
+    // required this.petName, ?
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -12,6 +17,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _switchBtn = false;
   double _soundVolume = 0.5;
+  //put this up under class declaration?
   final TextEditingController _petNameController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
   final PetStatsDatabase _db = PetStatsDatabase();

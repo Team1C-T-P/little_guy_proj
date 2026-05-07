@@ -15,9 +15,10 @@ class TestScreen extends StatefulWidget {
 }
 
 class _TestScreenState extends State<TestScreen> {
+  // FIX: pass something.
   final StepPointsService _stepPointsService = StepPointsService();
   final StepGoalController _goalController = StepGoalController();
-  
+
   int _totalSteps = 0;
   int _currency = 0;
   int _leftoverSteps = 0;
@@ -28,13 +29,13 @@ class _TestScreenState extends State<TestScreen> {
   void initState() {
     super.initState();
     _loadSummary();
-  
+
     // Listener for any goal controller changes
     _goalController.addListener(() {
       if (mounted) {
         setState(() {});
-        }
-      });
+      }
+    });
   }
 
   Future<void> _loadSummary() async {
@@ -79,7 +80,6 @@ class _TestScreenState extends State<TestScreen> {
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
       });
-
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -133,7 +133,7 @@ class _TestScreenState extends State<TestScreen> {
 
                 setState(() {
                   _goalController.stepGoal = newGoal;
-                  });
+                });
               },
               child: const Text('Increase Goal by 250'),
             ),

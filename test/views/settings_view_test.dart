@@ -1,30 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:flutter_flame_playground/models/database.dart';
+import '../helpers/test_database.dart'; // instead of import ../lib/database
 import 'package:flutter_flame_playground/views/settings_view.dart';
 
 void main() {
   // Copied from Sam's routes_view_test.dart (set up db for testing)
-  TestWidgetsFlutterBinding.ensureInitialized();
+  // TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() async {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    await AppDatabase.instance.initializeDefaultData();
-  });
+  // setUpAll(() async {
+  //   sqfliteFfiInit();
+  //   databaseFactory = databaseFactoryFfi;
+  //   await AppDatabase.instance.initializeDefaultData();
+  // });
+
+  // setUp(() async {
+  //   final db = await AppDatabase.instance.database;
+  //   await db.delete('route'); //fix as I am not working with routes
+  // });
+
+  // Testing db changed in code, we can shorten the code?
+  late Database db;
+
+  setUpAll(() => TestDatabase.init());
 
   setUp(() async {
-    final db = await AppDatabase.instance.database;
-    await db.delete('route'); //fix as I am not working with routes
+    db = await TestDatabase.createFresh();
   });
 
-  group('Settings Screen Tests', () {
+  group('Settings Screen UI', () {
     Widget createTestWidget() {
       return const MaterialApp(home: SettingsScreen());
     }
 
     //copied from Mani's union shop as example
+    // Delete as Claudia said no front end?
     testWidgets('should display settings screen with basic elements', (
       tester,
     ) async {
@@ -69,5 +79,21 @@ void main() {
 
       expect(find.text('0.3'), findsOneWidget);
     });
+  });
+  group("Settings Screen fetch/update db", () {
+    Widget createTestWidget() {
+      return const MaterialApp(home: SettingsScreen());
+    }
+    // fetch initial values from fake (?) db and display them
+
+    test('return hats owned by user', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final hatId = await TestDatabase.seedHat(db, name: 'Top Hat');
+      await TestDatabase.seedInventory(db, userId: userId, itemId: hatId);
+      final hats = await dressDb.getHatsOwnedByUser(userId);
+      expect(hats.length, 1);
+      expect(hats.first['item_name'], 'Top Hat');
+    });
+    // update values in db and see if they update on the screen
   });
 }
