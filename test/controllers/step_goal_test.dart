@@ -43,9 +43,10 @@ void main() {
 
   //update goal when button pressed to change value
     test('updates goal with new value', () async {
-      await stepGoalController.updateGoal(250);
+      await TestDatabase.seedGoal(db, targetGoal: 250);
+      await stepGoalController.updateGoal(500);
       final goal = await stepGoalController.loadGoal();
-      expect(goal, 250);
+      expect(goal, 500);
       });
 
     test('accepts goal at minimum valid value (250 steps)', () async {

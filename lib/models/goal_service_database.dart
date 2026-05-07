@@ -5,7 +5,7 @@ class GoalService {
   final Database _db;
   GoalService(this._db);
   Future<int> setDailyStepGoal(int userId, int stepGoal) async {
-    final db = await AppDatabase.instance.database;
+    
 
     // Check if user already has a goal
     final existing = await _db.rawQuery(
@@ -23,7 +23,7 @@ class GoalService {
       final goalId = existing.first['goal_id'] as int;
 
       // Update existing goal
-      await db.update(
+      await _db.update(
         'goal',
         {'target_goal': stepGoal},
         where: 'goal_id = ?',
@@ -38,14 +38,14 @@ class GoalService {
     final weekStart = DateTime(now.year, now.month, now.day);
     final weekEnd = weekStart.add(Duration(days: 7));
 
-    final goalId = await db.insert('goal', {
+    final goalId = await _db.insert('goal', {
       'target_goal': stepGoal,
       'is_recurring': 1,
       'target_deadline': now.toIso8601String(),
       'min_allowed_value': 0,
     });
 
-    await db.insert('user_goal', {
+    await _db.insert('user_goal', {
       'user_id': userId,
       'goal_id': goalId,
       'current_progress': 0,
