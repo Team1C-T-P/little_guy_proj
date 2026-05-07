@@ -90,6 +90,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(0), 'New User Name');
       await tester.enterText(find.byType(TextField).at(1), 'New Pet Name');
       await tester.tap(find.text('Submit'));
+      // if new name equals the old name don't update?  Throw error? Trow error if empty?
 
       await tester.pumpWidget(
         createTestWidget(),
@@ -99,6 +100,8 @@ void main() {
       expect(find.text('New User Name'), findsOneWidget);
       expect(find.text('New Pet Name'), findsOneWidget);
     });
+
+    
   });
   group("Settings Screen fetch/update db", () {
     // move this to the submit button test? First check init and then change?
