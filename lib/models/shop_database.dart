@@ -150,4 +150,9 @@ class ShopDatabase {
 
     return inventory.map((item) => item['item_id'] as int).toSet();
   }
+
+  Future<int> getTotalShopItems() async {
+    final result = await _db.rawQuery('SELECT COUNT(*) as count FROM item');
+    return (result.first['count'] as int);
+  }
 }
