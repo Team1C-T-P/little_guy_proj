@@ -7,7 +7,6 @@ import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart'; // use step_points_service instead?
-import '../models/database.dart'; // needed to work with pet_maintainment_database, but if we switch to step_points_service then this can be removed
 import 'package:flutter_flame_playground/models/shop_database.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -21,7 +20,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileState extends State<ProfileScreen> {
   String _userName = "";
   String _petName = "";
-  late PetStatsDatabase _db;
+  int _totalSteps = 0;
+  int _currency = 0;
+  final PetStatsDatabase _db = PetStatsDatabase();
+
   final int _userId = 1; // Assuming single user per phone with ID 1
 
   @override
@@ -34,7 +36,7 @@ class _ProfileState extends State<ProfileScreen> {
   }
 
   Future<void> _loadData() async {
-    //final summary = await StepPointsService().getAccountSummary(_userId);
+    final summary = await StepPointsService().getAccountSummary(_userId);
     final userName = await _db.getUserName(_userId);
     final petName = await _db.getPetName(_userId);
     // final boughtCount = (await ShopDatabase(_db).getUserItems(_userId)).length;
@@ -43,8 +45,8 @@ class _ProfileState extends State<ProfileScreen> {
     setState(() {
       _userName = userName ?? 'Unknown';
       _petName = petName ?? 'Unknown';
-      //_totalSteps = summary.totalSteps;
-      //_currency = summary.currency;
+      _totalSteps = summary.totalSteps;
+      _currency = summary.currency;
     });
   }
 
@@ -96,7 +98,7 @@ class _ProfileState extends State<ProfileScreen> {
                                       child: Text("$_userName | $_petName"),
                                     ),
                                     Container(child: Text(" --- ")),
-                                    //Container(child: Text("£$_currency")),
+                                    Container(child: Text("£$_currency")),
                                   ],
                                 ),
                               ),
@@ -105,7 +107,7 @@ class _ProfileState extends State<ProfileScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    //Text("Total Steps: $_totalSteps"),
+                                    Text("Total Steps: $_totalSteps"),
                                     Text("Items Collected:  "),
                                     Text("Total Friends:  "),
                                   ],
