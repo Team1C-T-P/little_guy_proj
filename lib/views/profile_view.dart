@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little%20guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart'; // use step_points_service instead?
+import 'package:flutter_flame_playground/models/shop_database.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -35,6 +36,8 @@ class _ProfileState extends State<ProfileScreen> {
     final summary = await StepPointsService().getAccountSummary(_userId);
     final userName = await _db.getUserName(_userId);
     final petName = await _db.getPetName(_userId);
+    // final boughtCount = (await ShopDatabase(_db).getUserItems(_userId)).length;
+    // final totalShopItems = await ShopDatabase(_db).getTotalShopItems();
 
     setState(() {
       _userName = userName ?? 'Unknown';
