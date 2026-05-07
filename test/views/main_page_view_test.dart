@@ -1,4 +1,4 @@
-import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
+import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../helpers/test_database.dart';

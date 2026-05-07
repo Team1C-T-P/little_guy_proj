@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
-import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
+import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
 import '../models/database.dart';
 
 class SettingsScreen extends StatefulWidget {
