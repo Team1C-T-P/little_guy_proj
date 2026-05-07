@@ -1,3 +1,4 @@
+import 'package:flutter_flame_playground/models/database.dart';
 import 'package:sqflite/sqflite.dart';
 
 class PetStatsDatabase {

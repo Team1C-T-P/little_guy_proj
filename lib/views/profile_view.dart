@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_flame_playground/models/database.dart';
 // import 'package:pedometer/pedometer.dart'; // no need?
 // import 'package:permission_handler/permission_handler.dart'; // why
 import 'package:flutter_flame_playground/utils/step_counter.dart';
@@ -6,7 +7,7 @@ import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
-import 'package:flutter_flame_playground/models/pet_maintainment_database.dart'; // use step_points_service instead?
+import 'package:flutter_flame_playground/models/pet_maintainance_database.dart'; // use step_points_service instead?
 import 'package:flutter_flame_playground/models/shop_database.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -23,8 +24,6 @@ class _ProfileState extends State<ProfileScreen> {
   int _totalSteps = 0;
   int _currency = 0;
   late PetStatsDatabase _db;
-  late StepPointsService _stepPointsService;
-  late ShopDatabase _shopDatabase;
 
   final int _userId = 1; // Assuming single user per phone with ID 1
 
