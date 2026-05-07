@@ -29,7 +29,10 @@ class _ProfileState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    AppDatabase.instance.database.then((db) {
+      _db = PetStatsDatabase(db);
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {

@@ -1,10 +1,16 @@
-import 'database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class PetStatsDatabase {
+  final Database _db;
+
+  /* Accept an injected Database instance.
+  In production, pass: PetStatsDatabase(await AppDatabase.instance.database)
+  In tests, pass the in-memory DB from TestDatabase.createFresh()*/
+  PetStatsDatabase(this._db);
+
   // Select Queries
   Future<String?> getUserName(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final result = await db.query(
+    final result = await _db.query(
       'user',
       columns: ['user_name'],
       where: 'user_id = ?',
@@ -15,8 +21,7 @@ class PetStatsDatabase {
   }
 
   Future<String?> getPetName(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final result = await db.query(
+    final result = await _db.query(
       'little_guy',
       columns: ['little_guy_name'],
       where: 'user_id = ?',
@@ -27,8 +32,13 @@ class PetStatsDatabase {
   }
 
   Future<double> getPetStat(int petId, String stat) async {
-    final db = await AppDatabase.instance.database;
-    final stats = await db.query(
+    const allowedStats = {'hunger_level', 'hygiene_level', 'enjoyment_level'};
+
+    if (!allowedStats.contains(stat)) {
+      throw Exception('Stat does not exist');
+    }
+
+    final stats = await _db.query(
       'little_guy',
       columns: [stat],
       where: 'little_guy_id = ?',
@@ -39,8 +49,7 @@ class PetStatsDatabase {
   }
 
   Future<String?> getLastOnlineByUserId(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final result = await db.query(
+    final result = await _db.query(
       'user',
       columns: ['last_online'],
       where: 'user_id = ?',
@@ -76,18 +85,23 @@ class PetStatsDatabase {
   }
 
   Future<void> updatePetStat(int petId, String stat, double value) async {
-    final db = await AppDatabase.instance.database;
-    await db.update(
+    final roundedValue = value.clamp(0.0, 1.0);
+
+    final result = await _db.update(
       'little_guy',
-      {stat: (value * 100).toInt()},
+      {stat: (roundedValue * 100).toInt()},
       where: 'little_guy_id = ?',
       whereArgs: [petId],
     );
+
+    if (result == 0) {
+      // If no rows were updated, throw an error
+      throw Exception('Failed to update pet stat: One or more argument is invalid');
+    }
   }
 
   Future<void> updateLastOnlineByUserId(int userId, String isoDate) async {
-    final db = await AppDatabase.instance.database;
-    await db.update(
+    await _db.update(
       'user',
       {'last_online': isoDate},
       where: 'user_id = ?',
@@ -97,10 +111,16 @@ class PetStatsDatabase {
 }
 
 class InventoryDatabase {
+  final Database _db;
+
+    /* Accept an injected Database instance.
+  In production, pass: InventoryDatabase(await AppDatabase.instance.database)
+  In tests, pass the in-memory DB from TestDatabase.createFresh()*/
+  InventoryDatabase(this._db);
+
   // Select Queries
-  Future<List<Map<String, dynamic>>> getFoodByUserId(int userId) async {
-    final db = await AppDatabase.instance.database;
-    final food = await db.rawQuery(
+    Future<List<Map<String, dynamic>>> getFoodByUserId(int userId) async {
+      final food = await _db.rawQuery(
       '''
       SELECT it.item_id, inv.quantity, it.image_path
       FROM inventory inv
@@ -114,10 +134,8 @@ class InventoryDatabase {
 
   // Update Queries
   Future<void> useFood(int foodId, int userId) async {
-    final db = await AppDatabase.instance.database;
-
     // Decrease quantity in inventory
-    await db.rawUpdate(
+    await _db.rawUpdate(
       '''
       UPDATE inventory
       SET quantity = quantity - 1

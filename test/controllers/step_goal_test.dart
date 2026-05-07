@@ -21,7 +21,6 @@ void main() {
   });
   
   group('loadGoal', () {
-    // 'loadGoal should return default value of 250 when no goal exists or goal has already been reached and reset'
     test('returns default value of 250 for a new goal', () async {
       await TestDatabase.seedUser(db);
 
@@ -32,7 +31,6 @@ void main() {
 
   group('SetGoal', () {
     //sets new goal value in DB and updates controller state
-    // valid EP
     test('sets default values when user has no data - loadData function', () async {
     await TestDatabase.seedUser(db, currency: 0);
 
@@ -44,13 +42,20 @@ void main() {
   });
 
   //update goal when button pressed to change value
-    test('updates goal successfully with minimum valid goal (250 steps)', () async {
+    test('updates goal with new value', () async {
       await stepGoalController.updateGoal(250);
       final goal = await stepGoalController.loadGoal();
       expect(goal, 250);
       });
 
-      // invalid EP
+    test('accepts goal at minimum valid value (250 steps)', () async {
+      const newGoal = 250;
+      await TestDatabase.seedUser(db, currency: 0);
+      await stepGoalController.updateGoal(newGoal);
+      final goal = await stepGoalController.loadGoal();
+      expect(goal, newGoal);
+    });
+
     test('rejects goal of 0 steps (invalid - below minimum)', () async {
       try {
         await stepGoalController.updateGoal(0);
@@ -67,23 +72,12 @@ void main() {
       }
     });
 
-    // Boundary Value Analysis (BVA)
-    // Lower boundary: 0, 1, 2
-    test('rejects goal at lower boundary (249 steps)', () async {
-      // Lower boundary: 0, 1, 2
+    test('rejects goal below minimum (invalid - 249 steps)', () async {
       try {
         await stepGoalController.updateGoal(249);
       } catch (e) {
         expect(e.toString(), contains('Invalid goal value'));
       }
-    });
-
-    test('accepts goal at lower boundary (250 step - minimum valid)', () async {
-      const newGoal = 250;
-      await TestDatabase.seedUser(db, currency: 0);
-      await stepGoalController.updateGoal(newGoal);
-      final goal = await stepGoalController.loadGoal();
-      expect(goal, newGoal);
     });
   });
   
@@ -91,7 +85,7 @@ void main() {
     //goal reached when current steps meet or exceed goal, progress resets and new goal is set
     //when step goal and currentsteps are equal, goal should reset and new goal should be set
     //Functional/Integration Test - tests interaction between loadData, loadGoal, and refreshSteps to ensure goal resets when reached
-    test('resets new goal when current steps meet goal', () async {
+    test('resets new goal when current steps meet goal (valid)', () async {
       final userId = await TestDatabase.seedUser(db, currency: 0);
       final goalId = await TestDatabase.seedGoal(db, targetGoal: 250);
       await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 250);
