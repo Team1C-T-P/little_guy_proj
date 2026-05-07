@@ -1,4 +1,4 @@
-import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
+import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
 
 class StatDegradation {
   PetStatsDatabase petStatsDB;

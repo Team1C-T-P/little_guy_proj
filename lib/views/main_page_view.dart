@@ -6,7 +6,7 @@ import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'feed_view.dart';
 import 'clean_view.dart';
 import 'play_view.dart';
-import '../models/pet_maintainment_database.dart';
+import '../models/pet_maintainance_database.dart';
 import '../models/database.dart';
 import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
