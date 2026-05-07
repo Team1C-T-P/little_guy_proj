@@ -8,6 +8,9 @@ import 'views/dress_view.dart';
 import 'views/map_view.dart';
 import 'views/nav_bar.dart';
 import 'views/profile_view.dart';
+import 'package:pedometer/pedometer.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
