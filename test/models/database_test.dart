@@ -14,8 +14,8 @@ void main() {
     await db.close();
   });
   
-  group('User Table EP & BVA Tests', () {
-    test('EP - Valid user creation with normal values', () async {
+  group('User Table Tests', () {
+    test('Valid user creation with normal values', () async {
       final userId = await TestDatabase.seedUser(
         db,
         name: 'Normal User',
@@ -29,22 +29,21 @@ void main() {
       expect(result.first['currency'], 1000);
       expect(result.first['user_name'], 'Normal User');
     });
-    test('BVA - Currency at boundary 0', () async {
-      // Value 0 is valid (minimum)
+    test('Currency at minimum value 0 (valid)', () async {
       final userId = await TestDatabase.seedUser(db, currency: 0);
       final result = await db.query('user', where: 'user_id = ?', whereArgs: [userId]);
       expect(result.first['currency'], 0);
     });
   });
   
-  group('Little Guy Table EP & BVA Tests', () {
+  group('Little Guy Table Tests', () {
     late int userId;
     
     setUp(() async {
       userId = await TestDatabase.seedUser(db);
     });
     
-    test('EP - Valid little guy with normal levels (50)', () async {
+    test('Valid little guy with normal levels (50)', () async {
       final littleGuyId = await TestDatabase.seedLittleGuy(
         db,
         userId: userId,
@@ -59,7 +58,7 @@ void main() {
       expect(result.first['enjoyment_level'], 50);
     });
     
-    test('BVA - Hygiene level boundaries (0, 1, 99, 100)', () async {
+    test('Hygiene level boundaries (0, 1, 99, 100)', () async {
       // Test lower boundary (0)
       var id = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 0);
       var result = await db.query('little_guy', where: 'little_guy_id = ?', whereArgs: [id]);
@@ -82,7 +81,7 @@ void main() {
     });
   });
   
-  group('Friend Table EP & BVA Tests', () {
+  group('Friend Table Tests', () {
     late int userId1, userId2;
     
     setUp(() async {
@@ -90,7 +89,7 @@ void main() {
       userId2 = await TestDatabase.seedUser(db, name: 'User 2');
     });
     
-    test('EP - Valid friendship creation', () async {
+    test('Valid friendship creation', () async {
       await TestDatabase.seedFriend(db, userId: userId1, friendId: userId2);
       
       final result1 = await db.query('friend', where: 'user_id = ? AND friend_id = ?', whereArgs: [userId1, userId2]);
@@ -100,7 +99,7 @@ void main() {
       expect(result2.length, 1);
     });
     
-    test('BVA - Friend ID equals user ID (should be rejected)', () async {
+    test('Friend ID equals user ID (invalid - should be rejected)', () async {
       // CHECK constraint "friend_id != user_id" should reject this
       expect(
         () => db.insert('friend', {
@@ -112,8 +111,8 @@ void main() {
     });
   });
   
-  group('Item Table EP & BVA Tests', () {
-    test('EP - Valid item with minimum price (0)', () async {
+  group('Item Table Tests', () {
+    test('Item with minimum price (valid - 0)', () async {
       final itemId = await TestDatabase.seedItem(
         db,
         name: 'Free Item',
@@ -126,20 +125,20 @@ void main() {
       expect(result.first['price'], 0);
     });
     
-    test('BVA - Quantity boundaries', () async {
+    test('Quantity boundaries', () async {
       // Quantity 0 is valid
       var id = await TestDatabase.seedItem(db, name: 'Out of Stock', imagePath: 'path', price: 100, type: 'hat', quantity: 0);
       var result = await db.query('item', where: 'item_id = ?', whereArgs: [id]);
       expect(result.first['quantity'], 0);
       
-      // Quantity negative should be rejected
+      // Quantity negative should be rejected - invalid
       expect(
         () => TestDatabase.seedItem(db, name: 'Invalid', imagePath: 'path', price: 100, type: 'hat', quantity: -1),
         throwsA(isA<DatabaseException>()),
       );
     });
   });
-  group('User Goal Table EP & BVA Tests', () {
+  group('User Goal Table Tests', () {
     late int userId, goalId;
     
     setUp(() async {
@@ -147,7 +146,7 @@ void main() {
       goalId = await TestDatabase.seedGoal(db);
     });
     
-    test('EP - Valid user goal with progress', () async {
+    test('Valid user goal with progress', () async {
       await TestDatabase.seedUserGoal(
         db,
         userId: userId,
@@ -159,13 +158,13 @@ void main() {
       expect(result.first['current_progress'], 2500);
     });
     
-    test('BVA - Current progress boundaries', () async {
+    test('Current progress boundaries', () async {
       // Progress 0 is valid (minimum)
       await TestDatabase.seedUserGoal(db, userId: userId, goalId: goalId, currentProgress: 0);
       var result = await db.query('user_goal', where: 'user_id = ? AND goal_id = ?', whereArgs: [userId, goalId]);
       expect(result.first['current_progress'], 0);
       
-      // Progress negative should be rejected
+      // Progress negative should be rejected - invalid
       expect(
         () => db.insert('user_goal', {
           'user_id': userId,
@@ -180,22 +179,22 @@ void main() {
     });
   });
   
-  group('Reward Table EP & BVA Tests', () {
+  group('Reward Table Tests', () {
     
-    test('EP - Invalid reward tier', () async {
+    test('Invalid reward tier', () async {
       expect(
         () => TestDatabase.seedReward(db, tier: 'invalid'),
         throwsA(isA<DatabaseException>()),
       );
     });
     
-    test('BVA - Reward currency boundaries', () async {
+    test('Reward currency boundaries', () async {
       // Minimum 0
       var id = await TestDatabase.seedReward(db, rewardCurrency: 0);
       var result = await db.query('reward', where: 'reward_id = ?', whereArgs: [id]);
       expect(result.first['reward_currency'], 0);
       
-      // Negative should be rejected
+      // Negative should be rejected - invalid
       expect(
         () => TestDatabase.seedReward(db, rewardCurrency: -1),
         throwsA(isA<DatabaseException>()),
@@ -203,14 +202,14 @@ void main() {
     });
   });
   
-  group('Walk Summary Table EP Tests', () {
+  group('Walk Summary Table Tests', () {
     late int userId;
     
     setUp(() async {
       userId = await TestDatabase.seedUser(db);
     });
     
-    test('EP - Valid walk summary with zero steps', () async {
+    test('Valid walk summary with zero steps', () async {
       final summaryId = await TestDatabase.seedWalkSummary(
         db,
         userId: userId,
@@ -224,14 +223,14 @@ void main() {
   
   group('Composite Primary Key Tests', () {
     
-    test('EP - Composite key properly enforces uniqueness (inventory)', () async {
+    test('Composite key properly enforces uniqueness (inventory)', () async {
       final userId = await TestDatabase.seedUser(db);
       final itemId = await TestDatabase.seedHat(db);
       
       // First insert should succeed
       await TestDatabase.seedInventory(db, userId: userId, itemId: itemId);
       
-      // Second insert with same composite key should fail
+      // Second insert with same composite key should fail - invalid
       expect(
         () => db.insert('inventory', {'user_id': userId, 'item_id': itemId, 'quantity': 1}),
         throwsA(isA<DatabaseException>()),
