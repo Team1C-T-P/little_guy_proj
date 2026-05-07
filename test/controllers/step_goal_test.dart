@@ -21,7 +21,6 @@ void main() {
   });
   
   group('loadGoal', () {
-    // 'loadGoal should return default value of 250 when no goal exists or goal has already been reached and reset'
     test('returns default value of 250 for a new goal', () async {
       await TestDatabase.seedUser(db);
 
@@ -43,11 +42,19 @@ void main() {
   });
 
   //update goal when button pressed to change value
-    test('updates goal successfully with minimum valid goal (250 steps)', () async {
+    test('updates goal with new value', () async {
       await stepGoalController.updateGoal(250);
       final goal = await stepGoalController.loadGoal();
       expect(goal, 250);
       });
+
+    test('accepts goal at minimum valid value (250 steps)', () async {
+      const newGoal = 250;
+      await TestDatabase.seedUser(db, currency: 0);
+      await stepGoalController.updateGoal(newGoal);
+      final goal = await stepGoalController.loadGoal();
+      expect(goal, newGoal);
+    });
 
     test('rejects goal of 0 steps (invalid - below minimum)', () async {
       try {
@@ -71,14 +78,6 @@ void main() {
       } catch (e) {
         expect(e.toString(), contains('Invalid goal value'));
       }
-    });
-
-    test('accepts goal at minimum valid value (250 steps)', () async {
-      const newGoal = 250;
-      await TestDatabase.seedUser(db, currency: 0);
-      await stepGoalController.updateGoal(newGoal);
-      final goal = await stepGoalController.loadGoal();
-      expect(goal, newGoal);
     });
   });
   
