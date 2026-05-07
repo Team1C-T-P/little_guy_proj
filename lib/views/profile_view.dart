@@ -22,18 +22,23 @@ class _ProfileState extends State<ProfileScreen> {
   String _petName = "";
   int _totalSteps = 0;
   int _currency = 0;
-  final PetStatsDatabase _db = PetStatsDatabase();
+  late PetStatsDatabase _db;
+  late StepPointsService _stepPointsService;
+  late ShopDatabase _shopDatabase;
 
   final int _userId = 1; // Assuming single user per phone with ID 1
 
   @override
   void initState() {
     super.initState();
+    _db = PetStatsDatabase();
+    _shopDatabase = ShopDatabase(_db);
+    _stepPointsService = StepPointsService(_db);
     _loadData();
   }
 
   Future<void> _loadData() async {
-    final summary = await StepPointsService().getAccountSummary(_userId);
+    final summary = await _stepPointsService.getAccountSummary(_userId);
     final userName = await _db.getUserName(_userId);
     final petName = await _db.getPetName(_userId);
     // final boughtCount = (await ShopDatabase(_db).getUserItems(_userId)).length;

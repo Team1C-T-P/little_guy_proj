@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_flame_playground/models/step_points_service.dart';
-import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
+import '../models/database.dart';
+import '../models/step_points_service.dart';
+import '../controller/step_goal_controller.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -15,9 +16,9 @@ class TestScreen extends StatefulWidget {
 }
 
 class _TestScreenState extends State<TestScreen> {
-  final StepPointsService _stepPointsService = StepPointsService();
-  final StepGoalController _goalController = StepGoalController();
-  
+  late StepPointsService _stepPointsService;
+  late StepGoalController _goalController;
+
   int _totalSteps = 0;
   int _currency = 0;
   int _leftoverSteps = 0;
@@ -27,14 +28,16 @@ class _TestScreenState extends State<TestScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSummary();
-  
-    // Listener for any goal controller changes
-    _goalController.addListener(() {
-      if (mounted) {
-        setState(() {});
-        }
+    AppDatabase.instance.database.then((db) {
+      _stepPointsService = StepPointsService(db);
+      _goalController.init(testDb: db).then((_) {
+        _loadSummary();
       });
+    });
+
+    _goalController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _loadSummary() async {
@@ -79,7 +82,6 @@ class _TestScreenState extends State<TestScreen> {
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
       });
-
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -133,7 +135,7 @@ class _TestScreenState extends State<TestScreen> {
 
                 setState(() {
                   _goalController.stepGoal = newGoal;
-                  });
+                });
               },
               child: const Text('Increase Goal by 250'),
             ),
