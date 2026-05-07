@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainment_database.dart';
+import '../models/database.dart';
 
 
 class FeedScreen extends StatefulWidget {
@@ -13,8 +14,8 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
-  final InventoryDatabase _foodDB = InventoryDatabase();
+  late PetStatsDatabase _petStatsDB;
+  late InventoryDatabase _foodDB;
 
   // Dummy values will be replaced with actual values from the database
   double _hunger = 0;
@@ -23,7 +24,11 @@ class _FeedScreenState extends State<FeedScreen> {
   @override 
   void initState() {
     super.initState();
-    _loadPetHunger();
+    AppDatabase.instance.database.then((db) {
+      _petStatsDB = PetStatsDatabase(db);
+      _foodDB = InventoryDatabase(db);
+      _loadPetHunger();
+    });
   }
 
   Future<void> _loadPetHunger() async {

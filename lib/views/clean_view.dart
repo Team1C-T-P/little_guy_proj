@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainment_database.dart';
+import '../models/database.dart';
 
 
 class CleanScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class CleanScreen extends StatefulWidget {
 }
 
 class _CleanScreenState extends State<CleanScreen> {
-  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  late PetStatsDatabase _petStatsDB;
   final ValueNotifier<bool> _cleanTrigger = ValueNotifier(false);
   
   // Dummy values will be replaced with actual values from the database
@@ -22,7 +23,10 @@ class _CleanScreenState extends State<CleanScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPetHygiene();
+    AppDatabase.instance.database.then((db) {
+      _petStatsDB = PetStatsDatabase(db);
+      _loadPetHygiene();
+    });
   }
 
   Future<void> _loadPetHygiene() async {
