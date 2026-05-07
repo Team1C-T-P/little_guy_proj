@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
-import 'package:flutter_flame_playground/little%20guy.dart';
+import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainment_database.dart';
 
 
