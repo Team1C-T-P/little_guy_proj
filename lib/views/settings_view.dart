@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/pet_maintainment_database.dart';
+import '../models/database.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,13 +15,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _soundVolume = 0.5;
   final TextEditingController _petNameController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
-  final PetStatsDatabase _db = PetStatsDatabase();
+  late PetStatsDatabase _db;
   final int _userId = 1; // Assuming single user per phone with ID 1
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    AppDatabase.instance.database.then((db) {
+      _db = PetStatsDatabase(db);
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {

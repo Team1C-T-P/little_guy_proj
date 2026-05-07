@@ -7,6 +7,8 @@ import 'feed_view.dart';
 import 'clean_view.dart';
 import 'play_view.dart';
 import '../models/pet_maintainment_database.dart';
+import '../models/database.dart';
+import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,8 +19,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PetStatsDatabase _petStatsDB = PetStatsDatabase();
+  late PetStatsDatabase _petStatsDB;
+  late StatDegradation _statDegradation;
   final StepGoalController _goalController = StepGoalController();
+  int userId = 1;
+  int petId = 1;
 
   double _hunger = 0;
   double _enjoyment = 0;
@@ -27,38 +32,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPetStats();
-    _loadGoalData();
-
-    // Listener for any goal changes
-    _goalController.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
+    AppDatabase.instance.database.then((db) {
+      _petStatsDB = PetStatsDatabase(db);
+      _statDegradation = StatDegradation(petStatsDB: _petStatsDB, userID: userId, petID: petId);
+      _loadPetStats();
     });
-  }
+    _loadGoalData();
+  } 
+
 
   Future<void> _loadPetStats() async {
-    double hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
-    double enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
-    double hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
-    String? lastOnlineIso = await _petStatsDB.getLastOnlineByUserId(1);
-    lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
+    
+    await _statDegradation.degradeStats();
 
-    DateTime lastOnline = DateTime.parse(lastOnlineIso);
-    DateTime now = DateTime.now().toUtc();
-
-    int hoursSinceLastOnline = now.difference(lastOnline).inHours;
-    double decayBy = 0.1 * (hoursSinceLastOnline / 2);
-
-    hunger = hunger - decayBy > 0 ? hunger - decayBy : 0;
-    enjoyment = enjoyment - decayBy > 0 ? enjoyment - decayBy : 0;
-    hygiene = hygiene - decayBy > 0 ? hygiene - decayBy : 0;
-
-    await _petStatsDB.updatePetStat(1, 'hunger_level', hunger);
-    await _petStatsDB.updatePetStat(1, 'enjoyment_level', enjoyment);
-    await _petStatsDB.updatePetStat(1, 'hygiene_level', hygiene);
-    await _petStatsDB.updateLastOnlineByUserId(1, now.toIso8601String());
+    double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
+    double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
+    double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
 
     setState(() {
       _hunger = hunger;
