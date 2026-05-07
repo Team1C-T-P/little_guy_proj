@@ -79,19 +79,41 @@ void main() {
 
       expect(find.text('0.3'), findsOneWidget);
     });
-  });
-  group("Settings Screen fetch/update db", () {
-    Widget createTestWidget() {
-      return const MaterialApp(home: SettingsScreen());
-    }
-    // fetch initial values from fake (?) db and display them
 
-    test('return hats owned by user', () async {
+    testWidgets('submit button updates db', (tester) async {
       final userId = await TestDatabase.seedUser(db);
       await TestDatabase.seedLittleGuy(db, userId: userId);
-      expect(find.text('Test User'), findsOneWidget); // init user
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextField).at(0), 'New User Name');
+      await tester.enterText(find.byType(TextField).at(1), 'New Pet Name');
+      await tester.tap(find.text('Submit'));
+
+      await tester.pumpWidget(
+        createTestWidget(),
+      ); // Rebuild the widget to reflect changes
+      await tester.pump();
+
+      expect(find.text('New User Name'), findsOneWidget);
+      expect(find.text('New Pet Name'), findsOneWidget);
+    });
+  });
+  group("Settings Screen fetch/update db", () {
+    // move this to the submit button test? First check init and then change?
+    test('init values show', () async {
+      final userId = await TestDatabase.seedUser(db);
+      await TestDatabase.seedLittleGuy(db, userId: userId);
+      expect(
+        find.text('Test User'),
+        findsOneWidget,
+      ); // init user - in actual db it is "Default User"
       expect(find.text('Buddy'), findsOneWidget); // init pet
     });
-    // update values in db and see if they update on the screen
+
+    // update values in db and see if they update on the screen - or would this be a full db work? Or just a test for the db update function (not UI settings screen test)
+
+    // test submit button? Again -  a UI thing or DB test?
   });
 }
