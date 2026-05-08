@@ -140,6 +140,18 @@ void main() {
     });
 
     // Leftover steps?
+    test('Handles leftover steps correctly', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
+
+      final result = await service.recordSteps(userId: userId, steps: 150);
+      expect(result.updatedCurrency, 1);
+      expect(result.unconvertedSteps, 50);
+    });
   });
 
   group('getAccountSummary', () {
