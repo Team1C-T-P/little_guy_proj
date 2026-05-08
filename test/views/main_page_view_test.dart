@@ -22,6 +22,28 @@ void main() {
     await db.close();
   });
 
+  // test getUserName
+  group('getUserName', () {
+    test('Returns the correct user name for a given userId', () async {
+      final userId = await TestDatabase.seedUser(db, name: 'test_user');
+      final userName = await petStatsDB.getUserName(userId);
+      expect(userName, 'test_user');
+    });
+
+    test('Throws an exception if user is not found', () async {
+      expect(
+        () => petStatsDB.getUserName(999),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+  
+  // test updateUserName
+
+  // test getPetName
+
+  // test updatePetName
+
   // test getPetStat
   group('getPetStat', () {
     // test stats that are >= 0 and <= 1
@@ -326,7 +348,7 @@ void main() {
       await inventoryDB.useFood(foodId, userId);
 
       final food = await inventoryDB.getFoodByUserId(userId);
-      
+
       expect(food[0]['quantity'], 0);
     });
 

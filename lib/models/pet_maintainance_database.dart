@@ -17,7 +17,7 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) return null;
+    if (result.isEmpty) throw Exception('Failed to get user name: User not found');
     return result.first['user_name'] as String;
   }
 
@@ -28,7 +28,7 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) return null;
+    if (result.isEmpty) throw Exception('Failed to get pet name: Pet not found');
     return result.first['little_guy_name'] as String;
   }
 
