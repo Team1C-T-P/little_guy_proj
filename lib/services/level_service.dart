@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter_flame_playground/models/database.dart';
 
 class LevelService {
   final Database db;
