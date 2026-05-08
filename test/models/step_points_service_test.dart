@@ -17,4 +17,34 @@ void main() {
     final db = await AppDatabase.instance.database;
     await db.delete('step_points');
   });
+
+  group('awardBonusPoints', () {
+    // Successfully award points
+
+    // Error on non-existent user
+
+    // Error on zero or negative points?
+  });
+
+  group('recordSteps', () {
+    // Steps must be 0 or over
+
+    // User must exist
+
+    // what is step ledger? - test it?
+
+    // Step record - 50/100 steps, expect 0 points, 50 unconverted
+
+    // Step conversion - 150 steps, expect 1 point, 50 unconverted
+
+    // Leftover steps?
+  });
+
+  group('getAccountSummary', () {
+    // user must exist
+
+    // wtf is step ledger -test it?
+
+    // Correct totals after rewarding points
+  });
 }
