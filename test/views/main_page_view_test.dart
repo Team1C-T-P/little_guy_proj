@@ -41,6 +41,22 @@ void main() {
   // test updateUserName
 
   // test getPetName
+  group('getPetName', () {
+    test('Returns the correct pet name for a given userId', () async {
+      final userId = await TestDatabase.seedUser(db);
+      await TestDatabase.seedLittleGuy(db, userId: userId, name: 'test_pet');
+      final petName = await petStatsDB.getPetName(userId);
+      expect(petName, 'test_pet');
+    });
+
+    test('Throws an exception if pet is not found', () async {
+      final userId = await TestDatabase.seedUser(db);
+      expect(
+        () => petStatsDB.getPetName(userId),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
 
   // test updatePetName
 
