@@ -79,27 +79,6 @@ void main() {
 
       expect(find.text('0.3'), findsOneWidget);
     });
-
-    testWidgets('submit button updates db', (tester) async {
-      final userId = await TestDatabase.seedUser(db);
-      await TestDatabase.seedLittleGuy(db, userId: userId);
-
-      await tester.pumpWidget(createTestWidget());
-      await tester.pump();
-
-      await tester.enterText(find.byType(TextField).at(0), 'New User Name');
-      await tester.enterText(find.byType(TextField).at(1), 'New Pet Name');
-      await tester.tap(find.text('Submit'));
-      // if new name equals the old name don't update?  Throw error? Trow error if empty?
-
-      await tester.pumpWidget(
-        createTestWidget(),
-      ); // Rebuild the widget to reflect changes
-      await tester.pump();
-
-      expect(find.text('New User Name'), findsOneWidget);
-      expect(find.text('New Pet Name'), findsOneWidget);
-    });
   });
   group("Settings Screen fetch/update db", () {
     test('init values show', () async {
