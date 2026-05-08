@@ -156,6 +156,16 @@ void main() {
 
   group('getAccountSummary', () {
     // user must exist
+    test('Throws error when user does not exist', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+
+      expect(
+        () => service.getAccountSummary(9999), //no positional argument for userId(?)
+        throwsStateError,
+        reason: "User with this ID doesn't exist",
+      );
+    });
 
     // wtf is step ledger -test it?
 
