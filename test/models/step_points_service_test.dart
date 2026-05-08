@@ -167,5 +167,21 @@ void main() {
     });
 
     // Correct totals after rewarding points
+    test('Returns correct summary', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
+
+      await service.awardBonusPoints(userId: userId, points: 10);
+      await service.recordSteps(userId: userId, steps: 250);
+
+      // add updatedCurrency check
+      final summary = await service.getAccountSummary(userId);
+      expect(summary.totalSteps, 250);
+      expect(summary.unconvertedSteps, 50);
+    });
   });
 }
