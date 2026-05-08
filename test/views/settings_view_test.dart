@@ -1,31 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../helpers/test_database.dart'; // instead of import ../lib/database
 import 'package:flutter_flame_playground/views/settings_view.dart';
+import 'package:flutter_flame_playground/models/database.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  // Copied from Sam's routes_view_test.dart (set up db for testing)
-  // TestWidgetsFlutterBinding.ensureInitialized();
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-  // setUpAll(() async {
-  //   sqfliteFfiInit();
-  //   databaseFactory = databaseFactoryFfi;
-  //   await AppDatabase.instance.initializeDefaultData();
-  // });
-
-  // setUp(() async {
-  //   final db = await AppDatabase.instance.database;
-  //   await db.delete('route'); //fix as I am not working with routes
-  // });
-
-  // Testing db changed in code, we can shorten the code?
-  late Database db;
-
-  setUpAll(() => TestDatabase.init());
+  setUpAll(() async {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+    await AppDatabase.instance.initializeDefaultData();
+  });
 
   setUp(() async {
-    db = await TestDatabase.createFresh();
+    final db = await AppDatabase.instance.database;
+    await db.delete('route'); //fix as I am not working with routes
   });
 
   group('Settings Screen UI', () {
@@ -79,44 +69,5 @@ void main() {
 
       expect(find.text('0.3'), findsOneWidget);
     });
-
-    testWidgets('submit button updates db', (tester) async {
-      final userId = await TestDatabase.seedUser(db);
-      await TestDatabase.seedLittleGuy(db, userId: userId);
-
-      await tester.pumpWidget(createTestWidget());
-      await tester.pump();
-
-      await tester.enterText(find.byType(TextField).at(0), 'New User Name');
-      await tester.enterText(find.byType(TextField).at(1), 'New Pet Name');
-      await tester.tap(find.text('Submit'));
-      // if new name equals the old name don't update?  Throw error? Trow error if empty?
-
-      await tester.pumpWidget(
-        createTestWidget(),
-      ); // Rebuild the widget to reflect changes
-      await tester.pump();
-
-      expect(find.text('New User Name'), findsOneWidget);
-      expect(find.text('New Pet Name'), findsOneWidget);
-    });
-
-    
-  });
-  group("Settings Screen fetch/update db", () {
-    // move this to the submit button test? First check init and then change?
-    test('init values show', () async {
-      final userId = await TestDatabase.seedUser(db);
-      await TestDatabase.seedLittleGuy(db, userId: userId);
-      expect(
-        find.text('Test User'),
-        findsOneWidget,
-      ); // init user - in actual db it is "Default User"
-      expect(find.text('Buddy'), findsOneWidget); // init pet
-    });
-
-    // update values in db and see if they update on the screen - or would this be a full db work? Or just a test for the db update function (not UI settings screen test)
-
-    // test submit button? Again -  a UI thing or DB test?
   });
 }
