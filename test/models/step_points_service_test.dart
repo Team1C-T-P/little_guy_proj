@@ -108,8 +108,36 @@ void main() {
     // what is step ledger? - test it?
 
     // Step record - 50/100 steps, expect 0 points, 50 unconverted
+    test('Correct step record and points award', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
 
-    // Step conversion - 150 steps, expect 1 point, 50 unconverted
+      final result1 = await service.recordSteps(userId: userId, steps: 50);
+      expect(result1.updatedCurrency, 0);
+      expect(result1.unconvertedSteps, 50);
+
+      final result2 = await service.recordSteps(userId: userId, steps: 50);
+      expect(result2.updatedCurrency, 1);
+      expect(result2.unconvertedSteps, 0);
+    });
+
+    // Step conversion - 150/100 steps, expect 1 point, 50 unconverted
+    test('Correct step conversion with excess steps', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
+
+      final result = await service.recordSteps(userId: userId, steps: 150);
+      expect(result.updatedCurrency, 1);
+      expect(result.unconvertedSteps, 50);
+    });
 
     // Leftover steps?
   });
