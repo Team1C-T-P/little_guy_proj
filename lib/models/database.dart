@@ -222,11 +222,9 @@ CREATE TABLE little_guy (
     );
   }
 
-  // create default to user pet and item to initialize db
   Future<void> initializeDefaultData() async {
     final db = await database;
 
-    // Check if already initialized
     final users = await db.query('user');
     if (users.isNotEmpty) return;
 
@@ -237,7 +235,7 @@ CREATE TABLE little_guy (
     // Create user
     await db.insert('user', {
       'user_name': 'Default User',
-      'currency': 10000,
+      'currency': 500,
       'last_online': '2026-04-20T10:30:00Z',
     });
 

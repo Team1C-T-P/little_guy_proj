@@ -71,6 +71,25 @@ class _ProfileState extends State<ProfileScreen> {
       await _goalController.loadData();
 
       final db = await AppDatabase.instance.database;
+
+      final userResult = await db.query(
+        'user',
+        where: 'user_id = ?',
+        whereArgs: [_userId],
+      );
+      if (userResult.isNotEmpty) {
+        _userName = userResult.first['user_name'] as String;
+      }
+
+      final petResult = await db.query(
+        'little_guy',
+        where: 'user_id = ?',
+        whereArgs: [_userId],
+      );
+      if (petResult.isNotEmpty) {
+        _petName = petResult.first['little_guy_name'] as String;
+      }
+
       final dressDb = DressDatabase(db);
       final ownedHats = await dressDb.getHatsOwnedByUser(_userId);
       _hatsCollected = ownedHats.length;
@@ -340,8 +359,6 @@ class _ProfileState extends State<ProfileScreen> {
                                     Container(
                                       child: Text("$_userName | $_petName"),
                                     ),
-                                    Container(child: Text(" - ")),
-                                    Container(child: Text("£$_currency")),
                                   ],
                                 ),
                               ),

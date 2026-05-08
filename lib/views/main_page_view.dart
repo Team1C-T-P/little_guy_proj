@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
 
                       Expanded(
                         child: Column(
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: 4),
                             Text(
                               "${_goalController.currentSteps} / ${_goalController.stepGoal} steps",
                               style: TextStyle(fontSize: 16),
@@ -169,8 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Spacer(),
 
                     SizedBox(
-                      width: 150,
-                      height: 50,
+                      width: 200,
+                      height: 60,
                       child: FittedBox(
                         child: GreenButton(
                           buttonText: "Feed",
@@ -189,19 +189,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     Spacer(),
                     Container(
                       alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.only(right: 18),
+                      padding: const EdgeInsets.only(right: 24),
                       child: Image.asset('assets/images/flowerplant.png'),
                     ),
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.only(top: 4),
                   child: Row(
                     children: <Widget>[
                       Spacer(),
                       SizedBox(
                         width: 150,
-                        height: 50,
+                        height: 60,
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Play",
@@ -219,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Spacer(),
                       SizedBox(
                         width: 150,
-                        height: 50,
+                        height: 60,
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Clean",
