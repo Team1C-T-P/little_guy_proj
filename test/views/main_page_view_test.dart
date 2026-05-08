@@ -50,7 +50,7 @@ void main() {
     test('If new name is empty, it keeps the old name', () async {
       final userId = await TestDatabase.seedUser(db, name: 'test_user');
       await petStatsDB.updateUserName(userId, '');
-      
+
       final updatedUserName = await petStatsDB.getUserName(userId);
 
       expect(updatedUserName, 'test_user');
@@ -83,6 +83,32 @@ void main() {
   });
 
   // test updatePetName
+  group('updatePetName', () {
+    test('Updates the pet name correctly for a given userId', () async {
+      final userId = await TestDatabase.seedUser(db);
+      await TestDatabase.seedLittleGuy(db, userId: userId, name: 'test_pet');
+      await petStatsDB.updatePetName(userId, 'updated_pet');
+      final updatedPetName = await petStatsDB.getPetName(userId);
+      expect(updatedPetName, 'updated_pet');
+    });
+
+    test('If new name is empty, it keeps the old name', () async {
+      final userId = await TestDatabase.seedUser(db);
+      await TestDatabase.seedLittleGuy(db, userId: userId, name: 'test_pet');
+      await petStatsDB.updatePetName(userId, '');
+
+      final updatedPetName = await petStatsDB.getPetName(userId);
+
+      expect(updatedPetName, 'test_pet');
+    });
+
+    test('Throws an exception if trying to update a pet name for a user id that does not exist', () async {
+      expect(
+        () => petStatsDB.updatePetName(999, 'updated_pet'),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
 
   // test getPetStat
   group('getPetStat', () {
