@@ -20,10 +20,54 @@ void main() {
 
   group('awardBonusPoints', () {
     // Successfully award points
+    test('Successfully awards points to existing user', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
 
+      // Insert a test user
+      final userId = await db.insert('user', {'currency': 0});
+
+      // Award points
+      final updatedCurrency = await service.awardBonusPoints(
+        userId: userId,
+        points: 10,
+      );
+
+      // Verify the currency was updated correctly
+      expect(updatedCurrency, 10);
+
+      final userRows = await db.query(
+        'user',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+      expect(userRows.first['currency'], 10);
+    });
     // Error on non-existent user
+    test('Throws error when user does not exist', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
 
-    // Error on zero or negative points?
+      expect(
+        () => service.awardBonusPoints(userId: 9999, points: 10),
+        throwsStateError,
+        reason: "User with this ID doesn't exist",
+      );
+    });
+
+    // Error on zero or negative points
+    test('Throws error when points are zero or negative', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+
+      final userId = await db.insert('user', {'currency': 0});
+
+      expect(
+        () => service.awardBonusPoints(userId: userId, points: 0),
+        throwsArgumentError,
+        reason: "Points must be a positive integer",
+      );
+    });
   });
 
   group('recordSteps', () {
