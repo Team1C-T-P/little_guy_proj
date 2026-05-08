@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:flutter_flame_playground/services/level_service.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainance_database.dart';
@@ -42,18 +43,40 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _useFood(int foodId, int petId, int userId) async {
+    // Check if enough food or hunger already full
     if (_food.firstWhere((item) => item['item_id'] == foodId)['quantity'] <=
             0 ||
         _hunger >= 1.0) {
       return;
     }
+
+    // Update inventory (consume food)
     await _foodDB.useFood(foodId, userId);
-    await _petStatsDB.updatePetStat(
-      petId,
-      'hunger_level',
-      _hunger + 0.2,
-    ); // Update pet's hunger level
-    _loadPetHunger(); // Refresh data after using food
+
+    // Calculate new hunger value (capped at 1.0)
+    double newHunger = (_hunger + 0.2) > 1.0 ? 1.0 : _hunger + 0.2;
+
+    // Update pet's hunger in database
+    await _petStatsDB.updatePetStat(petId, 'hunger_level', newHunger);
+
+    // ✅ Grant XP (5 XP per feeding)
+    final db = await AppDatabase.instance.database;
+    final levelService = LevelService(db);
+    final levelResult = await levelService.addXp(userId, 5);
+
+    // Refresh UI
+    await _loadPetHunger();
+
+    // Show level‑up snackbar if needed
+    if (levelResult['leveledUp'] == 1 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+          ),
+        ),
+      );
+    }
   }
 
   @override

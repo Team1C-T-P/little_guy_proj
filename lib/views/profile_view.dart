@@ -12,7 +12,7 @@ import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import 'package:flutter_flame_playground/models/dress_database.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_flame_playground/services/level_service.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -26,6 +26,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileState extends State<ProfileScreen> {
   late StepPointsService _stepPointsService;
   final StepGoalController _goalController = StepGoalController();
+  int _currentLevel = 1;
+  int _currentXp = 0;
+  double _xpProgress = 0.0;
   int _hatsCollected = 0;
   String _userName = "";
   String _petName = "";
@@ -53,6 +56,7 @@ class _ProfileState extends State<ProfileScreen> {
         _madHatterCompleted = prefs.getBool('madHatterClaimed') ?? false;
         _bigWalkCompleted = prefs.getBool('bigWalkClaimed') ?? false;
         _wealthyCompleted = prefs.getBool('wealthyClaimed') ?? false;
+        _mvpCompleted = prefs.getBool('mvpClaimed') ?? false;
       });
       _loadData();
     });
@@ -76,9 +80,17 @@ class _ProfileState extends State<ProfileScreen> {
       await _checkBigWalkAchievement(summary.totalSteps);
       await _checkWealthyAchievement(summary.currency);
       await _checkTrailBlazerAchievement();
+      await _checkMVPAchievement(_currentLevel);
 
+      final levelService = LevelService(db);
+      final levelData = await levelService.getLevelAndXp(_userId);
+      final currentLevel = levelData['level']!;
+      await _checkMVPAchievement(currentLevel);
       if (mounted) {
         setState(() {
+          _currentLevel = levelData['level']!;
+          _currentXp = levelData['xp']!;
+          _xpProgress = _currentXp / 100.0;
           _totalSteps = summary.totalSteps;
           _currency = summary.currency;
           _leftoverSteps = summary.unconvertedSteps;
@@ -122,6 +134,30 @@ class _ProfileState extends State<ProfileScreen> {
           const SnackBar(
             content: Text(
               'Trail Blazer achievement unlocked! You saved your first route!',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _checkMVPAchievement(int currentLevel) async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyClaimed = prefs.getBool('mvpClaimed') ?? false;
+
+    if (alreadyClaimed) {
+      if (!_mvpCompleted) setState(() => _mvpCompleted = true);
+      return;
+    }
+
+    if (currentLevel >= 5) {
+      setState(() => _mvpCompleted = true);
+      await prefs.setBool('mvpClaimed', true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Most Valuable Pet achievement unlocked. Level 5 reached.',
             ),
           ),
         );
@@ -210,6 +246,15 @@ class _ProfileState extends State<ProfileScreen> {
         steps: steps,
       );
       await _goalController.refreshSteps();
+
+      // ✅ Get database and LevelService
+      final db = await AppDatabase.instance.database;
+      final levelService = LevelService(db);
+
+      // ✅ Add XP (1 XP per 100 steps)
+      final levelResult = await levelService.addXp(_userId, steps ~/ 100);
+
+      // Check achievements
       await _checkBigWalkAchievement(result.totalSteps);
       await _checkWealthyAchievement(result.updatedCurrency);
 
@@ -221,12 +266,30 @@ class _ProfileState extends State<ProfileScreen> {
         _currentSteps = _goalController.currentSteps;
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
+
+        // ✅ Update level and XP for UI
+        _currentLevel = levelResult['level']!;
+        _currentXp = levelResult['xp']!;
+        _xpProgress = _currentXp / 100.0;
       });
+
+      if (levelResult['leveledUp'] == 1 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+            ),
+          ),
+        );
+      }
+      print('Before addXp: level=${_currentLevel}, xp=${_currentXp}');
+
+      print(
+        'After addXp: level=${levelResult['level']}, xp=${levelResult['xp']}',
+      );
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _status = 'Failed to record steps: $e';
-      });
+      setState(() => _status = 'Failed to record steps: $e');
     }
   }
 
@@ -289,16 +352,21 @@ class _ProfileState extends State<ProfileScreen> {
                                   children: [
                                     Text("Total Steps: $_totalSteps"),
                                     Text("Items Collected: $_hatsCollected "),
-                                    Text("Current Lvl:"),
+                                    const SizedBox(height: 8),
+                                    Text("Little Guy LVL: $_currentLevel"),
+                                    const SizedBox(height: 4),
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: <Widget>[
-                                        Text("Lvl progress:"),
-                                        ProgressBar(
-                                          iconPath: 'assets/images/lvl.png',
-                                          progress: 0.5,
+                                      children: [
+                                        Expanded(
+                                          child: LinearProgressIndicator(
+                                            value: _xpProgress,
+                                            backgroundColor: Colors.grey[300],
+                                            color: Colors.green,
+                                            minHeight: 12,
+                                          ),
                                         ),
+                                        const SizedBox(width: 8),
+                                        Text("$_currentXp / 100"),
                                       ],
                                     ),
                                   ],
@@ -491,29 +559,32 @@ class _ProfileState extends State<ProfileScreen> {
                                         const Gap(10),
                                         Column(
                                           children: [
-                                            const Text(
-                                              "Most Valuable Pet",
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const Text(
-                                              "Max lvl a pet",
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              // dynamic
-                                              _mvpCompleted
-                                                  ? "Completed"
-                                                  : "Not completed",
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                            Column(
+                                              children: [
+                                                const Text(
+                                                  "Most Valuable Pet",
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const Text(
+                                                  "Get to LVL 5",
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  _mvpCompleted
+                                                      ? "Completed"
+                                                      : "Not completed",
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),

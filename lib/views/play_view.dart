@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_flame_playground/services/level_service.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainance_database.dart';
@@ -37,19 +38,35 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   Future<void> _playWithPet() async {
-    if (_enjoyment >= 1.0) {
-      return;
-    }
+    if (_enjoyment >= 1.0) return;
+
     // Start playing animation
     _petTrigger.value = true;
 
-    // Update pet's enjoyment level in the database after animation starts
-    await _petStatsDB.updatePetStat(
-      1,
-      'enjoyment_level',
-      _enjoyment + 0.25 > 1.0 ? 1.0 : _enjoyment + 0.25,
-    ); // Update pet's enjoyment level to max of 1.0
-    _loadPetStats(); // Refresh data after playing
+    // Calculate new enjoyment value
+    final newEnjoyment = _enjoyment + 0.25 > 1.0 ? 1.0 : _enjoyment + 0.25;
+
+    // Update database
+    await _petStatsDB.updatePetStat(1, 'enjoyment_level', newEnjoyment);
+
+    // ✅ Grant XP (5 XP per play)
+    final db = await AppDatabase.instance.database;
+    final levelService = LevelService(db);
+    final levelResult = await levelService.addXp(1, 5);
+
+    // Refresh UI
+    await _loadPetStats();
+
+    // Show level‑up snackbar if needed
+    if (levelResult['leveledUp'] == 1 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+          ),
+        ),
+      );
+    }
   }
 
   @override
