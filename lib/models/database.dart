@@ -18,7 +18,7 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'little_guy.db');
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path, version: 2, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -55,16 +55,6 @@ CREATE TABLE user_achievement (
   FOREIGN KEY (user_id) REFERENCES user(user_id),
   FOREIGN KEY (achievement_id) REFERENCES achievement(achievement_id)
 );''');
-
-    await db.execute('''
-CREATE TABLE friend (
-  user_id INTEGER NOT NULL,
-  friend_id INTEGER NOT NULL CHECK (friend_id != user_id),
-  PRIMARY KEY (user_id, friend_id),
-  FOREIGN KEY (user_id) REFERENCES user(user_id),
-  FOREIGN KEY (friend_id) REFERENCES user(user_id)
-);
-    ''');
 
     /* route table info:
      - route_path stores a serialized JSON list of all the LatLng points taken on the walk
