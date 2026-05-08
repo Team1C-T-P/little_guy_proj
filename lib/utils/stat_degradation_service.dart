@@ -16,6 +16,10 @@ class StatDegradation {
     DateTime lastOnline = DateTime.parse(lastOnlineIso);
     DateTime now = DateTime.now().toUtc();
 
+    if (lastOnline.isAfter(now)) {
+      throw Exception('Failed to degrade stats: Last online time is in the future');
+    }
+
     int hoursSinceLastOnline = now.difference(lastOnline).inHours;
     double decayBy = 0.1 * (hoursSinceLastOnline / 2);
     

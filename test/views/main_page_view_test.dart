@@ -196,12 +196,72 @@ void main() {
       final enjoyment = await petStatsDB.getPetStat(petId, 'enjoyment_level');
 
       // With 4 hours since last online, decay should be 0.1 * (4/2) = 0.2
-      expect(hunger, 0.3); // 0.5 - 0.2
-      expect(hygiene, 0.3); // 0.5 - 0.2
-      expect(enjoyment, 0.3); // 0.5 - 0.2
+      expect(hunger, 0.3); 
+      expect(hygiene, 0.3); 
+      expect(enjoyment, 0.3); 
     });
     
-  
+    test('Degrades stats to a minimum of 0', () async {
+      final userId = await TestDatabase.seedUser(db, lastOnline: DateTime.now().toUtc().subtract(const Duration(hours: 10)).toIso8601String());
+      final petId = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 10, hungerLevel: 10, enjoymentLevel: 10);
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: userId, petID: petId);
+
+      await statDegradation.degradeStats();
+
+      final hunger = await petStatsDB.getPetStat(petId, 'hunger_level');
+      final hygiene = await petStatsDB.getPetStat(petId, 'hygiene_level');
+      final enjoyment = await petStatsDB.getPetStat(petId, 'enjoyment_level');
+
+      // With 10 hours since last online, decay should be 0.1 * (10/2) = 0.5
+      // Stats should degrade to a minimum of 0
+      expect(hunger, 0.0); 
+      expect(hygiene, 0.0); 
+      expect(enjoyment, 0.0); 
+    });
+
+    test('Updates last online time after degrading stats', () async {
+      final userId = await TestDatabase.seedUser(db, lastOnline: DateTime.now().toUtc().subtract(const Duration(hours: 4)).toIso8601String());
+      final petId = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 50, hungerLevel: 50, enjoymentLevel: 50);
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: userId, petID: petId);
+
+      await statDegradation.degradeStats();
+
+      final updatedLastOnline = await petStatsDB.getLastOnlineByUserId(userId);
+      final updatedLastOnlineDateTime = DateTime.parse(updatedLastOnline!);
+      final now = DateTime.now().toUtc();
+
+      // Check that the updated last online time is within a minute
+      expect(updatedLastOnlineDateTime.isAfter(now.subtract(const Duration(minutes: 1))), true);
+      expect(updatedLastOnlineDateTime.isBefore(now.add(const Duration(minutes: 1))), true);
+    });
+
+    test('Throws an error if user id does not exist', () async {
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: 999, petID: 1);
+      expect(
+        () => statDegradation.degradeStats(),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Throws an error if pet id does not exist', () async {
+      final userId = await TestDatabase.seedUser(db);
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: userId, petID: 999);
+      expect(
+        () => statDegradation.degradeStats(),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Throws an error if last online time is after current time', () async {
+      final userId = await TestDatabase.seedUser(db, lastOnline: DateTime.now().toUtc().add(const Duration(hours: 1)).toIso8601String());
+      final petId = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 50, hungerLevel: 50, enjoymentLevel: 50);
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: userId, petID: petId);
+
+      expect(
+        () => statDegradation.degradeStats(),
+        throwsA(isA<Exception>()),
+      );
+    });
 
   });
 
