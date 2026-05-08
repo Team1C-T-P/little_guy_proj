@@ -1,5 +1,5 @@
 Welcome to Little Guy documentation!
-====================================
+=====================================
 
 Contents
 --------
@@ -7,3 +7,6 @@ Contents
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   usage
+   api
