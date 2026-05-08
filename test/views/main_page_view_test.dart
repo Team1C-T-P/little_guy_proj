@@ -7,6 +7,7 @@ import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 void main() {
   late Database db;
   late PetStatsDatabase petStatsDB;
+  late StatDegradation statDegradation;
   late InventoryDatabase inventoryDB;
 
   setUpAll(() => TestDatabase.init());
@@ -104,13 +105,13 @@ void main() {
       expect(hygiene, 1.0);
     });
 
-    test('Throws an exception if trying to update a stat for a pet id that doesnt exist',() async {
+    test('Throws an exception if trying to update a stat for a pet id that does not exist',() async {
       expect(
         () => petStatsDB.updatePetStat(999, 'hunger_level', 1), throwsA(isA<Exception>())
       );
     });
 
-    test('Throws an exception if trying to update a stat that doesnt exist', () async {
+    test('Throws an exception if trying to update a stat that does not exist', () async {
       expect(
         () => petStatsDB.updatePetStat(1, 'unknown_level', 1), throwsA(isA<Exception>())
       );
@@ -127,14 +128,81 @@ void main() {
       expect(retrievedLastOnline, lastOnline);
     });
 
-
+    test('Return error if the user is not found', () async{
+      expect(
+        () => petStatsDB.getLastOnlineByUserId(999),
+        throwsA(isA<Exception>()),
+      );
+    });
   });
 
   // test updateLastOnlineByUserId
+  group('updateLastOnlineByUserId', () {
+    test('Updates the isoDate correctly', () async {
+      final userId = await TestDatabase.seedUser(db);
+      String lastOnline = DateTime.now().toUtc().toIso8601String();
+      
+      await petStatsDB.updateLastOnlineByUserId(userId, lastOnline);
+      final updatedLastOnline = petStatsDB.getLastOnlineByUserId(userId);
+      expect(updatedLastOnline, completion(lastOnline));
+    });
 
-  // test _loadPetStats()
-  group('loadPetsStats', () {
+    test('Throws an exception if trying to update last online for a user id that does not exist', () async {
+      String lastOnline = DateTime.now().toUtc().toIso8601String();
+      expect(
+        () => petStatsDB.updateLastOnlineByUserId(999, lastOnline),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Throws an exception if trying to update last online with an invalid isoDate format', () async {
+      final userId = await TestDatabase.seedUser(db);
+      String invalidIsoDate = 'not an iso date';
+      expect(
+        () => petStatsDB.updateLastOnlineByUserId(userId, invalidIsoDate),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+  });  
+
+  // test degradeStats()
+  group('degradeStats', () {
+    test('Does not degrade stats if last online was less than 2 hours ago', () async {
+      final userId = await TestDatabase.seedUser(db, lastOnline: DateTime.now().toUtc().toIso8601String());
+      final petId = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 50, hungerLevel: 50, enjoymentLevel: 50);
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: userId, petID: petId);
+
+      await statDegradation.degradeStats();
+
+      final hunger = await petStatsDB.getPetStat(petId, 'hunger_level');
+      final hygiene = await petStatsDB.getPetStat(petId, 'hygiene_level');
+      final enjoyment = await petStatsDB.getPetStat(petId, 'enjoyment_level');
+
+      expect(hunger, 0.5);
+      expect(hygiene, 0.5);
+      expect(enjoyment, 0.5);
+    });
+
+    test('Degrades stats correctly based on hours since last online', () async {
+      final userId = await TestDatabase.seedUser(db, lastOnline: DateTime.now().toUtc().subtract(const Duration(hours: 4)).toIso8601String());
+      final petId = await TestDatabase.seedLittleGuy(db, userId: userId, hygieneLevel: 50, hungerLevel: 50, enjoymentLevel: 50);
+      statDegradation = StatDegradation(petStatsDB: petStatsDB, userID: userId, petID: petId);
+
+      await statDegradation.degradeStats();
+
+      final hunger = await petStatsDB.getPetStat(petId, 'hunger_level');
+      final hygiene = await petStatsDB.getPetStat(petId, 'hygiene_level');
+      final enjoyment = await petStatsDB.getPetStat(petId, 'enjoyment_level');
+
+      // With 4 hours since last online, decay should be 0.1 * (4/2) = 0.2
+      expect(hunger, 0.3); // 0.5 - 0.2
+      expect(hygiene, 0.3); // 0.5 - 0.2
+      expect(enjoyment, 0.3); // 0.5 - 0.2
+    });
     
+  
+
   });
 
   // test getFoodByUserId

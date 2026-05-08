@@ -56,7 +56,9 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) return null;
+    if (result.isEmpty) {
+      throw Exception('Failed to get last online time: User not found');
+    };
     return result.first['last_online'] as String;
   }
 
@@ -102,12 +104,23 @@ class PetStatsDatabase {
   }
 
   Future<void> updateLastOnlineByUserId(int userId, String isoDate) async {
-    await _db.update(
+
+    try {
+      DateTime.parse(isoDate);
+    } catch (e) {
+      throw Exception('Failed to update last online time: Invalid ISO date format');
+    }
+
+    final result = await _db.update(
       'user',
       {'last_online': isoDate},
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+
+    if (result == 0) {
+      throw Exception('Failed to update last online time: User not found');
+    }
   }
 }
 
