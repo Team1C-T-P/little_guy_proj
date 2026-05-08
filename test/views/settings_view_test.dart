@@ -100,11 +100,8 @@ void main() {
       expect(find.text('New User Name'), findsOneWidget);
       expect(find.text('New Pet Name'), findsOneWidget);
     });
-
-    
   });
   group("Settings Screen fetch/update db", () {
-    // move this to the submit button test? First check init and then change?
     test('init values show', () async {
       final userId = await TestDatabase.seedUser(db);
       await TestDatabase.seedLittleGuy(db, userId: userId);
@@ -114,9 +111,5 @@ void main() {
       ); // init user - in actual db it is "Default User"
       expect(find.text('Buddy'), findsOneWidget); // init pet
     });
-
-    // update values in db and see if they update on the screen - or would this be a full db work? Or just a test for the db update function (not UI settings screen test)
-
-    // test submit button? Again -  a UI thing or DB test?
   });
 }
