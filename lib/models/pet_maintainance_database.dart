@@ -64,27 +64,33 @@ class PetStatsDatabase {
 
   // Update Queries
   Future<void> updateUserName(int userId, String newName) async {
-    final db = await AppDatabase.instance.database;
+
     // if newName is empty, keep the old name. (?)
-    if (newName.isEmpty) return; // not tested
-    await db.update(
+    if (newName.isEmpty) return;
+    final result = await _db.update(
       'user',
       {'user_name': newName},
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+    if (result == 0) {
+      throw Exception('Failed to update user name: User not found');
+    }
   }
 
   Future<void> updatePetName(int userId, String newName) async {
-    final db = await AppDatabase.instance.database;
+
     // if newName is empty, keep the old name. (?)
-    if (newName.isEmpty) return; // not tested
-    await db.update(
+    if (newName.isEmpty) return; 
+    final result = await _db.update(
       'little_guy',
       {'little_guy_name': newName},
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+    if (result == 0) {
+      throw Exception('Failed to update pet name: Pet not found');
+    }
   }
 
   Future<void> updatePetStat(int petId, String stat, double value) async {
