@@ -23,7 +23,7 @@ Future<void> checkAndUnlockTrailBlazer(BuildContext context, int userId) async {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            '🗺️ Trail Blazer achievement unlocked! You saved your first route!',
+            'Trail Blazer achievement unlocked! You saved your first route!',
           ),
         ),
       );

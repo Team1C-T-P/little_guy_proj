@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-import 'database.dart';
 
 class GoalService {
   final Database _db;

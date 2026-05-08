@@ -6,7 +6,6 @@ import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/database.dart';
 import 'package:flutter_flame_playground/models/route_service.dart';
 import '../main.dart';
-import 'package:flutter_flame_playground/models/route_service.dart';
 import 'package:flutter_flame_playground/utils/achievement_utils.dart';
 
 class SummaryScreen extends StatefulWidget {

@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/models/database.dart';
-import 'package:flutter_flame_playground/utils/step_counter.dart';
 import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
-import 'package:flutter_flame_playground/widgets/button.dart';
-import 'package:flutter_flame_playground/models/pet_maintainance_database.dart'; // use step_points_service instead?
-import 'package:flutter_flame_playground/models/shop_database.dart';
-import 'package:flutter_flame_playground/models/step_points_service.dart';
+import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import 'package:flutter_flame_playground/models/dress_database.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_flame_playground/services/level_service.dart';
-import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -22,7 +17,6 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileState();
 }
 
-//instead of getting data from pet_maintainment_database can we get it from step points service? - as there is a summary.
 class _ProfileState extends State<ProfileScreen> {
   late StepPointsService _stepPointsService;
   final StepGoalController _goalController = StepGoalController();
@@ -94,7 +88,7 @@ class _ProfileState extends State<ProfileScreen> {
       final ownedHats = await dressDb.getHatsOwnedByUser(_userId);
       _hatsCollected = ownedHats.length;
 
-      // Check Mad Hatter (and later other achievements)
+      // Check achivements
       await _checkMadHatterAchievement();
       await _checkBigWalkAchievement(summary.totalSteps);
       await _checkWealthyAchievement(summary.currency);
@@ -184,14 +178,6 @@ class _ProfileState extends State<ProfileScreen> {
     }
   }
 
-  Future<Map<String, int>> _getAchievementIdMap(Database db) async {
-    final result = await db.query('achievement');
-    return {
-      for (var row in result)
-        row['type'] as String: row['achievement_id'] as int,
-    };
-  }
-
   Future<void> _checkMadHatterAchievement() async {
     final prefs = await SharedPreferences.getInstance();
     final alreadyClaimed = prefs.getBool('madHatterClaimed') ?? false;
@@ -266,11 +252,9 @@ class _ProfileState extends State<ProfileScreen> {
       );
       await _goalController.refreshSteps();
 
-      // ✅ Get database and LevelService
       final db = await AppDatabase.instance.database;
       final levelService = LevelService(db);
 
-      // ✅ Add XP (1 XP per 100 steps)
       final levelResult = await levelService.addXp(_userId, steps ~/ 100);
 
       // Check achievements
@@ -286,7 +270,6 @@ class _ProfileState extends State<ProfileScreen> {
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
 
-        // ✅ Update level and XP for UI
         _currentLevel = levelResult['level']!;
         _currentXp = levelResult['xp']!;
         _xpProgress = _currentXp / 100.0;
@@ -296,16 +279,11 @@ class _ProfileState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+              'Your Little Guy reached level ${levelResult['level']}! ',
             ),
           ),
         );
       }
-      print('Before addXp: level=${_currentLevel}, xp=${_currentXp}');
-
-      print(
-        'After addXp: level=${levelResult['level']}, xp=${levelResult['xp']}',
-      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _status = 'Failed to record steps: $e');
@@ -316,10 +294,6 @@ class _ProfileState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 250, 255, 251),
-      // appBar: AppBar(
-      //   backgroundColor: const Color.fromARGB(219, 150, 242, 176),
-      //   title: const Text('Profile Page'),
-      // ),
       body: Column(
         children: <Widget>[
           Expanded(

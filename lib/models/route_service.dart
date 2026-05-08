@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:latlong2/latlong.dart';
 import 'database.dart';
-import 'package:sqflite/sqflite.dart';
 
 class RouteService {
   Future<int> saveRoute(int userId, String name, List<LatLng> path) async {
