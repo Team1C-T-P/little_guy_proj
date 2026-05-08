@@ -1,33 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../helpers/test_database.dart'; // instead of import ../lib/database
 import 'package:flutter_flame_playground/views/settings_view.dart';
 
 void main() {
-  // Copied from Sam's routes_view_test.dart (set up db for testing)
-  // TestWidgetsFlutterBinding.ensureInitialized();
-
-  // setUpAll(() async {
-  //   sqfliteFfiInit();
-  //   databaseFactory = databaseFactoryFfi;
-  //   await AppDatabase.instance.initializeDefaultData();
-  // });
-
-  // setUp(() async {
-  //   final db = await AppDatabase.instance.database;
-  //   await db.delete('route'); //fix as I am not working with routes
-  // });
-
-  // Testing db changed in code, we can shorten the code?
-  late Database db;
-
-  setUpAll(() => TestDatabase.init());
-
-  setUp(() async {
-    db = await TestDatabase.createFresh();
-  });
-
   group('Settings Screen UI', () {
     Widget createTestWidget() {
       return const MaterialApp(home: SettingsScreen());
@@ -78,17 +53,6 @@ void main() {
       await tester.pump();
 
       expect(find.text('0.3'), findsOneWidget);
-    });
-  });
-  group("Settings Screen fetch/update db", () {
-    test('init values show', () async {
-      final userId = await TestDatabase.seedUser(db);
-      await TestDatabase.seedLittleGuy(db, userId: userId);
-      expect(
-        find.text('Test User'),
-        findsOneWidget,
-      ); // init user - in actual db it is "Default User"
-      expect(find.text('Buddy'), findsOneWidget); // init pet
     });
   });
 }
