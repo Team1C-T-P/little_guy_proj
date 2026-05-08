@@ -15,7 +15,7 @@ void main() {
 
   setUp(() async {
     final db = await AppDatabase.instance.database;
-    await db.delete('step_points');
+    await db.delete('user');
   });
 
   group('awardBonusPoints', () {
