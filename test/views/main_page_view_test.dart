@@ -298,7 +298,55 @@ void main() {
     });
   });
 
-
   // test useFood
+  group('useFood', () {
+    test('Decreases the quantity of the specified food item in the users inventory by 1', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final foodIdOne = await TestDatabase.seedFood(db);
+      final foodIdTwo = await TestDatabase.seedFood(db, name: 'Pasta', imagePath: 'assets/images/food/Pasta.png');
+
+      await TestDatabase.seedInventory(db, userId: userId, itemId: foodIdOne, quantity: 5);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: foodIdTwo, quantity: 3);
+
+      await inventoryDB.useFood(foodIdOne, userId);
+      await inventoryDB.useFood(foodIdTwo, userId);
+      await inventoryDB.useFood(foodIdTwo, userId);
+
+      final food = await inventoryDB.getFoodByUserId(userId);
+
+      expect(food[0]['quantity'], 4);
+      expect(food[1]['quantity'], 1);
+    });
+    
+    test('Does not decrease quantity if the food item quantity is already 0', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final foodId = await TestDatabase.seedFood(db);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: foodId, quantity: 0);
+
+      await inventoryDB.useFood(foodId, userId);
+
+      final food = await inventoryDB.getFoodByUserId(userId);
+      
+      expect(food[0]['quantity'], 0);
+    });
+
+    test('Throws an exception if trying to use a food item for a user id that does not exist', () async {
+      final foodId = await TestDatabase.seedFood(db);
+
+      expect(
+        () => inventoryDB.useFood(foodId, 999),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Throws an exception if trying to use a food item that does not exist', () async {
+      final userId = await TestDatabase.seedUser(db);
+
+      expect(
+        () => inventoryDB.useFood(999, userId),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
 
 }

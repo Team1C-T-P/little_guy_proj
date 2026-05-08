@@ -152,7 +152,7 @@ class InventoryDatabase {
   // Update Queries
   Future<void> useFood(int foodId, int userId) async {
     // Decrease quantity in inventory
-    await _db.rawUpdate(
+    final result = await _db.rawUpdate(
       '''
       UPDATE inventory
       SET quantity = quantity - 1
@@ -160,5 +160,8 @@ class InventoryDatabase {
     ''',
       [userId, foodId],
     );
+    if (result == 0) {
+      throw Exception('Failed to use food: User or item not found');
+    }
   }
 }
