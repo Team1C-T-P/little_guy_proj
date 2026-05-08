@@ -140,7 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(width: 10),
 
-                      // ✅ Text now flexible
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,

@@ -11,6 +11,7 @@ import 'package:flutter_flame_playground/utils/location_service.dart';
 import 'package:flutter_flame_playground/views/routes_view.dart';
 import 'package:flutter_flame_playground/views/summary_view.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
+import 'package:flutter_flame_playground/utils/achievement_utils.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -128,27 +129,22 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void onStepCount(StepCount event) {
+  void onStepCount(StepCount event) async {
     setState(() {
       _steps = event.steps.toString();
 
-      // 1. Initialize the baseline if this is the first step detected
       if (_initialSteps == -1) {
         _initialSteps = event.steps;
       }
 
-      // 2. Calculate how many steps have occurred in this exact session
       int currentSessionSteps = event.steps - _initialSteps;
 
-      // 3. Figure out how many NEW steps happened since the last event fired
       int newSteps = currentSessionSteps - _sessionSteps;
 
-      // 4. Update the global app counter so the UI reacts
       for (int i = 0; i < newSteps; i++) {
         StepCounter().addStep();
       }
 
-      // 5. Save the current state
       _sessionSteps = currentSessionSteps;
     });
   }

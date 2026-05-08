@@ -44,6 +44,7 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   sqflite_common_ffi: ^2.4.0+3
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

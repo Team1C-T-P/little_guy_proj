@@ -6,6 +6,8 @@ import 'package:flutter_flame_playground/widgets/button.dart';
 import 'package:flutter_flame_playground/models/database.dart';
 import 'package:flutter_flame_playground/models/route_service.dart';
 import '../main.dart';
+import 'package:flutter_flame_playground/models/route_service.dart';
+import 'package:flutter_flame_playground/utils/achievement_utils.dart';
 
 class SummaryScreen extends StatefulWidget {
   final int totalSteps;
@@ -48,7 +50,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
     try {
       await AppDatabase.instance.insertWalkSummary(walkData);
-      
+
       // FIX: Ensure the widget is still on screen before updating the UI
       // This prevents the "setState() called after dispose()" memory leak
       if (mounted) {
@@ -64,16 +66,17 @@ class _SummaryScreenState extends State<SummaryScreen> {
   String _generateFunFact(int steps) {
     double meters = steps * 0.762;
     int doubleDeckerBuses = (meters / 11.2).round();
-    
+
     if (steps < 100) return "Just getting warmed up!";
-    if (steps < 1000) return "You walked the length of $doubleDeckerBuses London buses!";
+    if (steps < 1000)
+      return "You walked the length of $doubleDeckerBuses London buses!";
     return "Amazing! You covered ${meters.toStringAsFixed(1)} meters today!";
   }
 
   @override
   Widget build(BuildContext context) {
-    LatLng mapCenter = widget.route.isNotEmpty 
-        ? widget.route.last 
+    LatLng mapCenter = widget.route.isNotEmpty
+        ? widget.route.last
         : const LatLng(50.7989, -1.0912);
 
     return Scaffold(
@@ -105,8 +108,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.flutter_flame_playground',
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName:
+                          'com.example.flutter_flame_playground',
                     ),
                     PolylineLayer(
                       polylines: [
@@ -124,7 +129,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             point: widget.route.last,
                             width: 40,
                             height: 40,
-                            child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                            child: const Icon(
+                              Icons.location_on,
+                              color: Colors.red,
+                              size: 40,
+                            ),
                           ),
                         ],
                       ),
@@ -134,7 +143,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
             ),
           ),
           Expanded(
-            flex: 6, // Slightly increased flex to fit the extra buttons comfortably without overflowing
+            flex: 6,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -152,11 +161,18 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.directions_walk, size: 50, color: Color.fromARGB(255, 77, 151, 86)),
+                      const Icon(
+                        Icons.directions_walk,
+                        size: 50,
+                        color: Color.fromARGB(255, 77, 151, 86),
+                      ),
                       const Gap(10),
                       Text(
                         "${widget.totalSteps} Steps",
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -168,7 +184,13 @@ class _SummaryScreenState extends State<SummaryScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Text("Fun Fact", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const Text(
+                          "Fun Fact",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
                         const Gap(5),
                         Text(
                           _generateFunFact(widget.totalSteps),
@@ -179,8 +201,14 @@ class _SummaryScreenState extends State<SummaryScreen> {
                     ),
                   ),
                   if (_isSaved)
-                    const Text("✓ Saved to Database", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                  
+                    const Text(
+                      "✓ Saved to Database",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
                   // Save as Route Button
                   if (widget.route.isNotEmpty)
                     GreenButton(
@@ -193,33 +221,47 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             title: const Text('Name your Route'),
                             content: TextField(
                               onChanged: (val) => routeName = val,
-                              decoration: const InputDecoration(hintText: 'e.g. Park Loop'),
+                              decoration: const InputDecoration(
+                                hintText: 'e.g. Park Loop',
+                              ),
                             ),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                              ElevatedButton(onPressed: () => Navigator.pop(ctx, routeName), child: const Text('Save')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(ctx, routeName),
+                                child: const Text('Save'),
+                              ),
                             ],
                           ),
                         );
 
                         if (name != null && name.isNotEmpty) {
                           await RouteService().saveRoute(1, name, widget.route);
+
+                          await checkAndUnlockTrailBlazer(context, 1);
+
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Route "$name" saved!')));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Route "$name" saved!')),
+                            );
                           }
                         }
                       },
                     ),
-                  
+
                   const Gap(5),
-                  
+
                   GreenButton(
                     buttonText: "Return Home",
                     onPressed: () {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const MyHomePage(title: 'FLittle Guy'),
+                          builder: (context) =>
+                              const MyHomePage(title: 'FLittle Guy'),
                         ),
                         (route) => false,
                       );

@@ -10,8 +10,10 @@ import 'package:flutter_flame_playground/models/shop_database.dart';
 import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import 'package:flutter_flame_playground/models/dress_database.dart';
-import 'package:flutter_flame_playground/services/achievement_service.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -39,62 +41,91 @@ class _ProfileState extends State<ProfileScreen> {
   bool _letsPlayCompleted = false;
   bool _mvpCompleted = false;
   final int _userId = 1; // Assuming single user per phone with ID 1
+  bool _wealthyCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    AppDatabase.instance.database.then((db) {
+    AppDatabase.instance.database.then((db) async {
       _stepPointsService = StepPointsService(db);
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _madHatterCompleted = prefs.getBool('madHatterClaimed') ?? false;
+        _bigWalkCompleted = prefs.getBool('bigWalkClaimed') ?? false;
+        _wealthyCompleted = prefs.getBool('wealthyClaimed') ?? false;
+      });
       _loadData();
     });
-
-    // Listener for any goal controller changes
     _goalController.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     });
   }
 
   Future<void> _loadData() async {
     try {
-      print('Big Walk completed: $_bigWalkCompleted');
-      print('Trail Blazer completed: $_trailBlazerCompleted');
-      print('Let\'s Play completed: $_letsPlayCompleted');
-      print('MVP completed: $_mvpCompleted');
-      print('Hats collected: $_hatsCollected');
       final summary = await _stepPointsService.getAccountSummary(1);
       await _goalController.loadData();
+
       final db = await AppDatabase.instance.database;
       final dressDb = DressDatabase(db);
       final ownedHats = await dressDb.getHatsOwnedByUser(_userId);
       _hatsCollected = ownedHats.length;
 
-      final achievementService = AchievementService(db);
-      final unlockedIds = await achievementService.getUnlockedAchievementIds(
-        _userId,
-      );
-
+      // Check Mad Hatter (and later other achievements)
       await _checkMadHatterAchievement();
-      final achievementMap = await _getAchievementIdMap(db);
-      if (!mounted) return;
-      setState(() {
-        _bigWalkCompleted = unlockedIds.contains(achievementMap['steps_total']);
-        _trailBlazerCompleted = unlockedIds.contains(
-          achievementMap['route_created'],
-        );
-        _letsPlayCompleted = unlockedIds.contains(achievementMap['play_count']);
-        _mvpCompleted = unlockedIds.contains(achievementMap['pet_level']);
+      await _checkBigWalkAchievement(summary.totalSteps);
+      await _checkWealthyAchievement(summary.currency);
+      await _checkTrailBlazerAchievement();
 
-        _totalSteps = summary.totalSteps;
-        _currency = summary.currency;
-        _leftoverSteps = summary.unconvertedSteps;
-      });
+      if (mounted) {
+        setState(() {
+          _totalSteps = summary.totalSteps;
+          _currency = summary.currency;
+          _leftoverSteps = summary.unconvertedSteps;
+          _currentSteps = _goalController.currentSteps;
+        });
+      }
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _status = 'Failed to load summary: $e';
-      });
+      if (mounted) setState(() => _status = 'Failed to load summary: $e');
+    }
+  }
+
+  Future<void> _checkTrailBlazerAchievement() async {
+    final prefs = await SharedPreferences.getInstance();
+    final claimed = prefs.getBool('trailBlazerClaimed') ?? false;
+    if (claimed != _trailBlazerCompleted) {
+      setState(() => _trailBlazerCompleted = claimed);
+    }
+  }
+
+  Future<void> checkAndUnlockTrailBlazer(
+    BuildContext context,
+    int userId,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyClaimed = prefs.getBool('trailBlazerClaimed') ?? false;
+    if (alreadyClaimed) return;
+
+    final db = await AppDatabase.instance.database;
+    final count =
+        Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM route WHERE user_id = ?', [
+            userId,
+          ]),
+        ) ??
+        0;
+
+    if (count >= 1) {
+      await prefs.setBool('trailBlazerClaimed', true);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Trail Blazer achievement unlocked! You saved your first route!',
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -107,22 +138,68 @@ class _ProfileState extends State<ProfileScreen> {
   }
 
   Future<void> _checkMadHatterAchievement() async {
-    // Get hat count
-    final db = await AppDatabase.instance.database;
-    final dressDb = DressDatabase(db);
-    final ownedHats = await dressDb.getHatsOwnedByUser(_userId);
-    final hatCount = ownedHats.length;
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyClaimed = prefs.getBool('madHatterClaimed') ?? false;
 
-    // If target reached (5 or more hats)
-    if (hatCount >= 5) {
-      // TODO: mark achievement as completed (see options below)
-      setState(() {
-        _madHatterCompleted = true;
-      });
-      // Optionally show a congratulatory message
+    if (alreadyClaimed) {
+      if (!_madHatterCompleted) {
+        setState(() => _madHatterCompleted = true);
+      }
+      return;
+    }
+
+    if (_hatsCollected >= 5) {
+      setState(() => _madHatterCompleted = true);
+      await prefs.setBool('madHatterClaimed', true);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Mad Hatter achievement unlocked!')),
+        const SnackBar(content: Text('Mad Hatter achievement unlocked!')),
       );
+    }
+  }
+
+  Future<void> _checkWealthyAchievement(int currency) async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyClaimed = prefs.getBool('wealthyClaimed') ?? false;
+
+    if (alreadyClaimed) {
+      if (!_wealthyCompleted) setState(() => _wealthyCompleted = true);
+      return;
+    }
+
+    if (currency >= 5000) {
+      setState(() => _wealthyCompleted = true);
+      await prefs.setBool('wealthyClaimed', true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Wealthy achievement unlocked! 5000 currency!'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _checkBigWalkAchievement(int totalSteps) async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyClaimed = prefs.getBool('bigWalkClaimed') ?? false;
+
+    if (alreadyClaimed) {
+      if (!_bigWalkCompleted) setState(() => _bigWalkCompleted = true);
+      return;
+    }
+
+    if (totalSteps >= 5000) {
+      setState(() => _bigWalkCompleted = true);
+      await prefs.setBool('bigWalkClaimed', true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Big Walk achievement unlocked! Walked 5,000 steps total!',
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -133,8 +210,9 @@ class _ProfileState extends State<ProfileScreen> {
         steps: steps,
       );
       await _goalController.refreshSteps();
+      await _checkBigWalkAchievement(result.totalSteps);
+      await _checkWealthyAchievement(result.updatedCurrency);
 
-      // update UI with the new values
       if (!mounted) return;
       setState(() {
         _totalSteps = result.totalSteps;
@@ -211,7 +289,18 @@ class _ProfileState extends State<ProfileScreen> {
                                   children: [
                                     Text("Total Steps: $_totalSteps"),
                                     Text("Items Collected: $_hatsCollected "),
-                                    Text("Little Guy LVL:  "),
+                                    Text("Current Lvl:"),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text("Lvl progress:"),
+                                        ProgressBar(
+                                          iconPath: 'assets/images/lvl.png',
+                                          progress: 0.5,
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -236,7 +325,7 @@ class _ProfileState extends State<ProfileScreen> {
                                           CrossAxisAlignment.center,
                                       children: [
                                         Column(
-                                          children: const [
+                                          children: [
                                             // keep const for static children
                                             Text(
                                               "Big Walk",
@@ -252,12 +341,21 @@ class _ProfileState extends State<ProfileScreen> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            // but the third Text cannot be const – we'll replace below
+                                            Text(
+                                              // dynamic
+                                              _bigWalkCompleted
+                                                  ? "Completed"
+                                                  : "Not completed",
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                         const Gap(10),
                                         Column(
-                                          children: const [
+                                          children: [
                                             Text(
                                               "Trail Blazer",
                                               style: TextStyle(
@@ -268,6 +366,15 @@ class _ProfileState extends State<ProfileScreen> {
                                             Text(
                                               "Set-up a route",
                                               style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              _trailBlazerCompleted
+                                                  ? "Completed"
+                                                  : "Not completed",
+                                              style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -286,17 +393,27 @@ class _ProfileState extends State<ProfileScreen> {
                                           CrossAxisAlignment.center,
                                       children: [
                                         Column(
-                                          children: const [
+                                          children: [
                                             Text(
-                                              "Socialite",
+                                              "Wealthy",
                                               style: TextStyle(
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             Text(
-                                              "Get 5 friends. Aww!",
+                                              "Get 5K",
                                               style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              // dynamic – cannot be const
+                                              _wealthyCompleted
+                                                  ? "Completed"
+                                                  : "Not completed",
+                                              style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -314,7 +431,7 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             const Text(
-                                              "Get 10 Hats",
+                                              "Get 5 Hats",
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,

@@ -73,15 +73,16 @@ CREATE TABLE user_achievement (
       - hygiene, hunger and enjoyment levels are stored as integers from 0 to 100, when used this needs to be divided by 100 
     */
     await db.execute('''
-        CREATE TABLE little_guy (
-          little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          little_guy_name TEXT NOT NULL,
-          hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
-          hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
-          enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
-          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
-        );
+CREATE TABLE little_guy (
+  little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  little_guy_name TEXT NOT NULL,
+  hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
+  hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
+  enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
+  level INTEGER NOT NULL DEFAULT 1,  
+  xp INTEGER NOT NULL DEFAULT 0      
+);
       ''');
 
     /* item table info:

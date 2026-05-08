@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'package:latlong2/latlong.dart';
 import 'database.dart';
-import 'package:flutter_flame_playground/services/achievement_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 class RouteService {
   Future<int> saveRoute(int userId, String name, List<LatLng> path) async {
     final db = await AppDatabase.instance.database;
-    final achService = AchievementService(db);
-    await achService.checkAndUnlock(userId, 'route_created', 1);
     // Convert complex LatLng objects into a simple JSON string
     final pathList = path
         .map((p) => {'lat': p.latitude, 'lng': p.longitude})
