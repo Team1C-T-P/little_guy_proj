@@ -25,7 +25,10 @@ void main() {
       final service = StepPointsService(db);
 
       // Insert a test user
-      final userId = await db.insert('user', {'currency': 0});
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
 
       // Award points
       final updatedCurrency = await service.awardBonusPoints(
@@ -60,18 +63,35 @@ void main() {
       final db = await AppDatabase.instance.database;
       final service = StepPointsService(db);
 
-      final userId = await db.insert('user', {'currency': 0});
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
 
       expect(
         () => service.awardBonusPoints(userId: userId, points: 0),
         throwsArgumentError,
-        reason: "Points must be a positive integer",
+        reason: "Points must be positive",
       );
     });
   });
 
   group('recordSteps', () {
     // Steps must be 0 or over
+    test('Throws error when steps are negative', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+      final userId = await db.insert('user', {
+        'user_name': 'Test User',
+        'currency': 0,
+      });
+
+      expect(
+        () => service.recordSteps(userId: userId, steps: -10),
+        throwsArgumentError,
+        reason: "Steps cannot be negative",
+      );
+    });
 
     // User must exist
 
