@@ -199,10 +199,8 @@ class _MapScreenState extends State<MapScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SummaryScreen(
-                      totalSteps: _sessionSteps,
-                      route: _route,
-                    ),
+                    builder: (context) =>
+                        SummaryScreen(totalSteps: _sessionSteps, route: _route),
                   ),
                 );
               },

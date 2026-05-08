@@ -5,7 +5,6 @@ import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainance_database.dart';
 import '../models/database.dart';
 
-
 class CleanScreen extends StatefulWidget {
   const CleanScreen({super.key});
 
@@ -16,7 +15,7 @@ class CleanScreen extends StatefulWidget {
 class _CleanScreenState extends State<CleanScreen> {
   late PetStatsDatabase _petStatsDB;
   final ValueNotifier<bool> _cleanTrigger = ValueNotifier(false);
-  
+
   // Dummy values will be replaced with actual values from the database
   double _hygiene = 0;
 
@@ -44,9 +43,13 @@ class _CleanScreenState extends State<CleanScreen> {
     }
     // Start cleaning animation
     _cleanTrigger.value = true;
-    
+
     // Update pet's hygiene level in the database after animation starts
-    await _petStatsDB.updatePetStat(1, 'hygiene_level', 1.0); // Update pet's hygiene level
+    await _petStatsDB.updatePetStat(
+      1,
+      'hygiene_level',
+      1.0,
+    ); // Update pet's hygiene level
     _loadPetHygiene(); // Refresh data after cleaning
   }
 
@@ -65,16 +68,23 @@ class _CleanScreenState extends State<CleanScreen> {
               alignment: Alignment.center,
               padding: const EdgeInsets.only(left: 24),
               color: Color.fromARGB(255, 213, 248, 255),
-              child: Image.asset('assets/images/cloud.png')
-            )
+              child: Image.asset(
+                'assets/images/cloud.png',
+                width: 100,
+                height: 60,
+              ),
+            ),
           ),
           Expanded(
             flex: 1,
-            child: 
-            Container(
+            child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
               alignment: Alignment.centerLeft,
-              child: Image.asset('assets/images/cloud.png')
+              child: Image.asset(
+                'assets/images/cloud.png',
+                width: 200,
+                height: 60,
+              ),
             ),
           ),
           Expanded(
@@ -82,7 +92,11 @@ class _CleanScreenState extends State<CleanScreen> {
             child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
               alignment: Alignment.centerRight,
-              child: Image.asset('assets/images/cloud.png')
+              child: Image.asset(
+                'assets/images/cloud.png',
+                width: 350,
+                height: 480,
+              ),
             ),
           ),
           Expanded(
@@ -90,7 +104,14 @@ class _CleanScreenState extends State<CleanScreen> {
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
-              child: Center(child: CleaningLittleGuy(trigger: _cleanTrigger)),
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 20),
+                child: SizedBox(
+                  width: 300,
+                  height: 300,
+                  child: CleaningLittleGuy(trigger: _cleanTrigger),
+                ),
+              ),
             ),
           ),
           Expanded(
@@ -103,7 +124,10 @@ class _CleanScreenState extends State<CleanScreen> {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: Color.fromARGB(219, 246, 255, 226),
                       borderRadius: BorderRadius.circular(15),
@@ -115,7 +139,10 @@ class _CleanScreenState extends State<CleanScreen> {
                   ),
                   const Gap(16),
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: Color.fromARGB(219, 246, 255, 226),
                       borderRadius: BorderRadius.circular(15),
@@ -126,11 +153,11 @@ class _CleanScreenState extends State<CleanScreen> {
                       onPressed: () {
                         _cleanPet();
                       },
-                    )
-                  )
-                ]
+                    ),
+                  ),
+                ],
               ),
-            )
+            ),
           ),
         ],
       ),

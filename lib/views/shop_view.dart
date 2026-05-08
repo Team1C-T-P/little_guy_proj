@@ -162,7 +162,7 @@ class _ShopState extends State<Shop> {
         children: [
           // Top blue area containing the littleguy
           Expanded(
-            flex: 3,
+            flex: 0,
             child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
               child: Column(
@@ -170,10 +170,10 @@ class _ShopState extends State<Shop> {
                 children: [
                   // balance the display
                   Text(
-                    'Balance: $_coinBalance coins',
+                    'Balance: £$_coinBalance',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 150),
                   LittleGuy(),
                 ],
               ),

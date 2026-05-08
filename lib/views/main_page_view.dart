@@ -34,15 +34,17 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     AppDatabase.instance.database.then((db) {
       _petStatsDB = PetStatsDatabase(db);
-      _statDegradation = StatDegradation(petStatsDB: _petStatsDB, userID: userId, petID: petId);
+      _statDegradation = StatDegradation(
+        petStatsDB: _petStatsDB,
+        userID: userId,
+        petID: petId,
+      );
       _loadPetStats();
     });
     _loadGoalData();
-  } 
-
+  }
 
   Future<void> _loadPetStats() async {
-    
     await _statDegradation.degradeStats();
 
     double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
@@ -88,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            flex: 10,
+            flex: 100,
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
@@ -111,7 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GreenButton(
                                 buttonText: "+250",
                                 onPressed: () async {
-                                  final newGoal = _goalController.stepGoal + 250;
+                                  final newGoal =
+                                      _goalController.stepGoal + 250;
                                   await _goalController.updateGoal(newGoal);
                                   // setState(() => _goalController.stepGoal = newGoal);
                                 },
@@ -121,10 +124,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GreenButton(
                                 buttonText: "-250",
                                 onPressed: () async {
-                                  final newGoal = (_goalController.stepGoal - 250).clamp(
-                                    0,
-                                    999999,
-                                  );
+                                  final newGoal =
+                                      (_goalController.stepGoal - 250).clamp(
+                                        0,
+                                        999999,
+                                      );
                                   await _goalController.updateGoal(newGoal);
                                   // setState(() => _goalController.stepGoal = newGoal);
                                 },
