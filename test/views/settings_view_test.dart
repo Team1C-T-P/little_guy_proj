@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_flame_playground/views/settings_view.dart';
+import 'package:flutter_flame_playground/models/database.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+    await AppDatabase.instance.initializeDefaultData();
+  });
+
+  setUp(() async {
+    final db = await AppDatabase.instance.database;
+    await db.delete('route'); //fix as I am not working with routes
+  });
+
   group('Settings Screen UI', () {
     Widget createTestWidget() {
       return const MaterialApp(home: SettingsScreen());
