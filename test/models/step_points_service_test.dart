@@ -24,19 +24,18 @@ void main() {
       final db = await AppDatabase.instance.database;
       final service = StepPointsService(db);
 
-      // Insert a test user
+      // test user WITH A NAME
       final userId = await db.insert('user', {
         'user_name': 'Test User',
         'currency': 0,
       });
 
-      // Award points
       final updatedCurrency = await service.awardBonusPoints(
         userId: userId,
         points: 10,
       );
 
-      // Verify the currency was updated correctly
+      // Verify updated currency
       expect(updatedCurrency, 10);
 
       final userRows = await db.query(
@@ -105,8 +104,6 @@ void main() {
       );
     });
 
-    // what is step ledger? - test it?
-
     // Step record - 50/100 steps, expect 0 points, 50 unconverted
     test('Correct step record and points award', () async {
       final db = await AppDatabase.instance.database;
@@ -161,13 +158,13 @@ void main() {
       final service = StepPointsService(db);
 
       expect(
-        () => service.getAccountSummary(9999), //no positional argument for userId(?)
+        () => service.getAccountSummary(
+          9999,
+        ), //no positional argument for userId(?)
         throwsStateError,
         reason: "User with this ID doesn't exist",
       );
     });
-
-    // wtf is step ledger -test it?
 
     // Correct totals after rewarding points
   });
