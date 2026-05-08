@@ -266,6 +266,38 @@ void main() {
   });
 
   // test getFoodByUserId
+  group('getFoodByUserId', () {
+    test('Returns the correct item ids, quantity, and the item path for a given user id', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final foodIdOne = await TestDatabase.seedFood(db);
+      final foodIdTwo = await TestDatabase.seedFood(db, name: 'Pasta', imagePath: 'assets/images/food/Pasta.png');
+      await TestDatabase.seedInventory(db, userId: userId, itemId: foodIdOne, quantity: 5);
+      await TestDatabase.seedInventory(db, userId: userId, itemId: foodIdTwo, quantity: 3);
+
+      final food = await inventoryDB.getFoodByUserId(userId);
+      expect(food.length, 2);
+      expect(food[0]['item_id'], foodIdOne);
+      expect(food[0]['quantity'], 5);
+      expect(food[0]['image_path'], 'assets/images/food/bread.png');
+      expect(food[1]['item_id'], foodIdTwo);
+      expect(food[1]['quantity'], 3);
+      expect(food[1]['image_path'], 'assets/images/food/Pasta.png');
+    });
+
+    test('Returns an empty list if the user has no food in their inventory', () async {
+      final userId = await TestDatabase.seedUser(db);
+      final food = await inventoryDB.getFoodByUserId(userId);
+      expect(food, isEmpty);
+    });
+
+    test('Throws an exception if the user id does not exist', () async {
+      expect(
+        () => inventoryDB.getFoodByUserId(999),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
 
   // test useFood
 

@@ -143,6 +143,9 @@ class InventoryDatabase {
     ''',
       [userId, 'food'],
     );
+    if (food.isEmpty) {
+      throw Exception('Failed to get food: User not found');
+    }
     return food;
   }
 
