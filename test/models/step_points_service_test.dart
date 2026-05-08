@@ -94,6 +94,16 @@ void main() {
     });
 
     // User must exist
+    test('Throws error when user does not exist', () async {
+      final db = await AppDatabase.instance.database;
+      final service = StepPointsService(db);
+
+      expect(
+        () => service.recordSteps(userId: 9999, steps: 100),
+        throwsStateError,
+        reason: "User with this ID doesn't exist",
+      );
+    });
 
     // what is step ledger? - test it?
 
