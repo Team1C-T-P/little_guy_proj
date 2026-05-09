@@ -217,7 +217,7 @@ class _ShopState extends State<Shop> {
                                   item['image_path'] as String,
                                   fit: BoxFit.cover,
                                   color: (itemType == 'hat' && isOwned)
-                                      ? Colors.grey
+                                      ? Colors.green.withValues(alpha: 0.3)
                                       : null,
                                   colorBlendMode: isOwned
                                       ? BlendMode.saturation
@@ -230,7 +230,7 @@ class _ShopState extends State<Shop> {
                                   right: 0,
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: 4,
+                                      horizontal: 6,
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
