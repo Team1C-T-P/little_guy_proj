@@ -17,7 +17,7 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) return null;
+    if (result.isEmpty) throw Exception('Failed to get user name: User not found');
     return result.first['user_name'] as String;
   }
 
@@ -28,7 +28,7 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) return null;
+    if (result.isEmpty) throw Exception('Failed to get pet name: Pet not found');
     return result.first['little_guy_name'] as String;
   }
 
@@ -56,33 +56,41 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) return null;
+    if (result.isEmpty) {
+      throw Exception('Failed to get last online time: User not found');
+    };
     return result.first['last_online'] as String;
   }
 
   // Update Queries
   Future<void> updateUserName(int userId, String newName) async {
-    final db = await AppDatabase.instance.database;
+
     // if newName is empty, keep the old name. (?)
-    if (newName.isEmpty) return; // not tested
-    await db.update(
+    if (newName.isEmpty) return;
+    final result = await _db.update(
       'user',
       {'user_name': newName},
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+    if (result == 0) {
+      throw Exception('Failed to update user name: User not found');
+    }
   }
 
   Future<void> updatePetName(int userId, String newName) async {
-    final db = await AppDatabase.instance.database;
+
     // if newName is empty, keep the old name. (?)
-    if (newName.isEmpty) return; // not tested
-    await db.update(
+    if (newName.isEmpty) return; 
+    final result = await _db.update(
       'little_guy',
       {'little_guy_name': newName},
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+    if (result == 0) {
+      throw Exception('Failed to update pet name: Pet not found');
+    }
   }
 
   Future<void> updatePetStat(int petId, String stat, double value) async {
@@ -102,12 +110,23 @@ class PetStatsDatabase {
   }
 
   Future<void> updateLastOnlineByUserId(int userId, String isoDate) async {
-    await _db.update(
+
+    try {
+      DateTime.parse(isoDate);
+    } catch (e) {
+      throw Exception('Failed to update last online time: Invalid ISO date format');
+    }
+
+    final result = await _db.update(
       'user',
       {'last_online': isoDate},
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+
+    if (result == 0) {
+      throw Exception('Failed to update last online time: User not found');
+    }
   }
 }
 
@@ -130,12 +149,28 @@ class InventoryDatabase {
     ''',
       [userId, 'food'],
     );
+    if (food.isEmpty) {
+      throw Exception('Failed to get food: User not found');
+    }
     return food;
   }
 
   // Update Queries
   Future<void> useFood(int foodId, int userId) async {
-    // Decrease quantity in inventory
+    // First check if the item exists for this user
+    final itemExists = await _db.rawQuery(
+      '''
+      SELECT item_id FROM inventory
+      WHERE user_id = ? AND item_id = ?
+    ''',
+      [userId, foodId],
+    );
+    
+    if (itemExists.isEmpty) {
+      throw Exception('Failed to use food: User or item not found');
+    }
+    
+    // Decrease quantity in inventory if available
     await _db.rawUpdate(
       '''
       UPDATE inventory
