@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/models/step_points_service.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import '../models/database.dart';
+import 'package:flutter_flame_playground/services/level_service.dart';
 
 // Dummy values for the progress bars - will need to be replaced with actual values later on
 int hunger = 50;
@@ -67,13 +68,13 @@ class _TestScreenState extends State<TestScreen> {
         steps: steps,
       );
 
-      // Load updated steps and goal
-      // if (_goalController.currentSteps >= _goalController.stepGoal) {
-      //   _status = '🎉 Goal reached! +25 currency awarded';
-      // }
+      // ✅ Grant XP (1 XP per 100 steps)
+      final db = await AppDatabase.instance.database;
+      final levelService = LevelService(db);
+      final levelResult = await levelService.addXp(1, steps ~/ 100);
+
       await _goalController.refreshSteps();
 
-      // update UI with the new values
       if (!mounted) return;
       setState(() {
         _totalSteps = result.totalSteps;
@@ -83,11 +84,20 @@ class _TestScreenState extends State<TestScreen> {
         _status =
             'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
       });
+
+      // Show level‑up snackbar if applicable
+      if (levelResult['leveledUp'] == 1 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _status = 'Failed to record steps: $e';
-      });
+      setState(() => _status = 'Failed to record steps: $e');
     }
   }
 

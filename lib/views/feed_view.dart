@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:flutter_flame_playground/services/level_service.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
 import '../models/pet_maintainance_database.dart';
 import '../models/database.dart';
-
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -20,8 +20,8 @@ class _FeedScreenState extends State<FeedScreen> {
   // Dummy values will be replaced with actual values from the database
   double _hunger = 0;
   List<Map<String, dynamic>> _food = [];
-  
-  @override 
+
+  @override
   void initState() {
     super.initState();
     AppDatabase.instance.database.then((db) {
@@ -32,7 +32,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _loadPetHunger() async {
-     // Assuming userId is 1 for now, will be dynamic later
+    // Assuming userId is 1 for now, will be dynamic later
     final hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
     final food = await _foodDB.getFoodByUserId(1);
 
@@ -43,12 +43,40 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _useFood(int foodId, int petId, int userId) async {
-    if (_food.firstWhere((item) => item['item_id'] == foodId)['quantity'] <= 0 || _hunger >= 1.0) {
+    // Check if enough food or hunger already full
+    if (_food.firstWhere((item) => item['item_id'] == foodId)['quantity'] <=
+            0 ||
+        _hunger >= 1.0) {
       return;
     }
+
+    // Update inventory (consume food)
     await _foodDB.useFood(foodId, userId);
-    await _petStatsDB.updatePetStat(petId, 'hunger_level', _hunger+0.2); // Update pet's hunger level
-    _loadPetHunger(); // Refresh data after using food
+
+    // Calculate new hunger value (capped at 1.0)
+    double newHunger = (_hunger + 0.2) > 1.0 ? 1.0 : _hunger + 0.2;
+
+    // Update pet's hunger in database
+    await _petStatsDB.updatePetStat(petId, 'hunger_level', newHunger);
+
+    // ✅ Grant XP (5 XP per feeding)
+    final db = await AppDatabase.instance.database;
+    final levelService = LevelService(db);
+    final levelResult = await levelService.addXp(userId, 5);
+
+    // Refresh UI
+    await _loadPetHunger();
+
+    // Show level‑up snackbar if needed
+    if (levelResult['leveledUp'] == 1 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -62,33 +90,44 @@ class _FeedScreenState extends State<FeedScreen> {
         children: <Widget>[
           // Decoration for the background
           Expanded(
-            flex: 1,
+            flex: 0,
             child: Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.only(left: 24),
               color: Color.fromARGB(255, 213, 248, 255),
-              child: Image.asset('assets/images/cloud.png')
-            )
-          ),
-          Expanded(
-            flex: 1,
-            child: 
-            Container(
-              color: Color.fromARGB(255, 221, 249, 255),
-              alignment: Alignment.centerLeft,
-              child: Image.asset('assets/images/cloud.png')
+              child: Image.asset(
+                'assets/images/cloud.png',
+                width: 300,
+                height: 60,
+              ),
             ),
           ),
           Expanded(
-            flex: 1,
+            flex: 0,
+            child: Container(
+              color: Color.fromARGB(255, 221, 249, 255),
+              alignment: Alignment.centerLeft,
+              child: Image.asset(
+                'assets/images/cloud.png',
+                width: 100,
+                height: 60,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 0,
             child: Container(
               color: Color.fromARGB(255, 221, 249, 255),
               alignment: Alignment.centerRight,
-              child: Image.asset('assets/images/cloud.png')
+              child: Image.asset(
+                'assets/images/cloud.png',
+                width: 500,
+                height: 100,
+              ),
             ),
           ),
           Expanded(
-            flex: 6,
+            flex: 3,
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
@@ -103,11 +142,13 @@ class _FeedScreenState extends State<FeedScreen> {
               color: const Color.fromARGB(219, 150, 242, 176),
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.center,
-              child: 
-              Column(
+              child: Column(
                 children: <Widget>[
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(219, 246, 255, 226),
                       borderRadius: BorderRadius.circular(15),
@@ -117,7 +158,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       progress: _hunger,
                     ),
                   ),
-                  const Gap(16),
+                  const Gap(15),
                   Expanded(
                     flex: 3,
                     child: Container(
@@ -126,12 +167,12 @@ class _FeedScreenState extends State<FeedScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: GridView.builder(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(10),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           crossAxisSpacing: 8,
                           mainAxisSpacing: 8,
-                        ), 
+                        ),
                         itemCount: _food.length,
                         itemBuilder: (context, index) {
                           final foodItem = _food[index];
@@ -145,8 +186,12 @@ class _FeedScreenState extends State<FeedScreen> {
                                   children: [
                                     IconButton(
                                       padding: EdgeInsets.all(8),
-                                      onPressed: () => _useFood(foodId, 1, 1), // Assuming petId & userId are 1 for now, will be dynamic later
-                                      icon:Image.asset(foodImagePath),
+                                      onPressed: () => _useFood(
+                                        foodId,
+                                        1,
+                                        1,
+                                      ), // Assuming petId & userId are 1 for now, will be dynamic later
+                                      icon: Image.asset(foodImagePath),
                                       iconSize: 48,
                                     ),
                                     Positioned(
@@ -158,8 +203,15 @@ class _FeedScreenState extends State<FeedScreen> {
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Color.fromARGB(219, 150, 242, 176),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: Color.fromARGB(
+                                            219,
+                                            150,
+                                            242,
+                                            176,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: Text(
                                           'x$quantity',
@@ -170,23 +222,23 @@ class _FeedScreenState extends State<FeedScreen> {
                                           ),
                                         ),
                                       ),
-                                    )
-                                  ]
-                                )  
-                              )
-                            ]
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           );
                         },
-                      )
-                    )
+                      ),
+                    ),
                   ),
-                  const Gap(16)
-                ]
+                  const Gap(20),
+                ],
               ),
             ),
           ),
         ],
-      )
+      ),
     );
   }
 }

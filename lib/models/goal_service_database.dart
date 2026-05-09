@@ -1,12 +1,9 @@
 import 'package:sqflite/sqflite.dart';
-import 'database.dart';
 
 class GoalService {
   final Database _db;
   GoalService(this._db);
   Future<int> setDailyStepGoal(int userId, int stepGoal) async {
-    
-
     // Check if user already has a goal
     final existing = await _db.rawQuery(
       '''
