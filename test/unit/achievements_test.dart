@@ -82,6 +82,16 @@ void main() {
       );
     ''');
 
+    await db.execute('''
+  CREATE TABLE achievement (
+    achievement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    target_value INTEGER,
+    type TEXT NOT NULL
+  );
+''');
+
     // Insert default user and pet (necessary for all tests)
     await db.insert('user', {
       'user_id': 1,

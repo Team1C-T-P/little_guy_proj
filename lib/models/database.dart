@@ -157,8 +157,7 @@ CREATE TABLE little_guy (
     // low level - 2K steps = 20c
     // mid level - 5K steps = 50c
     // high level - 10K steps = 100c
-    // personal goal (user-defined) - ?K steps = 50c?
-    // tier linked to goal, if user chose low/mid/high no need for user input
+    // personal goal (user-defined) - ?K steps = 50c
 
     await db.execute('''
       CREATE TABLE reward (
@@ -198,7 +197,6 @@ CREATE TABLE little_guy (
     return await db.insert('walk_summary', walkData);
   }
 
-  // Fetches the most recent walks, capped at 10
   Future<List<Map<String, dynamic>>> getRecentWalkSummaries(int userId) async {
     final db = await instance.database;
     return await db.query(
@@ -210,7 +208,6 @@ CREATE TABLE little_guy (
     );
   }
 
-  // Fetches the walks with the highest steps, capped at 3
   Future<List<Map<String, dynamic>>> getTopWalkSummaries(int userId) async {
     final db = await instance.database;
     return await db.query(
@@ -225,8 +222,6 @@ CREATE TABLE little_guy (
   Future<void> initializeDefaultData() async {
     final db = await database;
 
-    // Only initialize achievements and items, not user data
-    // User data will be created through the setup screen
     await _insertDefaultAchievements();
     await _autoAddItemsFromAssets();
   }
