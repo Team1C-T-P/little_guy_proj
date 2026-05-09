@@ -166,70 +166,72 @@ class _FeedScreenState extends State<FeedScreen> {
                         color: const Color.fromARGB(219, 246, 255, 226),
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(10),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: _food.length,
-                        itemBuilder: (context, index) {
-                          final foodItem = _food[index];
-                          final foodId = foodItem['item_id'];
-                          final quantity = foodItem['quantity'];
-                          final foodImagePath = foodItem['image_path'];
-                          return Column(
-                            children: [
-                              Expanded(
-                                child: Stack(
+                      child:_food.isEmpty
+                          ? Center(child: Text('No food owned yet!'))
+                          : GridView.builder(
+                              padding: const EdgeInsets.all(10),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                              ),
+                              itemCount: _food.length,
+                              itemBuilder: (context, index) {
+                                final foodItem = _food[index];
+                                final foodId = foodItem['item_id'];
+                                final quantity = foodItem['quantity'];
+                                final foodImagePath = foodItem['image_path'];
+                                return Column(
                                   children: [
-                                    IconButton(
-                                      padding: EdgeInsets.all(8),
-                                      onPressed: () => _useFood(
-                                        foodId,
-                                        1,
-                                        1,
-                                      ), // Assuming petId & userId are 1 for now, will be dynamic later
-                                      icon: Image.asset(foodImagePath),
-                                      iconSize: 48,
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      right: 0,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Color.fromARGB(
-                                            219,
-                                            150,
-                                            242,
-                                            176,
+                                    Expanded(
+                                      child: Stack(
+                                        children: [
+                                          IconButton(
+                                            padding: EdgeInsets.all(8),
+                                            onPressed: () => _useFood(
+                                              foodId,
+                                              1,
+                                              1,
+                                            ), // Assuming petId & userId are 1 for now, will be dynamic later
+                                            icon: Image.asset(foodImagePath),
+                                            iconSize: 48,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 4,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Color.fromARGB(
+                                                  219,
+                                                  150,
+                                                  242,
+                                                  176,
+                                                ),
+                                                borderRadius: BorderRadius.circular(
+                                                  4,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                'x$quantity',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                        child: Text(
-                                          'x$quantity',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                        ],
                                       ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
+                                );
+                              },
+                            ),
                     ),
                   ),
                   const Gap(20),
