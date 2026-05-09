@@ -225,30 +225,9 @@ CREATE TABLE little_guy (
   Future<void> initializeDefaultData() async {
     final db = await database;
 
-    final users = await db.query('user');
-    if (users.isNotEmpty) return;
-
+    // Only initialize achievements and items, not user data
+    // User data will be created through the setup screen
     await _insertDefaultAchievements();
-
-    await _autoAddItemsFromAssets();
-
-    // Create user
-    await db.insert('user', {
-      'user_name': 'Default User',
-      'currency': 500,
-      'last_online': '2026-04-20T10:30:00Z',
-    });
-
-    // Create little guy
-    await db.insert('little_guy', {
-      'user_id': 1,
-      'little_guy_name': 'Buddy',
-      'hygiene_level': 20,
-      'hunger_level': 60,
-      'enjoyment_level': 80,
-    });
-
-    // Auto-detect and add hats
     await _autoAddItemsFromAssets();
   }
 
@@ -287,6 +266,10 @@ CREATE TABLE little_guy (
 
   Future<void> _autoAddItemsFromAssets() async {
     final db = await database;
+
+    // Check if items already exist
+    final existingItems = await db.query('item', limit: 1);
+    if (existingItems.isNotEmpty) return;
 
     // Scan for all images in hats and food
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -379,5 +362,11 @@ CREATE TABLE little_guy (
     if (formatted.isEmpty) return fileName;
 
     return formatted[0].toUpperCase() + formatted.substring(1);
+  }
+
+  Future<bool> userExists() async {
+    final db = await database;
+    final users = await db.query('user');
+    return users.isNotEmpty;
   }
 }
