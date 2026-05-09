@@ -151,7 +151,7 @@ class InventoryDatabase {
     );
     if (food.isEmpty) {
       throw Exception('Failed to get food: User not found');
-    }
+    } //This exception is causing the app to pause when the user has no food, which is expected for new users. Should we handle this case gracefully in the UI instead of throwing an exception?
     return food;
   }
 
