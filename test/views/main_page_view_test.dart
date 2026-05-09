@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
+import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_flame_playground/models/database.dart';
 import 'package:flutter_flame_playground/views/profile_view.dart';
+
+import '../helpers/test_database.dart';
 
 void main() {
   // Copied from settings_view_test.dart
