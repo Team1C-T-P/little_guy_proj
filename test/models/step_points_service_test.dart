@@ -123,21 +123,7 @@ void main() {
     });
 
     // Step conversion - 150/100 steps, expect 1 point, 50 unconverted
-    test('Correct step conversion with excess steps', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 0,
-      });
-
-      final result = await service.recordSteps(userId: userId, steps: 150);
-      expect(result.updatedCurrency, 1);
-      expect(result.unconvertedSteps, 50);
-    });
-
-    // Leftover steps?
-    test('Handles leftover steps correctly', () async {
+    test('Correct step conversion with extra steps', () async {
       final db = await AppDatabase.instance.database;
       final service = StepPointsService(db);
       final userId = await db.insert('user', {
@@ -181,6 +167,7 @@ void main() {
       // add updatedCurrency check
       final summary = await service.getAccountSummary(userId);
       expect(summary.totalSteps, 250);
+      expect(summary.currency, 12); // 10 base + 2 awarded
       expect(summary.unconvertedSteps, 50);
     });
   });
