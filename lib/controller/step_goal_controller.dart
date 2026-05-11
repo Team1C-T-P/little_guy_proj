@@ -76,7 +76,7 @@ class StepGoalController extends ChangeNotifier {
       stepGoal = await loadGoal();
 
       if (currentSteps >= stepGoal && stepGoal > 0 && !goalReached) {
-        await goalService!.resetGoal(userId);
+        currency = await goalService!.resetGoal(userId);
         currentSteps = 0;
         stepGoal = 250;
         goalReached = true;

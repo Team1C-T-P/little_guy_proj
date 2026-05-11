@@ -8,12 +8,16 @@ import 'views/dress_view.dart';
 import 'views/map_view.dart';
 import 'views/nav_bar.dart';
 import 'views/profile_view.dart';
+import 'views/setup_profile_view.dart';
+import 'package:pedometer/pedometer.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Ensure the database is initialized before running the app
   await AppDatabase.instance.database;
-  // Initialize default data if necessary
+  // Initialize default achievements and items
   await AppDatabase.instance.initializeDefaultData();
   runApp(const MyApp());
 }
@@ -31,8 +35,59 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         textTheme: GoogleFonts.juaTextTheme(),
       ),
-      home: const MyHomePage(title: 'FLittle Guy'),
+      home: const _AppRouter(),
     );
+  }
+}
+
+class _AppRouter extends StatefulWidget {
+  const _AppRouter();
+
+  @override
+  State<_AppRouter> createState() => _AppRouterState();
+}
+
+class _AppRouterState extends State<_AppRouter> {
+  bool _userExists = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserExists();
+  }
+
+  Future<void> _checkUserExists() async {
+    final exists = await AppDatabase.instance.userExists();
+    setState(() {
+      _userExists = exists;
+      _isLoading = false;
+    });
+  }
+
+  void _onProfileCreated() {
+    setState(() {
+      _userExists = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (!_userExists) {
+      return SetupProfileScreen(
+        onProfileCreated: _onProfileCreated,
+      );
+    }
+
+    return const MyHomePage(title: 'FLittle Guy');
   }
 }
 

@@ -18,7 +18,7 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'little_guy.db');
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path, version: 2, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -36,16 +36,27 @@ class AppDatabase {
     ''');
 
     await db.execute('''
-      CREATE TABLE friend (
-        user_id INTEGER NOT NULL,
-        friend_id INTEGER NOT NULL CHECK (friend_id != user_id),
-        PRIMARY KEY (user_id, friend_id),
-        FOREIGN KEY (user_id) REFERENCES user(user_id)
-        FOREIGN KEY (friend_id) REFERENCES user(user_id)
-      );
-    ''');
+  CREATE TABLE achievement (
+    achievement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    target_value INTEGER,
+    type TEXT NOT NULL
+  );
+''');
 
-/* route table info:
+    await db.execute('''
+CREATE TABLE user_achievement (
+  user_id INTEGER NOT NULL,
+  achievement_id INTEGER NOT NULL,
+  unlocked_at TEXT NOT NULL, -- ISO timestamp
+  progress INTEGER DEFAULT 0, -- optional, for incremental achievements
+  PRIMARY KEY (user_id, achievement_id),
+  FOREIGN KEY (user_id) REFERENCES user(user_id),
+  FOREIGN KEY (achievement_id) REFERENCES achievement(achievement_id)
+);''');
+
+    /* route table info:
      - route_path stores a serialized JSON list of all the LatLng points taken on the walk
     */
     await db.execute('''
@@ -62,15 +73,16 @@ class AppDatabase {
       - hygiene, hunger and enjoyment levels are stored as integers from 0 to 100, when used this needs to be divided by 100 
     */
     await db.execute('''
-        CREATE TABLE little_guy (
-          little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          little_guy_name TEXT NOT NULL,
-          hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
-          hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
-          enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
-          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
-        );
+CREATE TABLE little_guy (
+  little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  little_guy_name TEXT NOT NULL,
+  hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
+  hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
+  enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
+  level INTEGER NOT NULL DEFAULT 1,  
+  xp INTEGER NOT NULL DEFAULT 0      
+);
       ''');
 
     /* item table info:
@@ -145,8 +157,7 @@ class AppDatabase {
     // low level - 2K steps = 20c
     // mid level - 5K steps = 50c
     // high level - 10K steps = 100c
-    // personal goal (user-defined) - ?K steps = 50c?
-    // tier linked to goal, if user chose low/mid/high no need for user input
+    // personal goal (user-defined) - ?K steps = 50c
 
     await db.execute('''
       CREATE TABLE reward (
@@ -186,7 +197,6 @@ class AppDatabase {
     return await db.insert('walk_summary', walkData);
   }
 
-// Fetches the most recent walks, capped at 10
   Future<List<Map<String, dynamic>>> getRecentWalkSummaries(int userId) async {
     final db = await instance.database;
     return await db.query(
@@ -198,7 +208,6 @@ class AppDatabase {
     );
   }
 
-  // Fetches the walks with the highest steps, capped at 3
   Future<List<Map<String, dynamic>>> getTopWalkSummaries(int userId) async {
     final db = await instance.database;
     return await db.query(
@@ -210,37 +219,52 @@ class AppDatabase {
     );
   }
 
-
-  // create default to user pet and item to initialize db
   Future<void> initializeDefaultData() async {
     final db = await database;
 
-    // Check if already initialized
-    final users = await db.query('user');
-    if (users.isNotEmpty) return;
-
-    // Create user
-    await db.insert('user', {
-      'user_name': 'Default User',
-      'currency': 1000,
-      'last_online': '2026-04-20T10:30:00Z',
-    });
-
-    // Create little guy
-    await db.insert('little_guy', {
-      'user_id': 1,
-      'little_guy_name': 'Buddy',
-      'hygiene_level': 20,
-      'hunger_level': 60,
-      'enjoyment_level': 80,
-    });
-
-    // Auto-detect and add hats
+    await _insertDefaultAchievements();
     await _autoAddItemsFromAssets();
+  }
+
+  Future<void> _insertDefaultAchievements() async {
+    final db = await database;
+
+    // Check if already inserted
+    final existing = await db.query('achievement', limit: 1);
+    if (existing.isNotEmpty) return;
+
+    await db.insert('achievement', {
+      'name': 'Big Walk',
+      'description': 'Walk 5,000 steps in total',
+      'target_value': 5000,
+      'type': 'steps_total',
+    });
+    await db.insert('achievement', {
+      'name': 'Trail Blazer',
+      'description': 'Set up a route',
+      'target_value': 1,
+      'type': 'route_created',
+    });
+    await db.insert('achievement', {
+      'name': 'Let\'s Play!',
+      'description': 'Play with your pet 20 times',
+      'target_value': 20,
+      'type': 'play_count',
+    });
+    await db.insert('achievement', {
+      'name': 'Most Valuable Pet',
+      'description': 'Max level a pet',
+      'target_value': 1,
+      'type': 'pet_level',
+    });
   }
 
   Future<void> _autoAddItemsFromAssets() async {
     final db = await database;
+
+    // Check if items already exist
+    final existingItems = await db.query('item', limit: 1);
+    if (existingItems.isNotEmpty) return;
 
     // Scan for all images in hats and food
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -310,6 +334,20 @@ class AppDatabase {
     }
   }
 
+  Future<int> countUserHats(int userId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      '''
+      SELECT COUNT(*) as count
+      FROM inventory i
+      JOIN item it ON i.item_id = it.item_id
+      WHERE i.user_id = ? AND it.type = 'hat'
+    ''',
+      [userId],
+    );
+    return (result.first['count'] as int?) ?? 0;
+  }
+
   String _formatItemName(String fileName) {
     // Convert filename to nice name
     final formatted = fileName
@@ -319,5 +357,11 @@ class AppDatabase {
     if (formatted.isEmpty) return fileName;
 
     return formatted[0].toUpperCase() + formatted.substring(1);
+  }
+
+  Future<bool> userExists() async {
+    final db = await database;
+    final users = await db.query('user');
+    return users.isNotEmpty;
   }
 }

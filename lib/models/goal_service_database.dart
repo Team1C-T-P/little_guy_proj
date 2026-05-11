@@ -1,12 +1,9 @@
 import 'package:sqflite/sqflite.dart';
-import 'database.dart';
 
 class GoalService {
   final Database _db;
   GoalService(this._db);
   Future<int> setDailyStepGoal(int userId, int stepGoal) async {
-    final db = await AppDatabase.instance.database;
-
     // Check if user already has a goal
     final existing = await _db.rawQuery(
       '''
@@ -23,7 +20,7 @@ class GoalService {
       final goalId = existing.first['goal_id'] as int;
 
       // Update existing goal
-      await db.update(
+      await _db.update(
         'goal',
         {'target_goal': stepGoal},
         where: 'goal_id = ?',
@@ -38,14 +35,14 @@ class GoalService {
     final weekStart = DateTime(now.year, now.month, now.day);
     final weekEnd = weekStart.add(Duration(days: 7));
 
-    final goalId = await db.insert('goal', {
+    final goalId = await _db.insert('goal', {
       'target_goal': stepGoal,
       'is_recurring': 1,
       'target_deadline': now.toIso8601String(),
       'min_allowed_value': 0,
     });
 
-    await db.insert('user_goal', {
+    await _db.insert('user_goal', {
       'user_id': userId,
       'goal_id': goalId,
       'current_progress': 0,
@@ -116,7 +113,7 @@ class GoalService {
     return current >= target;
   }
 
-  Future<void> resetGoal(int userId) async {
+  Future<int> resetGoal(int userId) async {
     final rows = await _db.rawQuery(
       '''
       SELECT g.goal_id
@@ -129,18 +126,20 @@ class GoalService {
       [userId],
     );
 
-    if (rows.isEmpty) return;
+    if (rows.isEmpty) return 0;
 
     final goalId = rows.first['goal_id'] as int;
     const int goalReward = 25;
 
-    await _db.rawUpdate(
-      '''
-      UPDATE user
-      SET currency = currency + ?
-      WHERE user_id = ?
-      ''',
-      [goalReward, userId],
+    // Update currency and get new value in one operation
+    final result = await _db.rawQuery(
+        '''
+        UPDATE user
+        SET currency = currency + ?
+        WHERE user_id = ?
+        RETURNING currency
+        ''',
+        [goalReward, userId],
     );
 
     await _db.update(
@@ -156,5 +155,7 @@ class GoalService {
       where: 'goal_id = ? AND user_id = ?',
       whereArgs: [goalId, userId],
     );
+
+    return (result.first['currency'] as int); // Return new currency value
   }
 }

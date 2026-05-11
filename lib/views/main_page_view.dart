@@ -8,7 +8,6 @@ import 'clean_view.dart';
 import 'play_view.dart';
 import '../models/pet_maintainance_database.dart';
 import '../models/database.dart';
-import 'package:flutter_flame_playground/utils/stat_degradation_service.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late PetStatsDatabase _petStatsDB;
-  late StatDegradation _statDegradation;
   final StepGoalController _goalController = StepGoalController();
   int userId = 1;
   int petId = 1;
@@ -34,17 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     AppDatabase.instance.database.then((db) {
       _petStatsDB = PetStatsDatabase(db);
-      _statDegradation = StatDegradation(petStatsDB: _petStatsDB, userID: userId, petID: petId);
       _loadPetStats();
     });
     _loadGoalData();
-  } 
-
+  }
 
   Future<void> _loadPetStats() async {
-    
-    await _statDegradation.degradeStats();
-
     double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
     double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
     double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
@@ -88,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            flex: 10,
+            flex: 100,
             child: Container(
               alignment: Alignment.bottomCenter,
               color: Color.fromARGB(255, 221, 249, 255),
@@ -111,7 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GreenButton(
                                 buttonText: "+250",
                                 onPressed: () async {
-                                  final newGoal = _goalController.stepGoal + 250;
+                                  final newGoal =
+                                      _goalController.stepGoal + 250;
                                   await _goalController.updateGoal(newGoal);
                                   // setState(() => _goalController.stepGoal = newGoal);
                                 },
@@ -121,10 +115,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: GreenButton(
                                 buttonText: "-250",
                                 onPressed: () async {
-                                  final newGoal = (_goalController.stepGoal - 250).clamp(
-                                    0,
-                                    999999,
-                                  );
+                                  final newGoal =
+                                      (_goalController.stepGoal - 250).clamp(
+                                        0,
+                                        999999,
+                                      );
                                   await _goalController.updateGoal(newGoal);
                                   // setState(() => _goalController.stepGoal = newGoal);
                                 },
@@ -134,9 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
 
-                      // ✅ Text now flexible
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -148,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: 4),
                             Text(
                               "${_goalController.currentSteps} / ${_goalController.stepGoal} steps",
                               style: TextStyle(fontSize: 16),
@@ -166,8 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Spacer(),
 
                     SizedBox(
-                      width: 150,
-                      height: 50,
+                      width: 200,
+                      height: 60,
                       child: FittedBox(
                         child: GreenButton(
                           buttonText: "Feed",
@@ -186,19 +180,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     Spacer(),
                     Container(
                       alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.only(right: 18),
+                      padding: const EdgeInsets.only(right: 24),
                       child: Image.asset('assets/images/flowerplant.png'),
                     ),
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.only(top: 4),
                   child: Row(
                     children: <Widget>[
                       Spacer(),
                       SizedBox(
                         width: 150,
-                        height: 50,
+                        height: 60,
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Play",
@@ -216,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Spacer(),
                       SizedBox(
                         width: 150,
-                        height: 50,
+                        height: 60,
                         child: FittedBox(
                           child: GreenButton(
                             buttonText: "Clean",
