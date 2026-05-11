@@ -192,14 +192,18 @@ CREATE TABLE little_guy (
     ''');
   }
 
-  Future<int> insertWalkSummary(Map<String, dynamic> walkData) async {
-    final db = await instance.database;
-    return await db.insert('walk_summary', walkData);
+  // Inserts a finished walk into the summary table.
+  // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
+  Future<int> insertWalkSummary(Map<String, dynamic> walkData, {Database? db}) async {
+    final theDb = db ?? await instance.database;
+    return await theDb.insert('walk_summary', walkData);
   }
 
-  Future<List<Map<String, dynamic>>> getRecentWalkSummaries(int userId) async {
-    final db = await instance.database;
-    return await db.query(
+  // Returns up to the 10 most recent walk summaries for the user, newest first.
+  // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
+  Future<List<Map<String, dynamic>>> getRecentWalkSummaries(int userId, {Database? db}) async {
+    final theDb = db ?? await instance.database;
+    return await theDb.query(
       'walk_summary',
       where: 'user_id = ?',
       whereArgs: [userId],
@@ -208,9 +212,11 @@ CREATE TABLE little_guy (
     );
   }
 
-  Future<List<Map<String, dynamic>>> getTopWalkSummaries(int userId) async {
-    final db = await instance.database;
-    return await db.query(
+  // Returns the user's top 3 walks by step count, highest first.
+  // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
+  Future<List<Map<String, dynamic>>> getTopWalkSummaries(int userId, {Database? db}) async {
+    final theDb = db ?? await instance.database;
+    return await theDb.query(
       'walk_summary',
       where: 'user_id = ?',
       whereArgs: [userId],
