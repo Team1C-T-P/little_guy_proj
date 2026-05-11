@@ -334,9 +334,9 @@ CREATE TABLE little_guy (
     }
   }
 
-  Future<int> countUserHats(int userId) async {
-    final db = await database;
-    final result = await db.rawQuery(
+  Future<int> countUserHats(int userId, {Database? db}) async {
+    final theDb = db ?? await database;
+    final result = await theDb.rawQuery(
       '''
       SELECT COUNT(*) as count
       FROM inventory i

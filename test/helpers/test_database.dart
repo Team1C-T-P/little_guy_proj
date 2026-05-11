@@ -51,7 +51,7 @@ class TestDatabase {
         );
       ''');
 
-    // little guy table
+    // little guy table — matches production schema (includes level/xp)
     await db.execute('''
         CREATE TABLE little_guy (
           little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +60,8 @@ class TestDatabase {
           hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
           hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
           enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
+          level INTEGER NOT NULL DEFAULT 1,
+          xp INTEGER NOT NULL DEFAULT 0,
           FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
         );
       ''');
@@ -183,6 +185,8 @@ class TestDatabase {
     int hygieneLevel = 50,
     int hungerLevel = 50,
     int enjoymentLevel = 50,
+    int level = 1,
+    int xp = 0,
   }) async {
     return await db.insert('little_guy', {
       'user_id': userId,
@@ -190,6 +194,8 @@ class TestDatabase {
       'hygiene_level': hygieneLevel,
       'hunger_level': hungerLevel,
       'enjoyment_level': enjoymentLevel,
+      'level': level,
+      'xp': xp,
     });
   }
 
