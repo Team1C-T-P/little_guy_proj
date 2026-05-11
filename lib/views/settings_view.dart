@@ -34,13 +34,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadData() async {
-    final userName = await _db.getUserName(_userId);
-    final petName = await _db.getPetName(_userId);
+    try {
+      final userName = await _db.getUserName(_userId);
+      final petName = await _db.getPetName(_userId);
 
-    setState(() {
-      _userNameController.text = userName ?? '';
-      _petNameController.text = petName ?? '';
-    });
+      // Guard against the widget being disposed between the awaits above
+      // and the setState below — otherwise this crashes with
+      // "setState() called after dispose()".
+      if (!mounted) return;
+
+      setState(() {
+        _userNameController.text = userName ?? '';
+        _petNameController.text = petName ?? '';
+      });
+    } catch (e) {
+      // New-user flow: the user/pet rows may not exist yet. Leave the
+      // text fields empty rather than crashing the screen.
+      debugPrint('Settings: could not load user/pet data ($e)');
+    }
   }
 
   @override
