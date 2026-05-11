@@ -139,8 +139,11 @@ class InventoryDatabase {
   InventoryDatabase(this._db);
 
   // Select Queries
-    Future<List<Map<String, dynamic>>> getFoodByUserId(int userId) async {
-      final food = await _db.rawQuery(
+  // Returns the user's food inventory. Returns an empty list when the
+  // user owns no food — the feed view already renders "No food owned yet!"
+  // when the list is empty, so an empty result is the correct shape.
+  Future<List<Map<String, dynamic>>> getFoodByUserId(int userId) async {
+    final food = await _db.rawQuery(
       '''
       SELECT it.item_id, inv.quantity, it.image_path
       FROM inventory inv
@@ -149,11 +152,6 @@ class InventoryDatabase {
     ''',
       [userId, 'food'],
     );
-    if (food.isEmpty) {
-      throw Exception('Failed to get food: User not found');
-    } //This exception is causing the app to pause when the user has no food, which is expected for new users.
-    //Should we handle this case gracefully in the UI instead of throwing an exception?
-    //If we want it to be shown in the UI as "No food owned yet!" when the list is empty, then we should not throw an exception here and just return an empty list and then check for an empty list in the tests instead.
     return food;
   }
 

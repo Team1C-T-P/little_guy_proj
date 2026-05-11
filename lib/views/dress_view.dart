@@ -14,11 +14,16 @@ class DressUp extends StatefulWidget {
 class _DressUpState extends State<DressUp> {
   // allows hat to be chosen and applied to the little guy
   int? _selectedHatId;
+  // Cached so FutureBuilder doesn't re-query the DB on every parent rebuild.
+  // Without caching, every setState (e.g. selecting a hat) re-queries the
+  // owned-hats list, which is expensive and breaks the FutureBuilder spinner.
+  late Future<List<Map<String, dynamic>>> _hatsFuture;
 
   @override
   void initState() {
     super.initState();
     _loadEquippedHat();
+    _hatsFuture = _loadOwnedHats();
   }
 
   Future<void> _loadEquippedHat() async {
@@ -69,7 +74,7 @@ class _DressUpState extends State<DressUp> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _loadOwnedHats(),
+                  future: _hatsFuture,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return Center(child: CircularProgressIndicator());

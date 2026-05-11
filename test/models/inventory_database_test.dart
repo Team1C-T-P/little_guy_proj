@@ -64,21 +64,12 @@ void main() {
         expect(food[0]['quantity'], 0);
       });
 
-      test('[TR-INV-03] throws when the user has no food rows at all', () async {
-        // KNOWN DESIGN AMBIGUITY: see docs/test_plan.md "Known issues".
-        // The current implementation throws on empty results rather than
-        // returning []. Test pinned to current behaviour, including the
-        // specific message the production code raises.
-        expect(
-          () => inventoryDb.getFoodByUserId(999),
-          throwsA(
-            isA<Exception>().having(
-              (e) => e.toString(),
-              'message',
-              contains('Failed to get food: User not found'),
-            ),
-          ),
-        );
+      test('[TR-INV-03] returns an empty list when the user has no food rows', () async {
+        // Resolved a previous design ambiguity: getFoodByUserId now returns
+        // [] for an empty inventory instead of throwing. This matches what
+        // FeedScreen already wants ("No food owned yet!" empty state).
+        final food = await inventoryDb.getFoodByUserId(999);
+        expect(food, isEmpty);
       });
     });
 

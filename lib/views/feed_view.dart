@@ -55,10 +55,14 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _useFood(int foodId, int petId, int userId) async {
-    // Check if enough food or hunger already full
-    if (_food.firstWhere((item) => item['item_id'] == foodId)['quantity'] <=
-            0 ||
-        _hunger >= 1.0) {
+    // Look up the food row defensively — if the inventory has changed
+    // between render and tap (e.g. a shop purchase mutated _food), we
+    // treat a missing entry as "quantity 0" and bail rather than throw.
+    final foodItem = _food.firstWhere(
+      (item) => item['item_id'] == foodId,
+      orElse: () => const <String, dynamic>{'quantity': 0},
+    );
+    if ((foodItem['quantity'] as int) <= 0 || _hunger >= 1.0) {
       return;
     }
 
