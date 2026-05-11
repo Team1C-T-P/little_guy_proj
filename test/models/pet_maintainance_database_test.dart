@@ -1,3 +1,10 @@
+// Tests for PetStatsDatabase. This class wraps SQL queries against the
+// `user` and `little_guy` tables for everything to do with a user's profile
+// (their name, when they were last online) and their pet's identity and stats.
+//
+// Every test runs against a fresh in-memory database — see
+// test/helpers/test_database.dart for the schema and seed helpers.
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
@@ -7,8 +14,10 @@ void main() {
   late Database db;
   late PetStatsDatabase petDb;
 
+  // sqflite_ffi needs to be initialised once before any test opens a DB.
   setUpAll(() => TestDatabase.init());
 
+  // A brand-new in-memory DB per test, so nothing leaks between cases.
   setUp(() async {
     db = await TestDatabase.createFresh();
     petDb = PetStatsDatabase(db);
@@ -19,6 +28,9 @@ void main() {
   });
 
   group('UR1 — A user should be able to have a profile and update it', () {
+
+    // getUserName reads the user_name column. Only one decision to test:
+    // does the row exist or not?
     group('getUserName', () {
       test('[TR-PRF-01] returns the stored username for a valid userId', () async {
         final userId = await TestDatabase.seedUser(db, name: 'Test User');
@@ -29,6 +41,7 @@ void main() {
       });
 
       test('[TR-PRF-02] throws when the userId has no matching row', () async {
+        // No user seeded — the SELECT returns nothing, so the method throws.
         expect(
           () => petDb.getUserName(999),
           throwsA(
@@ -42,6 +55,11 @@ void main() {
       });
     });
 
+    // updateUserName has a subtle short-circuit: when the new name is an
+    // empty string, the method returns early without writing or even
+    // checking whether the user exists. So the four combinations of
+    // (valid/invalid user) × (empty/non-empty name) all behave differently
+    // and we test each one explicitly.
     group('updateUserName', () {
       test('[TR-PRF-03] updates the user_name when both inputs are valid', () async {
         final userId = await TestDatabase.seedUser(db, name: 'Test User');
@@ -52,6 +70,8 @@ void main() {
       });
 
       test('[TR-PRF-04] treats empty string as "keep current" for a valid user', () async {
+        // Empty new name is treated as "no change wanted", not as "set the
+        // name to empty". So the row should be untouched.
         final userId = await TestDatabase.seedUser(db, name: 'Test User');
 
         await petDb.updateUserName(userId, '');
@@ -73,14 +93,16 @@ void main() {
         );
       });
 
-      test('[TR-PRF-06] silently no-ops when userId is invalid but name is empty (empty-check runs first)', () async {
-        // Should not throw despite the user not existing — the empty-string
-        // early return runs before the existence check.
+      test('[TR-PRF-06] silently no-ops when userId is invalid but name is empty', () async {
+        // This one is interesting: the empty-name short-circuit runs BEFORE
+        // the user-exists check. So updateUserName(<missing>, '') does
+        // nothing and throws nothing. Documenting the current behaviour.
         await petDb.updateUserName(999, '');
-        // Reaching this line without an exception is the assertion.
+        // Reaching here without an exception is the assertion.
       });
     });
 
+    // Same shape as getUserName but reads the last_online column instead.
     group('getLastOnlineByUserId', () {
       test('[TR-PRF-07] returns the stored ISO timestamp for a valid userId', () async {
         final userId = await TestDatabase.seedUser(
@@ -107,6 +129,9 @@ void main() {
       });
     });
 
+    // updateLastOnlineByUserId has TWO guards: it parses the date first
+    // (and throws if it's not a valid ISO-8601), then it checks that the
+    // user exists. The four partitions below cover both guards.
     group('updateLastOnlineByUserId', () {
       test('[TR-PRF-09] updates the timestamp when both inputs are valid', () async {
         final userId = await TestDatabase.seedUser(db);
@@ -118,6 +143,8 @@ void main() {
       });
 
       test('[TR-PRF-10] throws Invalid-ISO-date when the date is malformed (valid user)', () async {
+        // First guard fires — DateTime.parse rejects the bad string before
+        // we ever hit the user-existence check.
         final userId = await TestDatabase.seedUser(db);
 
         expect(
@@ -133,6 +160,7 @@ void main() {
       });
 
       test('[TR-PRF-11] throws User-not-found when the userId is invalid (valid date)', () async {
+        // Date parses fine, but no row matches — second guard fires.
         expect(
           () => petDb.updateLastOnlineByUserId(999, '2026-05-11T12:00:00.000Z'),
           throwsA(
@@ -146,6 +174,8 @@ void main() {
       });
 
       test('[TR-PRF-12] throws Invalid-ISO-date for invalid user + malformed date (parse runs first)', () async {
+        // Both inputs are bad. Parse guard runs first, so that's the error
+        // we get — not "User not found".
         expect(
           () => petDb.updateLastOnlineByUserId(999, 'not an iso date'),
           throwsA(
@@ -161,6 +191,10 @@ void main() {
   });
 
   group('UR2 — A user should be able to have a pet and update its name, stats, level, and hats', () {
+
+    // getPetName / updatePetName mirror getUserName / updateUserName but
+    // read/write the little_guy table instead of the user table. The same
+    // empty-string short-circuit applies to updatePetName.
     group('getPetName', () {
       test('[TR-PET-01] returns the stored pet name for a valid userId', () async {
         final userId = await TestDatabase.seedUser(db);
@@ -172,7 +206,7 @@ void main() {
       });
 
       test('[TR-PET-02] throws when the user has no pet row', () async {
-        // User exists but no little_guy row
+        // User row exists but no little_guy row — pet lookup throws.
         await TestDatabase.seedUser(db);
 
         expect(
@@ -220,14 +254,20 @@ void main() {
         );
       });
 
-      test('[TR-PET-06] silently no-ops when userId is invalid but name is empty (empty-check runs first)', () async {
-        // Should not throw — empty-string early return runs before existence check.
+      test('[TR-PET-06] silently no-ops when userId is invalid but name is empty', () async {
+        // Same short-circuit as updateUserName — empty name returns early
+        // before the existence check.
         await petDb.updatePetName(999, '');
       });
     });
 
+    // getPetStat has TWO decisions: is the stat name in the allowed list,
+    // and does the pet exist? The stat-name whitelist runs first, so even
+    // for (invalid pet, invalid stat) we get the whitelist error.
     group('getPetStat', () {
       test('[TR-PET-07] returns the stat value scaled to 0.0-1.0 for valid pet + valid stat', () async {
+        // Stats are stored as 0-100 ints but exposed as 0.0-1.0 doubles.
+        // We seed hunger at 50 and expect to read back 0.5.
         final userId = await TestDatabase.seedUser(db);
         final petId = await TestDatabase.seedLittleGuy(
           db,
@@ -257,13 +297,16 @@ void main() {
       });
 
       test('[TR-PET-09] returns 0 when the pet does not exist (valid stat)', () async {
+        // Quirk worth noting: a missing pet returns 0 rather than throwing.
+        // This is the current behaviour and the UI relies on it.
         final value = await petDb.getPetStat(999, 'hunger_level');
 
         expect(value, 0.0,
             reason: 'getPetStat should return 0 for a missing pet rather than throwing');
       });
 
-      test('[TR-PET-10] throws for invalid pet + invalid stat (whitelist runs before query)', () async {
+      test('[TR-PET-10] throws for invalid pet + invalid stat (whitelist runs first)', () async {
+        // Whitelist runs first — we never get to the pet-exists check.
         expect(
           () => petDb.getPetStat(999, 'unknown_stat'),
           throwsA(
@@ -277,6 +320,9 @@ void main() {
       });
     });
 
+    // updatePetStat clamps values into the 0.0-1.0 range instead of
+    // rejecting them. So the partitions are: in-range, under, over, and
+    // "pet doesn't exist".
     group('updatePetStat', () {
       test('[TR-PET-11] writes the exact scaled value when inputs are valid', () async {
         final userId = await TestDatabase.seedUser(db);
@@ -288,6 +334,9 @@ void main() {
 
         await petDb.updatePetStat(petId, 'hunger_level', 0.75);
 
+        // closeTo because the production code uses (value * 100).toInt()
+        // when converting back to int storage, and floating-point can
+        // truncate 0.75 * 100 to 74 instead of 75.
         expect(await petDb.getPetStat(petId, 'hunger_level'), closeTo(0.75, 0.01));
       });
 
@@ -299,6 +348,7 @@ void main() {
           hungerLevel: 50,
         );
 
+        // -0.5 should clamp to 0.0, NOT throw or stay negative.
         await petDb.updatePetStat(petId, 'hunger_level', -0.5);
 
         expect(await petDb.getPetStat(petId, 'hunger_level'), 0.0);

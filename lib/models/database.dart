@@ -334,6 +334,8 @@ CREATE TABLE little_guy (
     }
   }
 
+  // Counts how many hat-type items the user owns (joins inventory and item).
+  // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
   Future<int> countUserHats(int userId, {Database? db}) async {
     final theDb = db ?? await database;
     final result = await theDb.rawQuery(
@@ -359,6 +361,9 @@ CREATE TABLE little_guy (
     return formatted[0].toUpperCase() + formatted.substring(1);
   }
 
+  // Returns true if any user row exists. Used at app startup to decide
+  // whether to show the new-user setup screen.
+  // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
   Future<bool> userExists({Database? db}) async {
     final theDb = db ?? await database;
     final users = await theDb.query('user');

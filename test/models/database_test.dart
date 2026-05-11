@@ -239,6 +239,9 @@ void main() {
     });
   });
 
+  // userExists is the gateway check used at app startup: if no user exists,
+  // the app shows the new-user setup screen instead of the home page. Only
+  // two states matter — at least one user in the table, or none.
   group('UR1 — AppDatabase.userExists', () {
     test('[TR-PRF-15] returns true when the user table has rows', () async {
       await TestDatabase.seedUser(db);

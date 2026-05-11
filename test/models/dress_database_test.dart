@@ -1,3 +1,14 @@
+// Tests for DressDatabase — putting hats on the pet, taking them off, and
+// listing what the user owns. Also tests AppDatabase.countUserHats at the
+// end since it's conceptually a hat-counting query and keeping it here
+// keeps all the hat-related coverage in one file.
+//
+// Schema reminder:
+//   - `inventory` links a user to the items they own
+//   - `little_guy_wearing` links a pet to its currently-equipped hat
+//   - At most one row exists in little_guy_wearing per pet
+//     (equipHat does delete-then-insert so the row is always replaced)
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_flame_playground/models/database.dart';
@@ -22,6 +33,7 @@ void main() {
   group('UR2 — DressDatabase', () {
     group('getHatsOwnedByUser', () {
       test('[TR-DRS-01] returns all hat-type items in the user inventory', () async {
+        // Seed three different hats and link them all to this user.
         final userId = await TestDatabase.seedUser(db);
         final hat1 = await TestDatabase.seedHat(db, name: 'Top Hat', imagePath: 'a.png');
         final hat2 = await TestDatabase.seedHat(db, name: 'Band', imagePath: 'b.png');
@@ -40,6 +52,7 @@ void main() {
       });
 
       test('[TR-DRS-02] returns an empty list when the user owns no hats', () async {
+        // User exists but has nothing in inventory.
         final userId = await TestDatabase.seedUser(db);
 
         final hats = await dressDb.getHatsOwnedByUser(userId);
@@ -48,6 +61,9 @@ void main() {
       });
     });
 
+    // equipHat does delete-then-insert so the wearing row is always replaced.
+    // We verify two states: starting from no hat (insert only) and starting
+    // from an already-equipped hat (delete + insert = swap).
     group('equipHat', () {
       test('[TR-DRS-03] inserts a wearing row when nothing is currently equipped', () async {
         final userId = await TestDatabase.seedUser(db);
@@ -70,11 +86,11 @@ void main() {
         await dressDb.equipHat(petId, hat1);
         await dressDb.equipHat(petId, hat2);
 
-        // New hat is the one stored
+        // The new hat should be the one stored,
         final equipped = await dressDb.getEquippedHat(petId);
         expect(equipped!['item_id'], hat2);
 
-        // Only ONE wearing row should exist (old row deleted before new insert)
+        // and exactly one row should exist (we didn't accumulate stale rows).
         final wearingRows = await db.query(
           'little_guy_wearing',
           where: 'little_guy_id = ?',
@@ -97,10 +113,10 @@ void main() {
       });
 
       test('[TR-DRS-06] is a silent no-op when nothing is equipped', () async {
+        // Unequipping with nothing on shouldn't throw — just does nothing.
         final userId = await TestDatabase.seedUser(db);
         final petId = await TestDatabase.seedLittleGuy(db, userId: userId);
 
-        // Should not throw
         await dressDb.unequipHat(petId);
 
         expect(await dressDb.getEquippedHat(petId), isNull);
@@ -131,6 +147,9 @@ void main() {
       });
     });
 
+    // countUserHats lives on AppDatabase rather than DressDatabase, but
+    // testing it here keeps all the hat-related coverage together.
+    // We pass our in-memory db explicitly so the singleton is never touched.
     group('countUserHats', () {
       test('[TR-DRS-09] returns the correct count of hat-type inventory rows', () async {
         final userId = await TestDatabase.seedUser(db);
