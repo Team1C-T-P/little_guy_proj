@@ -1,9 +1,11 @@
 // Tests for PetStatsDatabase. This class wraps SQL queries against the
 // `user` and `little_guy` tables for everything to do with a user's profile
-// (their name, when they were last online) and their pet's identity and stats.
+// (their name, when they were last online — UR1) and their pet's identity
+// and stats (UR2).
 //
-// Every test runs against a fresh in-memory database — see
-// test/helpers/test_database.dart for the schema and seed helpers.
+// InventoryDatabase, which lives in the same lib file (pet_maintainance_database.dart),
+// is tested separately in test/models/inventory_database_test.dart because
+// it belongs to UR6 (shop + inventory).
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -14,7 +16,6 @@ void main() {
   late Database db;
   late PetStatsDatabase petDb;
 
-  // sqflite_ffi needs to be initialised once before any test opens a DB.
   setUpAll(() => TestDatabase.init());
 
   // A brand-new in-memory DB per test, so nothing leaks between cases.
@@ -58,8 +59,7 @@ void main() {
     // updateUserName has a subtle short-circuit: when the new name is an
     // empty string, the method returns early without writing or even
     // checking whether the user exists. So the four combinations of
-    // (valid/invalid user) × (empty/non-empty name) all behave differently
-    // and we test each one explicitly.
+    // (valid/invalid user) × (empty/non-empty name) all behave differently.
     group('updateUserName', () {
       test('[TR-PRF-03] updates the user_name when both inputs are valid', () async {
         final userId = await TestDatabase.seedUser(db, name: 'Test User');
@@ -70,8 +70,7 @@ void main() {
       });
 
       test('[TR-PRF-04] treats empty string as "keep current" for a valid user', () async {
-        // Empty new name is treated as "no change wanted", not as "set the
-        // name to empty". So the row should be untouched.
+        // Empty new name is treated as "no change wanted", not "set to empty".
         final userId = await TestDatabase.seedUser(db, name: 'Test User');
 
         await petDb.updateUserName(userId, '');
@@ -94,9 +93,8 @@ void main() {
       });
 
       test('[TR-PRF-06] silently no-ops when userId is invalid but name is empty', () async {
-        // This one is interesting: the empty-name short-circuit runs BEFORE
-        // the user-exists check. So updateUserName(<missing>, '') does
-        // nothing and throws nothing. Documenting the current behaviour.
+        // The empty-name short-circuit runs BEFORE the user-exists check, so
+        // updateUserName(<missing>, '') does nothing and throws nothing.
         await petDb.updateUserName(999, '');
         // Reaching here without an exception is the assertion.
       });
@@ -193,8 +191,8 @@ void main() {
   group('UR2 — A user should be able to have a pet and update its name, stats, level, and hats', () {
 
     // getPetName / updatePetName mirror getUserName / updateUserName but
-    // read/write the little_guy table instead of the user table. The same
-    // empty-string short-circuit applies to updatePetName.
+    // read/write the little_guy table. Same empty-string short-circuit
+    // applies to updatePetName.
     group('getPetName', () {
       test('[TR-PET-01] returns the stored pet name for a valid userId', () async {
         final userId = await TestDatabase.seedUser(db);
@@ -267,7 +265,7 @@ void main() {
     group('getPetStat', () {
       test('[TR-PET-07] returns the stat value scaled to 0.0-1.0 for valid pet + valid stat', () async {
         // Stats are stored as 0-100 ints but exposed as 0.0-1.0 doubles.
-        // We seed hunger at 50 and expect to read back 0.5.
+        // Seed hunger at 50, expect 0.5 back.
         final userId = await TestDatabase.seedUser(db);
         final petId = await TestDatabase.seedLittleGuy(
           db,
@@ -298,7 +296,7 @@ void main() {
 
       test('[TR-PET-09] returns 0 when the pet does not exist (valid stat)', () async {
         // Quirk worth noting: a missing pet returns 0 rather than throwing.
-        // This is the current behaviour and the UI relies on it.
+        // The UI relies on this graceful fallback.
         final value = await petDb.getPetStat(999, 'hunger_level');
 
         expect(value, 0.0,
@@ -321,8 +319,8 @@ void main() {
     });
 
     // updatePetStat clamps values into the 0.0-1.0 range instead of
-    // rejecting them. So the partitions are: in-range, under, over, and
-    // "pet doesn't exist".
+    // rejecting them. Five partitions: in-range, under, over, "pet doesn't
+    // exist", and "stat name doesn't exist" (sqflite-side error).
     group('updatePetStat', () {
       test('[TR-PET-11] writes the exact scaled value when inputs are valid', () async {
         final userId = await TestDatabase.seedUser(db);
@@ -335,8 +333,7 @@ void main() {
         await petDb.updatePetStat(petId, 'hunger_level', 0.75);
 
         // closeTo because the production code uses (value * 100).toInt()
-        // when converting back to int storage, and floating-point can
-        // truncate 0.75 * 100 to 74 instead of 75.
+        // — floating-point can drift 0.75*100 to 74.999..., truncating to 74.
         expect(await petDb.getPetStat(petId, 'hunger_level'), closeTo(0.75, 0.01));
       });
 
@@ -348,7 +345,6 @@ void main() {
           hungerLevel: 50,
         );
 
-        // -0.5 should clamp to 0.0, NOT throw or stay negative.
         await petDb.updatePetStat(petId, 'hunger_level', -0.5);
 
         expect(await petDb.getPetStat(petId, 'hunger_level'), 0.0);
@@ -377,6 +373,17 @@ void main() {
               contains('Failed to update pet stat'),
             ),
           ),
+        );
+      });
+
+      test('[TR-PET-15] throws when the stat name is not a real column', () async {
+        // Unlike getPetStat, updatePetStat doesn't pre-check the stat name
+        // against a whitelist — it just hands the column name to sqflite,
+        // which raises a DatabaseException because "unknown_stat" isn't a
+        // real column on the little_guy table.
+        expect(
+          () => petDb.updatePetStat(1, 'unknown_stat', 1.0),
+          throwsA(isA<Exception>()),
         );
       });
     });
