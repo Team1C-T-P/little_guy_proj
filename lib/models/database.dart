@@ -359,9 +359,9 @@ CREATE TABLE little_guy (
     return formatted[0].toUpperCase() + formatted.substring(1);
   }
 
-  Future<bool> userExists() async {
-    final db = await database;
-    final users = await db.query('user');
+  Future<bool> userExists({Database? db}) async {
+    final theDb = db ?? await database;
+    final users = await theDb.query('user');
     return users.isNotEmpty;
   }
 }

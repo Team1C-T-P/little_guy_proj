@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flutter_flame_playground/models/database.dart';
 import '../helpers/test_database.dart';
 
 void main() {
@@ -222,19 +223,35 @@ void main() {
   });
   
   group('Composite Primary Key Tests', () {
-    
+
     test('Composite key properly enforces uniqueness (inventory)', () async {
       final userId = await TestDatabase.seedUser(db);
       final itemId = await TestDatabase.seedHat(db);
-      
+
       // First insert should succeed
       await TestDatabase.seedInventory(db, userId: userId, itemId: itemId);
-      
+
       // Second insert with same composite key should fail - invalid
       expect(
         () => db.insert('inventory', {'user_id': userId, 'item_id': itemId, 'quantity': 1}),
         throwsA(isA<DatabaseException>()),
       );
+    });
+  });
+
+  group('UR1 — AppDatabase.userExists', () {
+    test('[TR-PRF-15] returns true when the user table has rows', () async {
+      await TestDatabase.seedUser(db);
+
+      final exists = await AppDatabase.instance.userExists(db: db);
+
+      expect(exists, isTrue);
+    });
+
+    test('[TR-PRF-16] returns false when the user table is empty', () async {
+      final exists = await AppDatabase.instance.userExists(db: db);
+
+      expect(exists, isFalse);
     });
   });
 }
