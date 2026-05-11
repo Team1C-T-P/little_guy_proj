@@ -74,6 +74,7 @@ class _RoutesViewState extends State<RoutesView> {
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () async {
                         await _routeService.deleteRoute(route['route_id']);
+                        if (!mounted) return;
                         _loadRoutes();
                       },
                     ),

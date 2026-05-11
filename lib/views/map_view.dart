@@ -192,18 +192,22 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _confirmEndWalk() async {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('End Walk?'),
           content: const Text('Are you sure you want to end this walk?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
+                // Use the State's outer context (not the disposed dialog
+                // context) for the push, and bail if the user navigated
+                // away from the map mid-dialog.
+                if (!mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(

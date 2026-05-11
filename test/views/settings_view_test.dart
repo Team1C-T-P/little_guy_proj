@@ -66,9 +66,9 @@ void main() {
       expect(find.text('User name'), findsOneWidget);
       expect(find.text('Pet name'), findsOneWidget);
       expect(find.byType(TextField), findsNWidgets(2));
-      expect(find.text('Try me'), findsOneWidget);
+      expect(find.text('Notifications'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
-      expect(find.text('probs font size'), findsOneWidget);
+      expect(find.text('Font size'), findsOneWidget);
       expect(find.byType(Slider), findsOneWidget);
       expect(find.text('Submit'), findsOneWidget);
     });
@@ -81,7 +81,7 @@ void main() {
       await tester.pump(); // Rebuild after the state change.
 
       expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.text("6 7"), findsOneWidget);
+      expect(find.text('Notifications enabled'), findsOneWidget);
     });
 
     testWidgets('change slider and check value', (tester) async {

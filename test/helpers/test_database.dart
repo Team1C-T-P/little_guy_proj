@@ -29,17 +29,6 @@ class TestDatabase {
       );
     ''');
 
-    // friends table
-    await db.execute('''
-      CREATE TABLE friend (
-        user_id INTEGER NOT NULL,
-        friend_id INTEGER NOT NULL CHECK (friend_id != user_id),
-        PRIMARY KEY (user_id, friend_id),
-        FOREIGN KEY (user_id) REFERENCES user(user_id)
-        FOREIGN KEY (friend_id) REFERENCES user(user_id)
-      );
-    ''');
-
     // routes table
     await db.execute('''
         CREATE TABLE route (
@@ -292,15 +281,6 @@ class TestDatabase {
       'little_guy_id': littleGuyId,
       'item_id': itemId,
     });
-  }
-
-  static Future<void> seedFriend(
-    Database db, {
-    required int userId,
-    required int friendId,
-  }) async {
-    await db.insert('friend', {'user_id': userId, 'friend_id': friendId});
-    await db.insert('friend', {'user_id': friendId, 'friend_id': userId});
   }
 
   static Future<int> seedRoute(

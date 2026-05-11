@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'community_view.dart';
@@ -16,16 +17,19 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
 			title: const Text(''),
 			backgroundColor: const Color.fromARGB(255, 213, 248, 255),
 			actions: [
-				IconButton(
-					icon: const Icon(Icons.bug_report),
-					tooltip: 'Test Screen',
-					onPressed: () {
-						Navigator.push(
-							context,
-							MaterialPageRoute(builder: (context) => TestScreen()),
-						);
-					},
-				),
+				// Developer-only entry point to the TestScreen cheat panel.
+				// Hidden in release builds so it can't be tapped during a demo.
+				if (kDebugMode)
+					IconButton(
+						icon: const Icon(Icons.bug_report),
+						tooltip: 'Test Screen',
+						onPressed: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(builder: (context) => TestScreen()),
+							);
+						},
+					),
 				IconButton(
 					icon: const Icon(Icons.diversity_1),
 					tooltip: 'Community',

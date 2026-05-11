@@ -18,10 +18,9 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code: ignore machine-specific settings but keep the folder available for
+# launch configs / tasks if the team chooses to commit them later.
+.vscode/settings.json
 
 # Claude Code local config (worktrees, settings, hooks, memory)
 .claude/

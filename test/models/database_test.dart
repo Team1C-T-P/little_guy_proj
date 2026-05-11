@@ -82,37 +82,7 @@ void main() {
     });
   });
   
-  group('Friend Table Tests', () {
-    late int userId1, userId2;
-    
-    setUp(() async {
-      userId1 = await TestDatabase.seedUser(db, name: 'User 1');
-      userId2 = await TestDatabase.seedUser(db, name: 'User 2');
-    });
-    
-    test('Valid friendship creation', () async {
-      await TestDatabase.seedFriend(db, userId: userId1, friendId: userId2);
-      
-      final result1 = await db.query('friend', where: 'user_id = ? AND friend_id = ?', whereArgs: [userId1, userId2]);
-      final result2 = await db.query('friend', where: 'user_id = ? AND friend_id = ?', whereArgs: [userId2, userId1]);
-      
-      expect(result1.length, 1);
-      expect(result2.length, 1);
-    });
-    
-    test('Friend ID equals user ID (invalid - should be rejected)', () async {
-      // CHECK constraint "friend_id != user_id" should reject this
-      expect(
-        () => db.insert('friend', {
-          'user_id': userId1,
-          'friend_id': userId1,
-        }),
-        throwsA(isA<DatabaseException>()),
-      );
-    });
-  });
-  
-  group('Item Table Tests', () {
+group('Item Table Tests', () {
     test('Item with minimum price (valid - 0)', () async {
       final itemId = await TestDatabase.seedItem(
         db,

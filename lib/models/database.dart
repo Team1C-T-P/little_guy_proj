@@ -25,7 +25,39 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'little_guy.db');
 
-    return await openDatabase(path, version: 2, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
+    );
+  }
+
+  // v1 -> v2 added the achievement + user_achievement tables. CREATE IF NOT
+  // EXISTS keeps this safe for installs that somehow already have them.
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS achievement (
+          achievement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          description TEXT NOT NULL,
+          target_value INTEGER,
+          type TEXT NOT NULL
+        );
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS user_achievement (
+          user_id INTEGER NOT NULL,
+          achievement_id INTEGER NOT NULL,
+          unlocked_at TEXT NOT NULL,
+          progress INTEGER DEFAULT 0,
+          PRIMARY KEY (user_id, achievement_id),
+          FOREIGN KEY (user_id) REFERENCES user(user_id),
+          FOREIGN KEY (achievement_id) REFERENCES achievement(achievement_id)
+        );
+      ''');
+    }
   }
 
   Future _createDB(Database db, int version) async {

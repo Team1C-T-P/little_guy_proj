@@ -126,6 +126,10 @@ class _ShopState extends State<Shop> {
                 Navigator.pop(context);
                 final result = await _shopDb.purchaseItem(1, itemId);
 
+                // Guard against the user leaving the Shop tab mid-purchase
+                // — touching context after dispose throws.
+                if (!mounted) return;
+
                 if (result == 'success') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

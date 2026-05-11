@@ -110,7 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Try me', style: TextStyle(fontSize: 16)),
+                      Text('Notifications', style: TextStyle(fontSize: 16)),
                       Switch(
                         value: _switchBtn,
                         onChanged: (bool value) {
@@ -121,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '6 7',
+                                    'Notifications enabled',
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -143,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // if text changed then fix in testing as well
-                      Text('probs font size', style: TextStyle(fontSize: 16)),
+                      Text('Font size', style: TextStyle(fontSize: 16)),
                       Slider(
                         value: _soundVolume,
                         onChanged: (double value) {
