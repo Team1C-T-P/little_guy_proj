@@ -66,7 +66,7 @@ class StepPointsService {
         'user',
         {
           'currency': nextCurrency,
-          'last_online': DateTime.now().toIso8601String(),
+          'last_online': DateTime.now().toUtc().toIso8601String(),
         },
         where: 'user_id = ?',
         whereArgs: [userId],
@@ -102,7 +102,7 @@ class StepPointsService {
         'user_id': userId,
         'total_steps': 0,
         'unconverted_steps': 0,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
     }
   }
@@ -158,7 +158,7 @@ class StepPointsService {
         {
           'total_steps': nextTotalSteps,
           'unconverted_steps': nextUnconverted,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         },
         where: 'user_id = ?',
         whereArgs: [userId],
@@ -168,7 +168,7 @@ class StepPointsService {
         'user',
         {
           'currency': nextCurrency,
-          'last_online': DateTime.now().toIso8601String(),
+          'last_online': DateTime.now().toUtc().toIso8601String(),
         },
         where: 'user_id = ?',
         whereArgs: [userId],

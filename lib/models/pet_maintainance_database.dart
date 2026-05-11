@@ -45,7 +45,12 @@ class PetStatsDatabase {
       where: 'little_guy_id = ?',
       whereArgs: [petId],
     );
-    if (stats.isEmpty) return 0;
+    // Throw on missing pet to match the rest of this class (getUserName,
+    // getPetName, getLastOnlineByUserId all throw). Returning 0 silently
+    // masked the missing-row case at every call site.
+    if (stats.isEmpty) {
+      throw Exception('Failed to get pet stat: Pet not found');
+    }
     return (stats.first[stat] as int).toDouble() / 100;
   }
 

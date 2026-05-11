@@ -26,6 +26,10 @@ class _TestScreenState extends State<TestScreen> {
   int _currentSteps = 0;
   String _status = '';
 
+  // Named so dispose() can remove it. An anonymous closure can't be removed,
+  // which would leak a listener every time the screen is opened.
+  late final VoidCallback _goalListener;
+
   @override
   void initState() {
     super.initState();
@@ -34,12 +38,16 @@ class _TestScreenState extends State<TestScreen> {
       _loadSummary();
     });
 
-    // Listener for any goal controller changes
-    _goalController.addListener(() {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _goalListener = () {
+      if (mounted) setState(() {});
+    };
+    _goalController.addListener(_goalListener);
+  }
+
+  @override
+  void dispose() {
+    _goalController.removeListener(_goalListener);
+    super.dispose();
   }
 
   Future<void> _loadSummary() async {

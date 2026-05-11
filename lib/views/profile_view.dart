@@ -55,6 +55,9 @@ class _ProfileState extends State<ProfileScreen> {
         _bigWalkCompleted = prefs.getBool('bigWalkClaimed') ?? false;
         _wealthyCompleted = prefs.getBool('wealthyClaimed') ?? false;
         _mvpCompleted = prefs.getBool('mvpClaimed') ?? false;
+        // Let's Play unlocks when play_view writes letsPlayClaimed after
+        // the 20th play. Key names mirror the other achievement flags.
+        _letsPlayCompleted = prefs.getBool('letsPlayClaimed') ?? false;
       });
       _loadData();
     });
@@ -99,12 +102,12 @@ class _ProfileState extends State<ProfileScreen> {
       final ownedHats = await dressDb.getHatsOwnedByUser(_userId);
       _hatsCollected = ownedHats.length;
 
-      // Check achivements
+      // Check achievements. MVP requires the freshly-fetched level, so
+      // we read levelData first and only call _checkMVPAchievement after.
       await _checkMadHatterAchievement();
       await _checkBigWalkAchievement(summary.totalSteps);
       await _checkWealthyAchievement(summary.currency);
       await _checkTrailBlazerAchievement();
-      await _checkMVPAchievement(_currentLevel);
 
       final levelService = LevelService(db);
       final levelData = await levelService.getLevelAndXp(_userId);

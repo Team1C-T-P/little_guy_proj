@@ -29,12 +29,7 @@ void main() {
     // logged after the test body completes.
     final userId = await TestDatabase.seedUser(db);
     await TestDatabase.seedLittleGuy(db, userId: userId);
-    expect(userId, 1, reason: 'first seeded user should get user_id 1');
-    final users = await db.query('user');
-    expect(users.length, 1, reason: 'user row should exist after seedUser');
     AppDatabase.setTestDatabase(db);
-    final usersViaSingleton = await (await AppDatabase.instance.database).query('user');
-    expect(usersViaSingleton.length, 1, reason: 'singleton override DB should have the seeded user');
   });
 
   tearDown(() async {

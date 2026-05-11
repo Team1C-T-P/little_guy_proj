@@ -10,9 +10,12 @@ class TestDatabase {
 
   // return new empty db with full schema, allows test to start with clean slate
   static Future<Database> createFresh() async {
+    // Mirror production version so any version-dependent code path
+    // (e.g. db.getVersion checks, future onUpgrade-driven seeding)
+    // sees the same value tests do.
     final db = await databaseFactory.openDatabase(
       inMemoryDatabasePath,
-      options: OpenDatabaseOptions(version: 1, onCreate: _createSchema),
+      options: OpenDatabaseOptions(version: 2, onCreate: _createSchema),
     );
     return db;
   }

@@ -2,8 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/services/level_service.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pet_maintainance_database.dart';
 import '../models/database.dart';
+
+// SharedPreferences keys for the Let's Play achievement (play 20 times).
+// profile_view reads `letsPlayClaimed` to decide whether to render the
+// achievement as completed.
+const _kPlayCountKey = 'letsPlayCount';
+const _kPlayClaimedKey = 'letsPlayClaimed';
+const int _kPlayTarget = 20;
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -64,6 +72,15 @@ class _PlayScreenState extends State<PlayScreen> {
     final db = await AppDatabase.instance.database;
     final levelService = LevelService(db);
     final levelResult = await levelService.addXp(1, 5);
+
+    // Bump the Let's Play counter. The achievement unlocks at 20 plays;
+    // profile_view picks up the claimed flag on its next load.
+    final prefs = await SharedPreferences.getInstance();
+    final newCount = (prefs.getInt(_kPlayCountKey) ?? 0) + 1;
+    await prefs.setInt(_kPlayCountKey, newCount);
+    if (newCount >= _kPlayTarget) {
+      await prefs.setBool(_kPlayClaimedKey, true);
+    }
 
     // Refresh UI
     await _loadPetStats();

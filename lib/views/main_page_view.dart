@@ -27,6 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   double _enjoyment = 0;
   double _hygiene = 0;
 
+  // Named so dispose() can pass the same reference to removeListener.
+  // An anonymous closure can't be removed.
+  late final VoidCallback _goalListener;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +39,18 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadPetStats();
     });
     _loadGoalData();
+    // Rebuild whenever the controller's currentSteps / stepGoal / currency
+    // change (e.g. after +250 / -250 buttons or a goal reset elsewhere).
+    _goalListener = () {
+      if (mounted) setState(() {});
+    };
+    _goalController.addListener(_goalListener);
+  }
+
+  @override
+  void dispose() {
+    _goalController.removeListener(_goalListener);
+    super.dispose();
   }
 
   Future<void> _loadPetStats() async {

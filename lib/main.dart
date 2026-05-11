@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/database.dart';
+import 'models/pet_maintainance_database.dart';
+import 'utils/stat_degradation_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'views/header.dart';
 import 'views/main_page_view.dart';
@@ -9,8 +11,6 @@ import 'views/map_view.dart';
 import 'views/nav_bar.dart';
 import 'views/profile_view.dart';
 import 'views/setup_profile_view.dart';
-import 'package:pedometer/pedometer.dart';
-import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +58,24 @@ class _AppRouterState extends State<_AppRouter> {
 
   Future<void> _checkUserExists() async {
     final exists = await AppDatabase.instance.userExists();
+    // If the user already has a profile, apply stat decay for time elapsed
+    // since their last_online. StatDegradation also bumps last_online to
+    // the current UTC timestamp, so the next launch starts fresh.
+    if (exists) {
+      try {
+        final db = await AppDatabase.instance.database;
+        final petStatsDB = PetStatsDatabase(db);
+        // user_id 1 / pet_id 1 in the single-user flow today.
+        await StatDegradation(
+          petStatsDB: petStatsDB,
+          userID: 1,
+          petID: 1,
+        ).degradeStats();
+      } catch (e) {
+        debugPrint('Stat degradation skipped: $e');
+      }
+    }
+    if (!mounted) return;
     setState(() {
       _userExists = exists;
       _isLoading = false;

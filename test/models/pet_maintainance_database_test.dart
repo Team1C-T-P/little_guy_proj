@@ -294,13 +294,21 @@ void main() {
         );
       });
 
-      test('[TR-PET-09] returns 0 when the pet does not exist (valid stat)', () async {
-        // Quirk worth noting: a missing pet returns 0 rather than throwing.
-        // The UI relies on this graceful fallback.
-        final value = await petDb.getPetStat(999, 'hunger_level');
-
-        expect(value, 0.0,
-            reason: 'getPetStat should return 0 for a missing pet rather than throwing');
+      test('[TR-PET-09] throws when the pet does not exist (valid stat)', () async {
+        // Now matches getUserName / getPetName / getLastOnlineByUserId,
+        // which all throw on a missing row. Callers (clean_view, play_view,
+        // feed_view, main_page_view) already wrap _loadPetStats in try/catch
+        // so they degrade gracefully — they just don't silently see a 0.
+        expect(
+          () => petDb.getPetStat(999, 'hunger_level'),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Failed to get pet stat: Pet not found'),
+            ),
+          ),
+        );
       });
 
       test('[TR-PET-10] throws for invalid pet + invalid stat (whitelist runs first)', () async {

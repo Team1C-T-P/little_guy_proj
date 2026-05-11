@@ -3,6 +3,7 @@ import '../little_guy.dart';
 import '../widgets/button.dart';
 import '../models/shop_database.dart';
 import '../models/database.dart';
+import '../controller/step_goal_controller.dart';
 
 class Shop extends StatefulWidget {
   const Shop({super.key});
@@ -22,6 +23,13 @@ class _ShopState extends State<Shop> {
   bool _isLoading = true;
   String _currentType = 'hat';
 
+  // Refresh shop when the goal controller notifies (e.g. currency awarded
+  // by a goal reset elsewhere in the app). The old activate() override
+  // wasn't called on bottom-nav tab switches in modern Flutter, so the
+  // balance went stale; listening to the singleton fixes that.
+  final StepGoalController _goalController = StepGoalController();
+  late final VoidCallback _goalListener;
+
   @override
   void initState() {
     super.initState();
@@ -29,12 +37,16 @@ class _ShopState extends State<Shop> {
       _shopDb = ShopDatabase(db);
       _loadShopData('hat');
     });
+    _goalListener = () {
+      if (mounted) _loadShopData(_currentType);
+    };
+    _goalController.addListener(_goalListener);
   }
 
   @override
-  void activate() {
-    super.activate();
-    _loadShopData(_currentType);
+  void dispose() {
+    _goalController.removeListener(_goalListener);
+    super.dispose();
   }
 
   Future<void> _loadShopData(String type) async {

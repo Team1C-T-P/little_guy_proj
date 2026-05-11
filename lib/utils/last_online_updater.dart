@@ -9,9 +9,13 @@ class LastOnlineUpdater {
   // the on-disk app DB.
   static Future<void> update(int userId, {Database? db}) async {
     final database = db ?? await AppDatabase.instance.database;
+    // Always write as UTC so readers (e.g. StatDegradation) that compare
+    // against DateTime.now().toUtc() see a consistent timezone. Mixing
+    // local + UTC writes was producing hour-sized errors when the user
+    // was in BST.
     await database.update(
       'user',
-      {'last_online': DateTime.now().toIso8601String()},
+      {'last_online': DateTime.now().toUtc().toIso8601String()},
       where: 'user_id = ?',
       whereArgs: [userId],
     );

@@ -131,8 +131,12 @@ class GoalService {
     final goalId = rows.first['goal_id'] as int;
     const int goalReward = 25;
 
-    // Update currency and get new value in one operation
-    final result = await _db.rawQuery(
+    // Three writes (user currency, goal target, user_goal progress) must
+    // succeed or fail together. A partial reset would either award
+    // currency without resetting progress, or reset progress without
+    // paying out — both are user-visible bugs. Wrap in a transaction.
+    return _db.transaction((txn) async {
+      final result = await txn.rawQuery(
         '''
         UPDATE user
         SET currency = currency + ?
@@ -140,22 +144,23 @@ class GoalService {
         RETURNING currency
         ''',
         [goalReward, userId],
-    );
+      );
 
-    await _db.update(
-      'goal',
-      {'target_goal': 250},
-      where: 'goal_id = ?',
-      whereArgs: [goalId],
-    );
+      await txn.update(
+        'goal',
+        {'target_goal': 250},
+        where: 'goal_id = ?',
+        whereArgs: [goalId],
+      );
 
-    await _db.update(
-      'user_goal',
-      {'current_progress': 0},
-      where: 'goal_id = ? AND user_id = ?',
-      whereArgs: [goalId, userId],
-    );
+      await txn.update(
+        'user_goal',
+        {'current_progress': 0},
+        where: 'goal_id = ? AND user_id = ?',
+        whereArgs: [goalId, userId],
+      );
 
-    return (result.first['currency'] as int); // Return new currency value
+      return result.first['currency'] as int;
+    });
   }
 }
