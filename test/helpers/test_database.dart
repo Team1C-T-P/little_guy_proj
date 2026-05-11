@@ -1,4 +1,5 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flutter_flame_playground/models/database.dart';
 
 class TestDatabase {
   TestDatabase._();
@@ -8,175 +9,19 @@ class TestDatabase {
     databaseFactory = databaseFactoryFfi;
   }
 
-  // return new empty db with full schema, allows test to start with clean slate
+  // Returns a fresh empty in-memory DB built with the *production* schema
+  // function (AppDatabase.createDB). Using production's own DDL here means
+  // tests automatically inherit any schema change — no parallel copy to
+  // keep in sync, and `_createDB` itself is now covered by every test.
   static Future<Database> createFresh() async {
-    // Mirror production version so any version-dependent code path
-    // (e.g. db.getVersion checks, future onUpgrade-driven seeding)
-    // sees the same value tests do.
     final db = await databaseFactory.openDatabase(
       inMemoryDatabasePath,
-      options: OpenDatabaseOptions(version: 2, onCreate: _createSchema),
+      options: OpenDatabaseOptions(
+        version: 2,
+        onCreate: AppDatabase.instance.createDB,
+      ),
     );
     return db;
-  }
-
-  // schema to mirror database.dart
-  static Future<void> _createSchema(Database db, int version) async {
-    // user table
-    await db.execute('''
-      CREATE TABLE user (
-        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_name TEXT NOT NULL,
-        currency INTEGER NOT NULL CHECK (currency >= 0),
-        last_online TEXT
-      );
-    ''');
-
-    // routes table
-    await db.execute('''
-        CREATE TABLE route (
-          route_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          route_name TEXT NOT NULL,
-          route_path TEXT NOT NULL,
-          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
-        );
-      ''');
-
-    // little guy table — matches production schema (includes level/xp)
-    await db.execute('''
-        CREATE TABLE little_guy (
-          little_guy_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          little_guy_name TEXT NOT NULL,
-          hygiene_level INTEGER NOT NULL CHECK (hygiene_level BETWEEN 0 AND 100),
-          hunger_level INTEGER NOT NULL CHECK (hunger_level BETWEEN 0 AND 100),
-          enjoyment_level INTEGER NOT NULL CHECK (enjoyment_level BETWEEN 0 AND 100),
-          level INTEGER NOT NULL DEFAULT 1,
-          xp INTEGER NOT NULL DEFAULT 0,
-          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
-        );
-      ''');
-
-    // item table
-    await db.execute('''
-      CREATE TABLE item (
-        item_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        item_name TEXT NOT NULL,
-        image_path TEXT NOT NULL,
-        quantity INTEGER NOT NULL CHECK (quantity >= 0),
-        price INTEGER NOT NULL CHECK (price >= 0),
-        type TEXT NOT NULL
-      );
-    ''');
-
-    // user inventory table
-    await db.execute('''
-        CREATE TABLE inventory (
-          user_id INTEGER NOT NULL,
-          item_id INTEGER NOT NULL,
-          quantity INTEGER NOT NULL CHECK (quantity >= 0),
-          PRIMARY KEY (user_id, item_id),
-          FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
-          FOREIGN KEY (item_id) REFERENCES item(item_id) ON DELETE CASCADE
-        );
-      ''');
-
-    // little guy clothing
-    await db.execute('''
-      CREATE TABLE little_guy_wearing (
-        little_guy_id INTEGER NOT NULL,
-        item_id INTEGER NOT NULL,
-        PRIMARY KEY (little_guy_id, item_id),
-        FOREIGN KEY (little_guy_id) REFERENCES little_guy(little_guy_id) ON DELETE CASCADE,
-        FOREIGN KEY (item_id) REFERENCES item(item_id) ON DELETE CASCADE
-      );
-    ''');
-
-    // goals table
-    await db.execute('''
-      CREATE TABLE goal (
-        goal_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        target_goal INTEGER NOT NULL CHECK (target_goal > 0),
-        target_deadline TEXT NOT NULL,
-        min_allowed_value INTEGER NOT NULL CHECK (min_allowed_value >= 0),
-        is_recurring BOOLEAN NOT NULL DEFAULT 0
-      );
-    ''');
-
-    // user goals table
-    await db.execute('''
-      CREATE TABLE user_goal (
-        user_id INTEGER NOT NULL,
-        goal_id INTEGER NOT NULL,
-        current_progress INTEGER NOT NULL CHECK (current_progress >= 0),
-        week_start_date TEXT NOT NULL,
-        week_end_date TEXT NOT NULL,
-        reward_claimed INT NOT NULL CHECK (reward_claimed IN (0, 1)),
-        PRIMARY KEY (user_id, goal_id),
-        FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
-        FOREIGN KEY (goal_id) REFERENCES goal(goal_id) ON DELETE CASCADE
-      );
-    ''');
-
-    // rewards table
-    await db.execute('''
-      CREATE TABLE reward (
-        reward_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        reward_tier VARCHAR(4) NOT NULL CHECK (reward_tier IN ('low','mid','high','pers')),
-        reward_currency INTEGER NOT NULL CHECK (reward_currency >= 0)
-      );
-    ''');
-
-    // goal rewards
-    await db.execute('''
-      CREATE TABLE goal_reward (
-        goal_id INTEGER NOT NULL,
-        reward_id INTEGER NOT NULL,
-        PRIMARY KEY (goal_id, reward_id),
-        FOREIGN KEY (goal_id) REFERENCES goal(goal_id) ON DELETE CASCADE,
-        FOREIGN KEY (reward_id) REFERENCES reward(reward_id) ON DELETE CASCADE
-      );
-    ''');
-
-    // walk summaries table
-    await db.execute('''
-      CREATE TABLE walk_summary(
-      summary_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      walk_date TEXT NOT NULL,
-      total_steps INTEGER NOT NULL,
-      start_lat REAL,
-      start_lng REAL,
-      end_lat REAL,
-      end_lng REAL,
-      FOREIGN KEY(user_id) REFERENCES user(user_id)
-      );
-    ''');
-
-    // achievement table — mirrors production schema in database.dart
-    await db.execute('''
-      CREATE TABLE achievement (
-        achievement_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT NOT NULL,
-        target_value INTEGER,
-        type TEXT NOT NULL
-      );
-    ''');
-
-    // user_achievement table — tracks which achievements each user has unlocked
-    await db.execute('''
-      CREATE TABLE user_achievement (
-        user_id INTEGER NOT NULL,
-        achievement_id INTEGER NOT NULL,
-        unlocked_at TEXT NOT NULL,
-        progress INTEGER DEFAULT 0,
-        PRIMARY KEY (user_id, achievement_id),
-        FOREIGN KEY (user_id) REFERENCES user(user_id),
-        FOREIGN KEY (achievement_id) REFERENCES achievement(achievement_id)
-      );
-    ''');
   }
 
   // seed helpers, populating tables

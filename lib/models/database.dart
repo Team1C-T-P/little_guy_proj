@@ -28,7 +28,7 @@ class AppDatabase {
     return await openDatabase(
       path,
       version: 2,
-      onCreate: _createDB,
+      onCreate: createDB,
       onUpgrade: _onUpgrade,
     );
   }
@@ -60,7 +60,10 @@ class AppDatabase {
     }
   }
 
-  Future _createDB(Database db, int version) async {
+  // Public so the test helper can pass this as `onCreate` to a fresh
+  // in-memory DB. Tests exercise the actual production schema instead
+  // of a duplicate — eliminating schema-drift risk.
+  Future<void> createDB(Database db, int version) async {
     /* user table info:
       - currency is stored in pennies, so when used divide by 100, and updating multiply by 100
       - last_online is stored in the ISO-8601 format, doing this through text, this is stored as UTC.
