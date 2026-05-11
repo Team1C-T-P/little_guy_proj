@@ -1,172 +1,136 @@
-import 'package:flutter_flame_playground/models/step_points_service.dart';
+// Tests for StepPointsService — converts walking steps into in-game
+// currency. Three top-level operations:
+//   - recordSteps: add steps to the user's total and convert any "full"
+//     batches of 100 into currency (1 point per 100 steps)
+//   - awardBonusPoints: hand the user currency directly (one-off bonus)
+//   - getAccountSummary: read the user's totalSteps, unconvertedSteps,
+//     and currency for the UI
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:flutter_flame_playground/models/database.dart';
+import 'package:flutter_flame_playground/models/step_points_service.dart';
+import '../helpers/test_database.dart';
 
 void main() {
-  // Copied from walk_summary_test
-  TestWidgetsFlutterBinding.ensureInitialized();
+  late Database db;
+  late StepPointsService service;
 
-  setUpAll(() async {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    await AppDatabase.instance.initializeDefaultData();
-  });
+  setUpAll(() => TestDatabase.init());
 
   setUp(() async {
-    final db = await AppDatabase.instance.database;
-    await db.delete('user');
+    db = await TestDatabase.createFresh();
+    service = StepPointsService(db);
   });
 
-  group('awardBonusPoints', () {
-    // Successfully award points
-    test('Successfully awards points to existing user', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-
-      // test user WITH A NAME
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 0,
-      });
-
-      final updatedCurrency = await service.awardBonusPoints(
-        userId: userId,
-        points: 10,
-      );
-      //removed redundant check
-
-      final userRows = await db.query(
-        'user',
-        where: 'user_id = ?',
-        whereArgs: [userId],
-      );
-      expect(userRows.first['currency'], 10);
-    });
-    // Error on non-existent user
-    test('Throws error when user does not exist', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-
-      expect(
-        () => service.awardBonusPoints(userId: 101, points: 10),
-        throwsStateError,
-        reason: "User with this ID doesn't exist",
-      );
-    });
-
-    // Error on zero or negative points
-    test('Throws error when points are zero or negative', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 0,
-      });
-
-      expect(
-        () => service.awardBonusPoints(userId: userId, points: 0),
-        throwsArgumentError,
-        reason: "Points must be positive",
-      );
-    });
+  tearDown(() async {
+    await db.close();
   });
 
-  group('recordSteps', () {
-    // Steps must be 0 or over
-    test('Throws error when steps are negative', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 0,
+  group('UR3 — StepPointsService', () {
+
+    // recordSteps has TWO input guards (steps > 0, user exists) plus the
+    // conversion logic itself. Four partitions:
+    //   - negative steps -> throws (input guard)
+    //   - non-existent user -> throws (existence guard)
+    //   - steps below 100 -> no points awarded, accumulate as unconverted
+    //   - steps above 100 -> award points, keep leftover as unconverted
+    group('recordSteps', () {
+      test('[TR-STP-04] throws when steps are negative', () async {
+        final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 0);
+
+        expect(
+          () => service.recordSteps(userId: userId, steps: -10),
+          throwsArgumentError,
+          reason: 'Steps must be > 0',
+        );
       });
 
-      expect(
-        () => service.recordSteps(userId: userId, steps: -10),
-        throwsArgumentError,
-        reason: "Steps cannot be negative",
-      );
-    });
-
-    // User must exist
-    test('Throws error when user does not exist', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-
-      expect(
-        () => service.recordSteps(userId: 101, steps: 100),
-        throwsStateError,
-        reason: "User with this ID doesn't exist",
-      );
-    });
-
-    // Step record - 50/100 steps, expect 0 points, 50 unconverted
-    test('Correct step record and points award', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 0,
+      test('[TR-STP-05] throws when user does not exist', () async {
+        // No user seeded — the existence guard inside recordSteps should fire.
+        expect(
+          () => service.recordSteps(userId: 101, steps: 100),
+          throwsStateError,
+          reason: "User with this ID doesn't exist",
+        );
       });
 
-      final result1 = await service.recordSteps(userId: userId, steps: 50);
-      expect(result1.updatedCurrency, 0);
-      expect(result1.unconvertedSteps, 50);
+      test('[TR-STP-06] accumulates as unconverted when below the 100-step threshold', () async {
+        // 50 steps shouldn't award any points — it just accumulates.
+        // Then another 50 takes us to 100 -> 1 point, 0 unconverted.
+        final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 0);
 
-      final result2 = await service.recordSteps(userId: userId, steps: 50);
-      expect(result2.updatedCurrency, 1);
-      expect(result2.unconvertedSteps, 0);
-    });
+        final first = await service.recordSteps(userId: userId, steps: 50);
+        expect(first.updatedCurrency, 0);
+        expect(first.unconvertedSteps, 50);
 
-    // Step conversion - 150/100 steps, expect 1 point, 50 unconverted
-    test('Correct step conversion with extra steps', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 0,
+        final second = await service.recordSteps(userId: userId, steps: 50);
+        expect(second.updatedCurrency, 1);
+        expect(second.unconvertedSteps, 0);
       });
 
-      final result = await service.recordSteps(userId: userId, steps: 150);
-      expect(result.updatedCurrency, 1);
-      expect(result.unconvertedSteps, 50);
-    });
-  });
+      test('[TR-STP-07] converts steps to currency and keeps the leftover', () async {
+        // 150 steps in one call: 1 point + 50 leftover unconverted.
+        final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 0);
 
-  group('getAccountSummary', () {
-    // user must exist
-    test('Throws error when user does not exist', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-
-      expect(
-        () => service.getAccountSummary(
-          101,
-        ), //no positional argument for userId(?)
-        throwsStateError,
-        reason: "User with this ID doesn't exist",
-      );
+        final result = await service.recordSteps(userId: userId, steps: 150);
+        expect(result.updatedCurrency, 1);
+        expect(result.unconvertedSteps, 50);
+      });
     });
 
-    // Correct totals after rewarding points
-    test('Returns correct summary', () async {
-      final db = await AppDatabase.instance.database;
-      final service = StepPointsService(db);
-      final userId = await db.insert('user', {
-        'user_name': 'Test User',
-        'currency': 10,
+    // awardBonusPoints has two input guards (points > 0, user exists)
+    // plus the happy path (add to currency).
+    group('awardBonusPoints', () {
+      test('[TR-STP-08] awards points to an existing user', () async {
+        final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 0);
+
+        await service.awardBonusPoints(userId: userId, points: 10);
+
+        final rows = await db.query('user', where: 'user_id = ?', whereArgs: [userId]);
+        expect(rows.first['currency'], 10);
       });
 
-      // redundant points award
-      await service.recordSteps(userId: userId, steps: 250);
+      test('[TR-STP-09] throws when user does not exist', () async {
+        expect(
+          () => service.awardBonusPoints(userId: 101, points: 10),
+          throwsStateError,
+          reason: "User with this ID doesn't exist",
+        );
+      });
 
-      // add updatedCurrency check
-      final summary = await service.getAccountSummary(userId);
-      expect(summary.totalSteps, 250);
-      expect(summary.currency, 12); // 10 base + 2 awarded
-      expect(summary.unconvertedSteps, 50);
+      test('[TR-STP-10] throws when points are zero or negative', () async {
+        // 0 is the boundary value — exactly at the > 0 rejection rule.
+        final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 0);
+
+        expect(
+          () => service.awardBonusPoints(userId: userId, points: 0),
+          throwsArgumentError,
+          reason: 'Points must be > 0',
+        );
+      });
+    });
+
+    group('getAccountSummary', () {
+      test('[TR-STP-11] throws when user does not exist', () async {
+        expect(
+          () => service.getAccountSummary(101),
+          throwsStateError,
+          reason: "User with this ID doesn't exist",
+        );
+      });
+
+      test('[TR-STP-12] returns the correct totals after step recording', () async {
+        // Walk 250 steps starting with 10 currency.
+        // 250 = 2 points + 50 unconverted -> final currency 12.
+        final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 10);
+
+        await service.recordSteps(userId: userId, steps: 250);
+        final summary = await service.getAccountSummary(userId);
+
+        expect(summary.totalSteps, 250);
+        expect(summary.currency, 12, reason: '10 base + 2 awarded');
+        expect(summary.unconvertedSteps, 50);
+      });
     });
   });
 }
