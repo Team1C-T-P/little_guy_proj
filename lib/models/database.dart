@@ -14,6 +14,13 @@ class AppDatabase {
     return _database!;
   }
 
+  // Test-only seam. Lets a test swap in an in-memory DB built by
+  // TestDatabase.createFresh() before any view code touches the singleton.
+  // Pass null in tearDown to detach the test DB from the singleton.
+  static void setTestDatabase(Database? db) {
+    _database = db;
+  }
+
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'little_guy.db');

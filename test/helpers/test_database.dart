@@ -161,6 +161,30 @@ class TestDatabase {
       FOREIGN KEY(user_id) REFERENCES user(user_id)
       );
     ''');
+
+    // achievement table — mirrors production schema in database.dart
+    await db.execute('''
+      CREATE TABLE achievement (
+        achievement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        target_value INTEGER,
+        type TEXT NOT NULL
+      );
+    ''');
+
+    // user_achievement table — tracks which achievements each user has unlocked
+    await db.execute('''
+      CREATE TABLE user_achievement (
+        user_id INTEGER NOT NULL,
+        achievement_id INTEGER NOT NULL,
+        unlocked_at TEXT NOT NULL,
+        progress INTEGER DEFAULT 0,
+        PRIMARY KEY (user_id, achievement_id),
+        FOREIGN KEY (user_id) REFERENCES user(user_id),
+        FOREIGN KEY (achievement_id) REFERENCES achievement(achievement_id)
+      );
+    ''');
   }
 
   // seed helpers, populating tables

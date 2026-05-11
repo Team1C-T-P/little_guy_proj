@@ -4,26 +4,42 @@
 // hits the singleton DB. The chain catches its own errors (so missing
 // user/pet data doesn't crash the screen), but we still let it drain before
 // asserting so the widget is in its steady state.
+//
+// Uses a fresh in-memory DB per test (TestDatabase.createFresh) wired into
+// the singleton via setTestDatabase. No state leaks between tests.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_flame_playground/views/settings_view.dart';
 import 'package:flutter_flame_playground/models/database.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../helpers/test_database.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() async {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    await AppDatabase.instance.initializeDefaultData();
-  });
+  late Database db;
+
+  setUpAll(() => TestDatabase.init());
 
   setUp(() async {
-    // Reset rows that previous tests may have touched.
-    final db = await AppDatabase.instance.database;
-    await db.delete('route');
+    db = await TestDatabase.createFresh();
+    // SettingsScreen reads the user and pet rows for user_id 1 in initState.
+    // Seed them so _loadData succeeds and we don't get a stray async error
+    // logged after the test body completes.
+    final userId = await TestDatabase.seedUser(db);
+    await TestDatabase.seedLittleGuy(db, userId: userId);
+    expect(userId, 1, reason: 'first seeded user should get user_id 1');
+    final users = await db.query('user');
+    expect(users.length, 1, reason: 'user row should exist after seedUser');
+    AppDatabase.setTestDatabase(db);
+    final usersViaSingleton = await (await AppDatabase.instance.database).query('user');
+    expect(usersViaSingleton.length, 1, reason: 'singleton override DB should have the seeded user');
+  });
+
+  tearDown(() async {
+    AppDatabase.setTestDatabase(null);
+    await db.close();
   });
 
   group('Settings Screen UI', () {
@@ -31,8 +47,8 @@ void main() {
       return const MaterialApp(home: SettingsScreen());
     }
 
-    // Helper: pump the widget and drain the async load chain before
-    // returning, so all three tests start from the same steady state.
+    // Pump the widget and drain the async load chain before returning, so
+    // all three tests start from the same steady state.
     Future<void> pumpAndDrain(WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.runAsync(() async {
