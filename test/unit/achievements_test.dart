@@ -140,6 +140,31 @@ void main() {
     expect(hatCount, 5);
   });
 
+  test('Mad Hatter does not unlock, when user owns 4 hats', () async {
+    for (int i = 1; i <= 4; i++) {
+      final itemId = await db.insert('item', {
+        'item_name': 'Hat $i',
+        'image_path': 'assets/hat$i.png',
+        'quantity': 1,
+        'price': 100,
+        'type': 'hat',
+      });
+      await db.insert('inventory', {
+        'user_id': 1,
+        'item_id': itemId,
+        'quantity': 1,
+      });
+    }
+    final result = await db.rawQuery('''
+      SELECT COUNT(*) as count
+      FROM inventory i
+      JOIN item it ON i.item_id = it.item_id
+      WHERE i.user_id = 1 AND it.type = 'hat'
+    ''');
+    final hatCount = result.first['count'] as int;
+    expect(hatCount, 4);
+  });
+
   // Big Walk Achivement
   test('Big Walk unlocks when total steps reach 5000', () async {
     // Insert walk summaries totalling 5000 steps
@@ -168,6 +193,33 @@ void main() {
     expect(totalSteps, 5000);
   });
 
+  test('Big Walk does not unlock when total steps reach 4999', () async {
+    // Insert walk summaries totalling 4999 steps
+    await db.insert('walk_summary', {
+      'user_id': 1,
+      'walk_date': DateTime.now().toIso8601String(),
+      'total_steps': 3000,
+      'start_lat': 0,
+      'start_lng': 0,
+      'end_lat': 0,
+      'end_lng': 0,
+    });
+    await db.insert('walk_summary', {
+      'user_id': 1,
+      'walk_date': DateTime.now().toIso8601String(),
+      'total_steps': 1999,
+      'start_lat': 0,
+      'start_lng': 0,
+      'end_lat': 0,
+      'end_lng': 0,
+    });
+    final result = await db.rawQuery('''
+      SELECT SUM(total_steps) as total FROM walk_summary WHERE user_id = 1
+    ''');
+    final totalSteps = result.first['total'] as int? ?? 0;
+    expect(totalSteps, 4999);
+  });
+
   // Wealthy achivement
   test('Wealthy unlocks when user currency reaches 5000', () async {
     await db.update(
@@ -179,6 +231,18 @@ void main() {
     final result = await db.query('user', where: 'user_id = ?', whereArgs: [1]);
     final currency = result.first['currency'] as int;
     expect(currency, 5000);
+  });
+
+  test('Wealthy does not unlock when user currency reaches 4999', () async {
+    await db.update(
+      'user',
+      {'currency': 4999},
+      where: 'user_id = ?',
+      whereArgs: [1],
+    );
+    final result = await db.query('user', where: 'user_id = ?', whereArgs: [1]);
+    final currency = result.first['currency'] as int;
+    expect(currency, 4999);
   });
 
   // Trail Blazer Achivement
@@ -193,6 +257,15 @@ void main() {
     );
     final routeCount = result.first['count'] as int;
     expect(routeCount, 1);
+  });
+
+  test('Trail Blazer does NOT unlock when user has no routes', () async {
+    // Ensure no routes are inserted
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM route WHERE user_id = 1',
+    );
+    final routeCount = result.first['count'] as int;
+    expect(routeCount, 0);
   });
 
   // MVP Achivement
@@ -210,5 +283,31 @@ void main() {
     );
     final level = result.first['level'] as int;
     expect(level, 5);
+  });
+
+  test('Most Valuable Pet does not unlock when pet level reaches 4', () async {
+    await db.update(
+      'little_guy',
+      {'level': 4},
+      where: 'user_id = ?',
+      whereArgs: [1],
+    );
+    final result = await db.query(
+      'little_guy',
+      where: 'user_id = ?',
+      whereArgs: [1],
+    );
+    final level = result.first['level'] as int;
+    expect(level, 4);
+  });
+
+  test('MVP - pet level 1 (starting level)', () async {
+    final result = await db.query(
+      'little_guy',
+      where: 'user_id = ?',
+      whereArgs: [1],
+    );
+    final level = result.first['level'] as int;
+    expect(level, 1);
   });
 }
