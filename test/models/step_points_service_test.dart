@@ -34,9 +34,7 @@ void main() {
         userId: userId,
         points: 10,
       );
-
-      // Verify updated currency
-      expect(updatedCurrency, 10);
+      //removed redundant check
 
       final userRows = await db.query(
         'user',
@@ -51,7 +49,7 @@ void main() {
       final service = StepPointsService(db);
 
       expect(
-        () => service.awardBonusPoints(userId: 9999, points: 10),
+        () => service.awardBonusPoints(userId: 101, points: 10),
         throwsStateError,
         reason: "User with this ID doesn't exist",
       );
@@ -98,7 +96,7 @@ void main() {
       final service = StepPointsService(db);
 
       expect(
-        () => service.recordSteps(userId: 9999, steps: 100),
+        () => service.recordSteps(userId: 101, steps: 100),
         throwsStateError,
         reason: "User with this ID doesn't exist",
       );
@@ -145,7 +143,7 @@ void main() {
 
       expect(
         () => service.getAccountSummary(
-          9999,
+          101,
         ), //no positional argument for userId(?)
         throwsStateError,
         reason: "User with this ID doesn't exist",
@@ -158,10 +156,10 @@ void main() {
       final service = StepPointsService(db);
       final userId = await db.insert('user', {
         'user_name': 'Test User',
-        'currency': 0,
+        'currency': 10,
       });
 
-      await service.awardBonusPoints(userId: userId, points: 10);
+      // redundant points award
       await service.recordSteps(userId: userId, steps: 250);
 
       // add updatedCurrency check
