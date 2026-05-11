@@ -322,5 +322,55 @@ void main() {
       final result = await shopDb.purchaseItem(userId, 999);
       expect(result, 'Item not found');
     });
+
+    // BVA: currency = price + 1
+    test(
+      'BVA - successfully purchases when currency is 1 above price',
+      () async {
+        final userId = await TestDatabase.seedUser(db, currency: 101);
+        final itemId = await TestDatabase.seedHat(db, price: 100);
+        final result = await shopDb.purchaseItem(userId, itemId);
+        expect(result, 'success');
+      },
+    );
+
+    test('BVA - deducts correct currency when 1 above price', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 101);
+      final itemId = await TestDatabase.seedHat(db, price: 100);
+      await shopDb.purchaseItem(userId, itemId);
+      final currency = await shopDb.getUserCurrency(userId);
+      expect(currency, 1);
+    });
+
+    // BVA: food quantity incremtes from 1 to 2 (lower boundary)
+    test('BVA - increments food quantity from 1 to 2 when owned', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 500);
+      final itemId = await TestDatabase.seedFood(db, price: 100);
+      await TestDatabase.seedInventory(
+        db,
+        userId: userId,
+        itemId: itemId,
+        quantity: 1,
+      );
+      await shopDb.purchaseItem(userId, itemId);
+      final quantity = await shopDb.getItemQuantity(userId, itemId);
+      expect(quantity, 2);
+    });
+
+    // BVA: currency = 0 (lower boundary of currency)
+    test('BVA - cannot purchase when currency is 0', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 0);
+      final itemId = await TestDatabase.seedHat(db, price: 100);
+      final result = await shopDb.purchaseItem(userId, itemId);
+      expect(result, 'insufficient_funds');
+    });
+
+    // BVA: price = 0 (lower boundary of item price)
+    test('BVA - successfully purchases free item when price is 0', () async {
+      final userId = await TestDatabase.seedUser(db, currency: 0);
+      final itemId = await TestDatabase.seedHat(db, price: 0);
+      final result = await shopDb.purchaseItem(userId, itemId);
+      expect(result, 'success');
+    });
   });
 }

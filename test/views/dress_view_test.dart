@@ -83,6 +83,12 @@ void main() {
       expect(hats.first['price'], 350);
       expect(hats.first['type'], 'hat');
     });
+
+    // Partition: user does not exist
+    test('returns empty list for non-existent user', () async {
+      final hats = await dressDb.getHatsOwnedByUser(999);
+      expect(hats, isEmpty);
+    });
   });
 
   // getEquippedHat
@@ -181,6 +187,30 @@ void main() {
       );
       expect(wearing.length, 1);
     });
+
+    // Partition: previous hat is removed from little_guy_wearing after equipping new hat
+    test(
+      'old hat is deleted from little_guy_wearing when new hat is equipped',
+      () async {
+        final userId = await TestDatabase.seedUser(db);
+        final littleGuyId = await TestDatabase.seedLittleGuy(
+          db,
+          userId: userId,
+        );
+        final hatId1 = await TestDatabase.seedHat(db, name: 'Top Hat');
+        final hatId2 = await TestDatabase.seedHat(db, name: 'Witch Hat');
+        await TestDatabase.seedInventory(db, userId: userId, itemId: hatId1);
+        await TestDatabase.seedInventory(db, userId: userId, itemId: hatId2);
+        await dressDb.equipHat(littleGuyId, hatId1);
+        await dressDb.equipHat(littleGuyId, hatId2);
+        final wearing = await db.query(
+          'little_guy_wearing',
+          where: 'little_guy_id = ? AND item_id = ?',
+          whereArgs: [littleGuyId, hatId1],
+        );
+        expect(wearing, isEmpty);
+      },
+    );
   });
 
   // unequipHat
@@ -203,6 +233,13 @@ void main() {
       final littleGuyId = await TestDatabase.seedLittleGuy(db, userId: userId);
       await dressDb.unequipHat(littleGuyId);
       final equipped = await dressDb.getEquippedHat(littleGuyId);
+      expect(equipped, isNull);
+    });
+
+    // Partition: little guy does not exist
+    test('does nothing if little guy does not exist', () async {
+      await expectLater(dressDb.unequipHat(999), completes);
+      final equipped = await dressDb.getEquippedHat(999);
       expect(equipped, isNull);
     });
   });

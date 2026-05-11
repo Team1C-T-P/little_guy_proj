@@ -1,7 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 
-import 'database.dart';
-
 class StepAccountSummary {
   const StepAccountSummary({
     required this.totalSteps,
@@ -79,8 +77,7 @@ class StepPointsService {
   }
 
   Future<void> _ensureStepLedgerTable() async {
-    final db = await AppDatabase.instance.database;
-    await db.execute('''
+    await _db.execute('''
       CREATE TABLE IF NOT EXISTS step_ledger (
         user_id INTEGER PRIMARY KEY,
         total_steps INTEGER NOT NULL DEFAULT 0 CHECK (total_steps >= 0),
