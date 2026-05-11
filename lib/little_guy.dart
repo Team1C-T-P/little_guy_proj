@@ -210,6 +210,14 @@ class _CleaningLittleGuyState extends State<CleaningLittleGuy>
     widget.trigger.addListener(_onTrigger);
   }
 
+  @override
+  void dispose() {
+    widget.trigger.removeListener(_onTrigger);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -314,6 +322,14 @@ class _PetLittleGuyState extends State<PetLittleGuy>
     widget.trigger.addListener(_onTrigger);
   }
 
+  @override
+  void dispose() {
+    widget.trigger.removeListener(_onTrigger);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,

@@ -21,11 +21,21 @@ class _RoutesViewState extends State<RoutesView> {
   }
 
   Future<void> _loadRoutes() async {
-    final routes = await _routeService.getSavedRoutes(1);
-    setState(() {
-      _savedRoutes = routes;
-      _isLoading = false;
-    });
+    try {
+      final routes = await _routeService.getSavedRoutes(1);
+      if (!mounted) return;
+      setState(() {
+        _savedRoutes = routes;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _savedRoutes = [];
+        _isLoading = false;
+      });
+      debugPrint('RoutesView: failed to load routes ($e)');
+    }
   }
 
   @override

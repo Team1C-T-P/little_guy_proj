@@ -39,13 +39,18 @@ class _ProfileState extends State<ProfileScreen> {
   bool _mvpCompleted = false;
   final int _userId = 1; // Assuming single user per phone with ID 1
   bool _wealthyCompleted = false;
+  // Named so dispose() can pass the same reference to removeListener.
+  // An anonymous closure can't be removed.
+  late final VoidCallback _goalListener;
 
   @override
   void initState() {
     super.initState();
     AppDatabase.instance.database.then((db) async {
+      if (!mounted) return;
       _stepPointsService = StepPointsService(db);
       final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
       setState(() {
         _madHatterCompleted = prefs.getBool('madHatterClaimed') ?? false;
         _bigWalkCompleted = prefs.getBool('bigWalkClaimed') ?? false;
@@ -54,9 +59,16 @@ class _ProfileState extends State<ProfileScreen> {
       });
       _loadData();
     });
-    _goalController.addListener(() {
+    _goalListener = () {
       if (mounted) setState(() {});
-    });
+    };
+    _goalController.addListener(_goalListener);
+  }
+
+  @override
+  void dispose() {
+    _goalController.removeListener(_goalListener);
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -183,18 +195,21 @@ class _ProfileState extends State<ProfileScreen> {
     final alreadyClaimed = prefs.getBool('madHatterClaimed') ?? false;
 
     if (alreadyClaimed) {
-      if (!_madHatterCompleted) {
+      if (!_madHatterCompleted && mounted) {
         setState(() => _madHatterCompleted = true);
       }
       return;
     }
 
     if (_hatsCollected >= 5) {
+      if (!mounted) return;
       setState(() => _madHatterCompleted = true);
       await prefs.setBool('madHatterClaimed', true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mad Hatter achievement unlocked!')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mad Hatter achievement unlocked!')),
+        );
+      }
     }
   }
 

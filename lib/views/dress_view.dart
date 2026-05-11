@@ -22,13 +22,18 @@ class _DressUpState extends State<DressUp> {
   }
 
   Future<void> _loadEquippedHat() async {
-    final db = await AppDatabase.instance.database;
-    final dressDb = DressDatabase(db);
-    final equipped = await dressDb.getEquippedHat(1);
-    if (equipped != null) {
-      setState(() {
-        _selectedHatId = equipped['item_id'] as int;
-      });
+    try {
+      final db = await AppDatabase.instance.database;
+      final dressDb = DressDatabase(db);
+      final equipped = await dressDb.getEquippedHat(1);
+      if (!mounted) return;
+      if (equipped != null) {
+        setState(() {
+          _selectedHatId = equipped['item_id'] as int;
+        });
+      }
+    } catch (e) {
+      debugPrint('DressUp: failed to load equipped hat ($e)');
     }
   }
 

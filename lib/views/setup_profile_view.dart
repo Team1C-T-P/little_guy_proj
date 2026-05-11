@@ -43,8 +43,11 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
     try {
       final db = await AppDatabase.instance.database;
 
-      // Create user
-      await db.insert('user', {
+      // Create user — db.insert returns the row id (the auto-incremented
+      // user_id), so we use that for the little_guy FK instead of
+      // hard-coding 1. Hard-coded 1 silently breaks if the user table
+      // ever generates a different id (re-creation after deletion, etc.).
+      final userId = await db.insert('user', {
         'user_name': _usernameController.text.trim(),
         'currency': 0,
         'last_online': DateTime.now().toUtc().toIso8601String(),
@@ -52,16 +55,18 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
 
       // Create little guy
       await db.insert('little_guy', {
-        'user_id': 1,
+        'user_id': userId,
         'little_guy_name': _petNameController.text.trim(),
         'hygiene_level': 50,
         'hunger_level': 50,
         'enjoyment_level': 50,
       });
 
-      // Callback to parent widget
+      // Callback to parent widget — but only if we're still mounted.
+      if (!mounted) return;
       widget.onProfileCreated();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = 'Error saving profile: $e';
         _isLoading = false;

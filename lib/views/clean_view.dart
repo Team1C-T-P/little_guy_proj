@@ -24,18 +24,29 @@ class _CleanScreenState extends State<CleanScreen> {
   void initState() {
     super.initState();
     AppDatabase.instance.database.then((db) {
+      if (!mounted) return;
       _petStatsDB = PetStatsDatabase(db);
       _loadPetHygiene();
     });
   }
 
+  @override
+  void dispose() {
+    _cleanTrigger.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadPetHygiene() async {
     // load pet stats, assuming petId is 1 for now, will be dynamic later
-    final hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
-
-    setState(() {
-      _hygiene = hygiene;
-    });
+    try {
+      final hygiene = await _petStatsDB.getPetStat(1, 'hygiene_level');
+      if (!mounted) return;
+      setState(() {
+        _hygiene = hygiene;
+      });
+    } catch (e) {
+      debugPrint('CleanScreen: failed to load hygiene ($e)');
+    }
   }
 
   Future<void> _cleanPet() async {

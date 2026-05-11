@@ -45,19 +45,26 @@ class _ShopState extends State<Shop> {
       _isLoading = true;
     });
 
-    final currency = await _shopDb.getUserCurrency(1);
-    final items = await _shopDb.getItemsByType(type);
-    final ownedIds = await _shopDb.getUserItems(1);
-    final quantities = await _shopDb.getUserItemQuantities(1);
+    try {
+      final currency = await _shopDb.getUserCurrency(1);
+      final items = await _shopDb.getItemsByType(type);
+      final ownedIds = await _shopDb.getUserItems(1);
+      final quantities = await _shopDb.getUserItemQuantities(1);
 
-    setState(() {
-      _coinBalance = currency;
-      _items = items;
-      _ownedItemIds = ownedIds.toSet();
-      _itemQuantities = quantities;
-      _currentType = type;
-      _isLoading = false;
-    });
+      if (!mounted) return;
+      setState(() {
+        _coinBalance = currency;
+        _items = items;
+        _ownedItemIds = ownedIds.toSet();
+        _itemQuantities = quantities;
+        _currentType = type;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      debugPrint('Shop: failed to load shop data ($e)');
+    }
   }
 
   void _showPurchaseDialog(Map<String, dynamic> item) {

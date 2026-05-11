@@ -33,13 +33,25 @@ class _FeedScreenState extends State<FeedScreen> {
 
   Future<void> _loadPetHunger() async {
     // Assuming userId is 1 for now, will be dynamic later
-    final hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
-    final food = await _foodDB.getFoodByUserId(1);
+    try {
+      final hunger = await _petStatsDB.getPetStat(1, 'hunger_level');
+      final food = await _foodDB.getFoodByUserId(1);
 
-    setState(() {
-      _hunger = hunger;
-      _food = food;
-    });
+      if (!mounted) return;
+      setState(() {
+        _hunger = hunger;
+        _food = food;
+      });
+    } catch (e) {
+      // getFoodByUserId throws on an empty inventory — that's a known
+      // design quirk. Treat it as "no food yet" rather than crashing.
+      if (!mounted) return;
+      setState(() {
+        _hunger = 0;
+        _food = [];
+      });
+      debugPrint('FeedScreen: failed to load hunger / food ($e)');
+    }
   }
 
   Future<void> _useFood(int foodId, int petId, int userId) async {

@@ -23,18 +23,29 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     AppDatabase.instance.database.then((db) {
+      if (!mounted) return;
       _petStatsDB = PetStatsDatabase(db);
       _loadPetStats();
     });
   }
 
+  @override
+  void dispose() {
+    _petTrigger.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadPetStats() async {
     // load pet stats, assuming petId is 1 for now, will be dynamic later
-    final enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
-
-    setState(() {
-      _enjoyment = enjoyment;
-    });
+    try {
+      final enjoyment = await _petStatsDB.getPetStat(1, 'enjoyment_level');
+      if (!mounted) return;
+      setState(() {
+        _enjoyment = enjoyment;
+      });
+    } catch (e) {
+      debugPrint('PlayScreen: failed to load enjoyment ($e)');
+    }
   }
 
   Future<void> _playWithPet() async {

@@ -30,7 +30,11 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? _currentPosition;
   final MapController _mapController = MapController();
 
+  // Stream subscriptions — held so dispose() can cancel them and stop
+  // the streams firing setState on a disposed widget.
   StreamSubscription<Position>? _positionStreamSubscription;
+  StreamSubscription<StepCount>? _stepCountSub;
+  StreamSubscription<PedestrianStatus>? _pedStatusSub;
 
   // Route Tracking
   final List<LatLng> _route = [];
@@ -53,6 +57,8 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
+    _stepCountSub?.cancel();
+    _pedStatusSub?.cancel();
     super.dispose();
   }
 
@@ -129,7 +135,10 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void onStepCount(StepCount event) async {
+  void onStepCount(StepCount event) {
+    // Pedometer fires on the platform thread; guard against the widget
+    // having been disposed between the platform emit and the Dart callback.
+    if (!mounted) return;
     setState(() {
       _steps = event.steps.toString();
 
@@ -150,18 +159,21 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void onPedestrianStatusChanged(PedestrianStatus event) {
+    if (!mounted) return;
     setState(() {
       _status = event.status;
     });
   }
 
   void onPedestrianStatusError(error) {
+    if (!mounted) return;
     setState(() {
       _status = 'Status not available';
     });
   }
 
   void onStepCountError(error) {
+    if (!mounted) return;
     setState(() {
       _steps = 'Unavailable';
     });
@@ -210,21 +222,26 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> initPlatformState() async {
     bool granted = await _checkActivityRecognitionPermission();
+    if (!mounted) return;
     if (!granted) {
       setState(() {
         _status = 'Permission denied';
       });
     }
 
+    // Hold on to the subscriptions so they can be cancelled in dispose().
+    // Without that, the streams keep firing onto a disposed widget.
     _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-    _pedestrianStatusStream
-        .listen(onPedestrianStatusChanged)
-        .onError(onPedestrianStatusError);
+    _pedStatusSub = _pedestrianStatusStream.listen(
+      onPedestrianStatusChanged,
+      onError: onPedestrianStatusError,
+    );
 
     _stepCountStream = Pedometer.stepCountStream;
-    _stepCountStream.listen(onStepCount).onError(onStepCountError);
-
-    if (!mounted) return;
+    _stepCountSub = _stepCountStream.listen(
+      onStepCount,
+      onError: onStepCountError,
+    );
   }
 
   @override

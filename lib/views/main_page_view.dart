@@ -38,15 +38,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPetStats() async {
-    double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
-    double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
-    double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
+    try {
+      double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
+      double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
+      double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
 
-    setState(() {
-      _hunger = hunger;
-      _enjoyment = enjoyment;
-      _hygiene = hygiene;
-    });
+      if (!mounted) return;
+      setState(() {
+        _hunger = hunger;
+        _enjoyment = enjoyment;
+        _hygiene = hygiene;
+      });
+    } catch (e) {
+      debugPrint('HomeScreen: failed to load pet stats ($e)');
+    }
   }
 
   Future<void> _loadGoalData() async {
