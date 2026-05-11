@@ -46,11 +46,17 @@ void main() {
       });
 
       test('[TR-STP-05] throws when user does not exist', () async {
-        // No user seeded — the existence guard inside recordSteps should fire.
+        // No user seeded — the existence guard inside recordSteps should fire
+        // with a message that interpolates the missing userId.
         expect(
           () => service.recordSteps(userId: 101, steps: 100),
-          throwsStateError,
-          reason: "User with this ID doesn't exist",
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('User with id 101 does not exist'),
+            ),
+          ),
         );
       });
 
@@ -93,19 +99,31 @@ void main() {
       test('[TR-STP-09] throws when user does not exist', () async {
         expect(
           () => service.awardBonusPoints(userId: 101, points: 10),
-          throwsStateError,
-          reason: "User with this ID doesn't exist",
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('User with id 101 does not exist'),
+            ),
+          ),
         );
       });
 
       test('[TR-STP-10] throws when points are zero or negative', () async {
         // 0 is the boundary value — exactly at the > 0 rejection rule.
+        // ArgumentError.message holds the explanatory string the production
+        // code passes in; .toString() makes it comparable with contains().
         final userId = await TestDatabase.seedUser(db, name: 'Test User', currency: 0);
 
         expect(
           () => service.awardBonusPoints(userId: userId, points: 0),
-          throwsArgumentError,
-          reason: 'Points must be > 0',
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message.toString(),
+              'message',
+              contains('Points must be greater than 0'),
+            ),
+          ),
         );
       });
     });
@@ -114,8 +132,13 @@ void main() {
       test('[TR-STP-11] throws when user does not exist', () async {
         expect(
           () => service.getAccountSummary(101),
-          throwsStateError,
-          reason: "User with this ID doesn't exist",
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('User with id 101 does not exist'),
+            ),
+          ),
         );
       });
 

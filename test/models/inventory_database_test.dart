@@ -67,10 +67,17 @@ void main() {
       test('[TR-INV-03] throws when the user has no food rows at all', () async {
         // KNOWN DESIGN AMBIGUITY: see docs/test_plan.md "Known issues".
         // The current implementation throws on empty results rather than
-        // returning []. Test pinned to current behaviour.
+        // returning []. Test pinned to current behaviour, including the
+        // specific message the production code raises.
         expect(
           () => inventoryDb.getFoodByUserId(999),
-          throwsA(isA<Exception>()),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Failed to get food: User not found'),
+            ),
+          ),
         );
       });
     });
@@ -119,7 +126,13 @@ void main() {
 
         expect(
           () => inventoryDb.useFood(foodId, 999),
-          throwsA(isA<Exception>()),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Failed to use food: User or item not found'),
+            ),
+          ),
         );
       });
 
@@ -129,7 +142,13 @@ void main() {
 
         expect(
           () => inventoryDb.useFood(999, userId),
-          throwsA(isA<Exception>()),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Failed to use food: User or item not found'),
+            ),
+          ),
         );
       });
     });

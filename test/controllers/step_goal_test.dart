@@ -136,19 +136,31 @@ void main() {
 
       test('[TR-GOAL-20] rejects goal of 0 steps', () async {
         // 0 is the boundary value — exactly at the <= 0 rejection rule.
-        try {
-          await stepGoalController.updateGoal(0);
-        } catch (e) {
-          expect(e.toString(), contains('Invalid goal value'));
-        }
+        // expect(throwsA) — not a try/catch — so the test fails if the
+        // function ever stops throwing.
+        expect(
+          () => stepGoalController.updateGoal(0),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Invalid goal value'),
+            ),
+          ),
+        );
       });
 
       test('[TR-GOAL-21] rejects negative goal', () async {
-        try {
-          await stepGoalController.updateGoal(-100);
-        } catch (e) {
-          expect(e.toString(), contains('Invalid goal value'));
-        }
+        expect(
+          () => stepGoalController.updateGoal(-100),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Invalid goal value'),
+            ),
+          ),
+        );
       });
 
       test('[TR-GOAL-22] rejects goal just below preferred minimum (249 steps)', () async {
@@ -261,11 +273,16 @@ void main() {
         // Duplicate-flavour test of negative-input rejection (TR-GOAL-21
         // already covers -100; this covers -50). Kept for completeness
         // because the original suite tested it separately.
-        try {
-          await stepGoalController.updateGoal(-50);
-        } catch (e) {
-          expect(e.toString(), contains('Invalid goal value'));
-        }
+        expect(
+          () => stepGoalController.updateGoal(-50),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Invalid goal value'),
+            ),
+          ),
+        );
       });
 
       test('[TR-GOAL-31] init correctly initialises with test database', () async {

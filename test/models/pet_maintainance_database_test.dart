@@ -383,7 +383,7 @@ void main() {
         // real column on the little_guy table.
         expect(
           () => petDb.updatePetStat(1, 'unknown_stat', 1.0),
-          throwsA(isA<Exception>()),
+          throwsA(isA<DatabaseException>()),
         );
       });
     });
