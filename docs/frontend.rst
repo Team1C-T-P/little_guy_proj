@@ -513,14 +513,85 @@ A reusable widget that renders a filled progress bar, used to display the pet's 
 button.dart
 ~~~~~~~~~~~
 
-A reusable styled button widget used throughout the app to maintain a consistent button appearance without duplicating code.
+A reusable styled button widget used throughout the application to maintain a consistent primary action appearance without duplicating styling code.
 
-.. note::
-   Add detail on the parameters accepted (e.g. label, onPressed callback, style variant) and usage examples.
+This widget is implemented as a stateless wrapper around Flutter’s ``ElevatedButton`` and is named ``GreenButton``.
+
+It is designed to standardise the app’s primary action buttons (e.g. submit actions, purchase actions, confirmations) by enforcing a consistent colour and text style.
+
+Widget Parameters
+^^^^^^^^^^^^^^^^^
+
+The ``GreenButton`` constructor requires two parameters:
+
+- ``buttonText``: The label displayed inside the button
+- ``onPressed``: A callback function triggered when the button is tapped
+
+Styling
+^^^^^^^
+
+The button uses a fixed green colour defined using:
+
+``Color.fromARGB(255, 159, 239, 167)``
+
+This aligns with the app’s overall soft green theme used across UI elements such as gradients and navigation accents.
+
+The text styling is derived from the current theme using:
+
+- ``DefaultTextStyle.of(context).style``
+
+This ensures the button text remains consistent with surrounding typography while allowing scalable sizing via ``fontSizeFactor``.
+
+Behaviour
+^^^^^^^^^
+
+- The button triggers the provided ``onPressed`` callback when tapped
+- It does not manage internal state
+- It is fully stateless and reusable across all screens
+
+Usage Example
+^^^^^^^^^^^^^
+
+The widget is typically used in forms and action panels where a single primary action is required.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+    GreenButton(
+      buttonText: 'Create Profile',
+      onPressed: _saveProfile,
+    )
+
+Code
+^^^^
+
+.. code-block:: dart
+
+    import 'package:flutter/material.dart';
+
+    class GreenButton extends StatelessWidget {
+      const GreenButton({
+        super.key,
+        required this.buttonText,
+        required this.onPressed,
+      });
+
+      final String buttonText;
+      final VoidCallback onPressed;
+
+      @override
+      Widget build(BuildContext context) {
+        return ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 159, 239, 167),
+          ),
+          onPressed: onPressed,
+          child: Text(
+            buttonText,
+            style: DefaultTextStyle.of(context).style.apply(fontSizeFactor: 1),
+          ),
+        );
+      }
+    }
 
 little_guy.dart
 ~~~~~~~~~~~~~~~
