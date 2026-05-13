@@ -369,12 +369,62 @@ play_view.dart
 
 The main Home screen where the Little Guy is displayed. Shows the pet's current stats (hunger, hygiene, enjoyment) and allows the user to interact with their pet.
 
-.. note::
-   Add detail on how the Flame game widget is embedded, how stat bars are rendered, and what interactions are available.
+.. code-block:: dart
+
+  Future<void> _playWithPet() async {
+    if (_enjoyment >= 1.0) return;
+
+    // Start playing animation
+    _petTrigger.value = true;
+
+    // Calculate new enjoyment value
+    final newEnjoyment = _enjoyment + 0.25 > 1.0 ? 1.0 : _enjoyment + 0.25;
+
+    // Update database
+    await _petStatsDB.updatePetStat(1, 'enjoyment_level', newEnjoyment);
+
+    // Grant XP (5 XP per play)
+    final db = await AppDatabase.instance.database;
+    final levelService = LevelService(db);
+    final levelResult = await levelService.addXp(1, 5);
+
+    // Refresh UI
+    await _loadPetStats();
+
+    // Show level‑up snackbar if needed
+    if (levelResult['leveledUp'] == 1 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your Little Guy reached level ${levelResult['level']}!',
+          ),
+        ),
+      );
+    }
+  }
+
+Here _playWithPet is used when the user clicks the little guy. If the enjoyment is below 1, it'll start the logic. First starting the animation with _petTrigger.value, calculating the new enjoyment values, updating the DB and granting the xp.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+          Container(
+            alignment: Alignment.bottomCenter,
+            color: Color.fromARGB(255, 221, 249, 255),
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  _playWithPet();
+                },
+                child: SizedBox(
+                  width: 300,
+                  height: 360,
+                  child: PetLittleGuy(trigger: _petTrigger),
+                ),
+              ),
+            ),
+          ),
+
+This is  where _playWithPet(); gets called.
 
 shop_view.dart
 ~~~~~~~~~~~~~~
@@ -417,12 +467,40 @@ The Dress screen where users equip and unequip hats and accessories on their Lit
 clean_view.dart
 ~~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of the Clean screen — what the user does here and how the hygiene stat is updated.
+This is where the user can clean the little guy. Once they click the button, a short animation is done, and the _hygiene stat is updated.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<void> _cleanPet() async {
+    if (_hygiene >= 1.0) return;
+
+    // Start cleaning animation
+    _cleanTrigger.value = true;
+
+    // Update pet's hygiene level to maximum (1.0)
+    await _petStatsDB.updatePetStat(1, 'hygiene_level', 1.0);
+
+    // Grant XP (5 XP per cleaning)
+    final db = await AppDatabase.instance.database;
+    final levelService = LevelService(db);
+    final levelResult = await levelService.addXp(1, 5);
+
+    // Refresh data after cleaning
+    await _loadPetHygiene();
+
+    // Show level‑up snackbar if needed
+    if (levelResult['leveledUp'] == 1 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your Little Guy reached level ${levelResult['level']}!',
+          ),
+        ),
+      );
+    }
+  }
+
+This is whats called when the button is clicked. If the hygiene is lower than 1, then the animation plays, it updates the pet's hygine to max, grants xp, and refreshes.
 
 map_view.dart
 ~~~~~~~~~~~~~
@@ -471,12 +549,52 @@ The Community screen with a social feed and leaderboard.
 feed_view.dart
 ~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of the Feed view — what posts or activity entries it shows and how they are loaded.
+The feed page is used to allow the user to chose the food they would like to feed the little guy, then to do so.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<void> _useFood(int foodId, int petId, int userId) async {
+    // Look up the food row defensively — if the inventory has changed
+    // between render and tap (e.g. a shop purchase mutated _food), we
+    // treat a missing entry as "quantity 0" and bail rather than throw.
+    final foodItem = _food.firstWhere(
+      (item) => item['item_id'] == foodId,
+      orElse: () => const <String, dynamic>{'quantity': 0},
+    );
+    if ((foodItem['quantity'] as int) <= 0 || _hunger >= 1.0) {
+      return;
+    }
+
+    // Update inventory (consume food)
+    await _foodDB.useFood(foodId, userId);
+
+    // Calculate new hunger value (capped at 1.0)
+    double newHunger = (_hunger + 0.2) > 1.0 ? 1.0 : _hunger + 0.2;
+
+    // Update pet's hunger in database
+    await _petStatsDB.updatePetStat(petId, 'hunger_level', newHunger);
+
+    // Grant XP (5 XP per feeding)
+    final db = await AppDatabase.instance.database;
+    final levelService = LevelService(db);
+    final levelResult = await levelService.addXp(userId, 5);
+
+    // Refresh UI
+    await _loadPetHunger();
+
+    // Show level‑up snackbar if needed
+    if (levelResult['leveledUp'] == 1 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your Little Guy reached level ${levelResult['level']}!',
+          ),
+        ),
+      );
+    }
+  }
+
+Here, one of the things _useFood passes through is foodId, so that when the user selects a food, it send to _useFood. await _foodDB.useFood, actually does the decreasing by one of the food, then it calculates the new hunger, and updates the stats using _petStatsDB.updatePetStat.
 
 profile_view.dart
 ~~~~~~~~~~~~~~~~~

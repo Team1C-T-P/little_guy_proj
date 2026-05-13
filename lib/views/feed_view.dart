@@ -75,7 +75,7 @@ class _FeedScreenState extends State<FeedScreen> {
     // Update pet's hunger in database
     await _petStatsDB.updatePetStat(petId, 'hunger_level', newHunger);
 
-    // ✅ Grant XP (5 XP per feeding)
+    // Grant XP (5 XP per feeding)
     final db = await AppDatabase.instance.database;
     final levelService = LevelService(db);
     final levelResult = await levelService.addXp(userId, 5);
@@ -88,7 +88,7 @@ class _FeedScreenState extends State<FeedScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '🎉 Your Little Guy reached level ${levelResult['level']}! 🎉',
+            'Your Little Guy reached level ${levelResult['level']}!',
           ),
         ),
       );
@@ -182,15 +182,16 @@ class _FeedScreenState extends State<FeedScreen> {
                         color: const Color.fromARGB(219, 246, 255, 226),
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child:_food.isEmpty
+                      child: _food.isEmpty
                           ? Center(child: Text('No food owned yet!'))
                           : GridView.builder(
                               padding: const EdgeInsets.all(10),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                              ),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 4,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                  ),
                               itemCount: _food.length,
                               itemBuilder: (context, index) {
                                 final foodItem = _food[index];
@@ -227,9 +228,8 @@ class _FeedScreenState extends State<FeedScreen> {
                                                   242,
                                                   176,
                                                 ),
-                                                borderRadius: BorderRadius.circular(
-                                                  4,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                               ),
                                               child: Text(
                                                 'x$quantity',

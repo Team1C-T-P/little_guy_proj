@@ -36,6 +36,7 @@ class AppDatabase {
   // v1 -> v2 added the achievement + user_achievement tables. CREATE IF NOT
   // EXISTS keeps this safe for installs that somehow already have them.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    //Achievements tables are for future development, as updating the DB with a new table afterwards can make issues and implimenting it now has no negative drawbacks.
     if (oldVersion < 2) {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS achievement (
@@ -236,14 +237,20 @@ CREATE TABLE little_guy (
 
   // Inserts a finished walk into the summary table.
   // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
-  Future<int> insertWalkSummary(Map<String, dynamic> walkData, {Database? db}) async {
+  Future<int> insertWalkSummary(
+    Map<String, dynamic> walkData, {
+    Database? db,
+  }) async {
     final theDb = db ?? await instance.database;
     return await theDb.insert('walk_summary', walkData);
   }
 
   // Returns up to the 10 most recent walk summaries for the user, newest first.
   // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
-  Future<List<Map<String, dynamic>>> getRecentWalkSummaries(int userId, {Database? db}) async {
+  Future<List<Map<String, dynamic>>> getRecentWalkSummaries(
+    int userId, {
+    Database? db,
+  }) async {
     final theDb = db ?? await instance.database;
     return await theDb.query(
       'walk_summary',
@@ -256,7 +263,10 @@ CREATE TABLE little_guy (
 
   // Returns the user's top 3 walks by step count, highest first.
   // [db] is optional — defaults to the singleton, tests inject an in-memory DB.
-  Future<List<Map<String, dynamic>>> getTopWalkSummaries(int userId, {Database? db}) async {
+  Future<List<Map<String, dynamic>>> getTopWalkSummaries(
+    int userId, {
+    Database? db,
+  }) async {
     final theDb = db ?? await instance.database;
     return await theDb.query(
       'walk_summary',
