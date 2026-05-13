@@ -398,7 +398,21 @@ The Dress screen where users equip and unequip hats and accessories on their Lit
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<void> _loadEquippedHat() async {
+    try {
+      final db = await AppDatabase.instance.database;
+      final dressDb = DressDatabase(db);
+      final equipped = await dressDb.getEquippedHat(1);
+      if (!mounted) return;
+      if (equipped != null) {
+        setState(() {
+          _selectedHatId = equipped['item_id'] as int;
+        });
+      }
+    } catch (e) {
+      debugPrint('DressUp: failed to load equipped hat ($e)');
+    }
+  }
 
 clean_view.dart
 ~~~~~~~~~~~~~~~
@@ -471,7 +485,7 @@ The Profile screen shows the Achiveements, Lvl (xp and level) and account detail
 
 The code is a mix of backend logic and frontend code. There are also some testing only functions here for the profile, to make sure that it works properly, since this is the core of the progression of the game. (giving feedback for walking and interacting with the app)
 
-The core is SharedPreferences, it uses a simple Key/Value pair as local storage outside of the DB, providing simple implimentation. However future development will replace this with the achivement and user_achivements table, thats in the database.dart file currently. 
+The core is SharedPreferences, it uses a simple Key/Value pair as local storage outside of the DB, providing simple implimentation. However future development will replace this with the achivement and user_achivements table, thats in the database.dart file currently. (This is since for deployment, it's best to have an empty table then no table, preventing issues.)
 
 .. code-block:: dart
 
