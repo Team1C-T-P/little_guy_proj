@@ -6,12 +6,13 @@ import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import 'package:flutter_flame_playground/models/dress_database.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_flame_playground/services/level_service.dart';
+import 'package:flutter_flame_playground/utils/achievement_utils.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   State<ProfileScreen> createState() => _ProfileState();
 }
@@ -38,39 +39,24 @@ class _ProfileState extends State<ProfileScreen> {
   bool _mvpCompleted = false;
   final int _userId = 1; // Assuming single user per phone with ID 1
   bool _wealthyCompleted = false;
-  // Named so dispose() can pass the same reference to removeListener.
-  // An anonymous closure can't be removed.
-  late final VoidCallback _goalListener;
 
   @override
   void initState() {
     super.initState();
     AppDatabase.instance.database.then((db) async {
-      if (!mounted) return;
       _stepPointsService = StepPointsService(db);
       final prefs = await SharedPreferences.getInstance();
-      if (!mounted) return;
       setState(() {
         _madHatterCompleted = prefs.getBool('madHatterClaimed') ?? false;
         _bigWalkCompleted = prefs.getBool('bigWalkClaimed') ?? false;
         _wealthyCompleted = prefs.getBool('wealthyClaimed') ?? false;
         _mvpCompleted = prefs.getBool('mvpClaimed') ?? false;
-        // Let's Play unlocks when play_view writes letsPlayClaimed after
-        // the 20th play. Key names mirror the other achievement flags.
-        _letsPlayCompleted = prefs.getBool('letsPlayClaimed') ?? false;
       });
       _loadData();
     });
-    _goalListener = () {
+    _goalController.addListener(() {
       if (mounted) setState(() {});
-    };
-    _goalController.addListener(_goalListener);
-  }
-
-  @override
-  void dispose() {
-    _goalController.removeListener(_goalListener);
-    super.dispose();
+    });
   }
 
   Future<void> _loadData() async {
@@ -102,12 +88,12 @@ class _ProfileState extends State<ProfileScreen> {
       final ownedHats = await dressDb.getHatsOwnedByUser(_userId);
       _hatsCollected = ownedHats.length;
 
-      // Check achievements. MVP requires the freshly-fetched level, so
-      // we read levelData first and only call _checkMVPAchievement after.
+      // Check achivements
       await _checkMadHatterAchievement();
       await _checkBigWalkAchievement(summary.totalSteps);
       await _checkWealthyAchievement(summary.currency);
       await _checkTrailBlazerAchievement();
+      await _checkMVPAchievement(_currentLevel);
 
       final levelService = LevelService(db);
       final levelData = await levelService.getLevelAndXp(_userId);
@@ -136,10 +122,6 @@ class _ProfileState extends State<ProfileScreen> {
       setState(() => _trailBlazerCompleted = claimed);
     }
   }
-
-  // checkAndUnlockTrailBlazer used to be defined here too, identical to
-  // the one in lib/utils/achievement_utils.dart. Removed to kill the
-  // duplicate — the utils version is what summary_view.dart actually calls.
 
   Future<void> _checkMVPAchievement(int currentLevel) async {
     final prefs = await SharedPreferences.getInstance();
@@ -170,21 +152,18 @@ class _ProfileState extends State<ProfileScreen> {
     final alreadyClaimed = prefs.getBool('madHatterClaimed') ?? false;
 
     if (alreadyClaimed) {
-      if (!_madHatterCompleted && mounted) {
+      if (!_madHatterCompleted) {
         setState(() => _madHatterCompleted = true);
       }
       return;
     }
 
     if (_hatsCollected >= 5) {
-      if (!mounted) return;
       setState(() => _madHatterCompleted = true);
       await prefs.setBool('madHatterClaimed', true);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mad Hatter achievement unlocked!')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mad Hatter achievement unlocked!')),
+      );
     }
   }
 
@@ -231,52 +210,6 @@ class _ProfileState extends State<ProfileScreen> {
           ),
         );
       }
-    }
-  }
-
-  Future<void> _recordTestSteps(int steps) async {
-    try {
-      final result = await _stepPointsService.recordSteps(
-        userId: 1,
-        steps: steps,
-      );
-      await _goalController.refreshSteps();
-
-      final db = await AppDatabase.instance.database;
-      final levelService = LevelService(db);
-
-      final levelResult = await levelService.addXp(_userId, steps ~/ 100);
-
-      // Check achievements
-      await _checkBigWalkAchievement(result.totalSteps);
-      await _checkWealthyAchievement(result.updatedCurrency);
-
-      if (!mounted) return;
-      setState(() {
-        _totalSteps = result.totalSteps;
-        _currency = result.updatedCurrency;
-        _leftoverSteps = result.unconvertedSteps;
-        _currentSteps = _goalController.currentSteps;
-        _status =
-            'Recorded ${result.recordedSteps} steps | +${result.pointsAwarded} points';
-
-        _currentLevel = levelResult['level']!;
-        _currentXp = levelResult['xp']!;
-        _xpProgress = _currentXp / 100.0;
-      });
-
-      if (levelResult['leveledUp'] == 1 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Your Little Guy reached level ${levelResult['level']}! ',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _status = 'Failed to record steps: $e');
     }
   }
 
@@ -367,7 +300,6 @@ class _ProfileState extends State<ProfileScreen> {
                               Row(
                                 children: [
                                   Align(
-                                    // no const, because even if text is static now, we mix with dynamic
                                     alignment: Alignment.center,
                                     child: Column(
                                       crossAxisAlignment:
@@ -375,7 +307,6 @@ class _ProfileState extends State<ProfileScreen> {
                                       children: [
                                         Column(
                                           children: [
-                                            // keep const for static children
                                             Text(
                                               "Big Walk",
                                               style: TextStyle(
@@ -391,7 +322,6 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text(
-                                              // dynamic
                                               _bigWalkCompleted
                                                   ? "Completed"
                                                   : "Not completed",
@@ -433,9 +363,8 @@ class _ProfileState extends State<ProfileScreen> {
                                       ],
                                     ),
                                   ),
-                                  const Spacer(), // Spacer can stay const
+                                  const Spacer(),
                                   Align(
-                                    // no const – contains dynamic _madHatterCompleted
                                     alignment: Alignment.topLeft,
                                     child: Column(
                                       crossAxisAlignment:
@@ -458,7 +387,6 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text(
-                                              // dynamic – cannot be const
                                               _wealthyCompleted
                                                   ? "Completed"
                                                   : "Not completed",
@@ -487,7 +415,6 @@ class _ProfileState extends State<ProfileScreen> {
                                               ),
                                             ),
                                             Text(
-                                              // dynamic – cannot be const
                                               _madHatterCompleted
                                                   ? "Completed"
                                                   : "Not completed",
@@ -503,7 +430,6 @@ class _ProfileState extends State<ProfileScreen> {
                                   ),
                                   const Spacer(),
                                   Align(
-                                    // no const – contains dynamic _bigWalkCompleted, etc.
                                     alignment: Alignment.topLeft,
                                     child: Column(
                                       crossAxisAlignment:

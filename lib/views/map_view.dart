@@ -11,7 +11,6 @@ import 'package:flutter_flame_playground/utils/location_service.dart';
 import 'package:flutter_flame_playground/views/routes_view.dart';
 import 'package:flutter_flame_playground/views/summary_view.dart';
 import 'package:flutter_flame_playground/widgets/button.dart';
-import 'package:flutter_flame_playground/utils/achievement_utils.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});

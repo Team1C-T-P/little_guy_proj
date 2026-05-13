@@ -637,9 +637,47 @@ level_service.dart
 
 .. code-block:: dart
 
-    // insert important code
+    Future<Map<String, int>> getLevelAndXp(int userId) async {
+      final result = await db.query(
+        'little_guy',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+        limit: 1,
+      );
+      if (result.isEmpty) return {'level': 1, 'xp': 0};
+      return {
+        'level': result.first['level'] as int,
+        'xp': result.first['xp'] as int,
+      };
+    }
 
-// explain code
+Here, the database is queried to see what the users current level is, storing it inside result. If the result is empty, the level is returned at 1 with no xp. It it has contents it'll set both as what was given by the db.
+
+.. code-block:: dart
+
+  Future<Map<String, int>> addXp(int userId, int gainedXp) async {
+    var data = await getLevelAndXp(userId);
+    int level = data['level']!;
+    int xp = data['xp']! + gainedXp;
+
+    bool leveledUp = false;
+    while (xp >= 100) {
+      level++;
+      xp -= 100;
+      leveledUp = true;
+    }
+
+    // Update database
+    await db.update(
+      'little_guy',
+      {'level': level, 'xp': xp},
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    return {'level': level, 'xp': xp, 'leveledUp': leveledUp ? 1 : 0};
+
+This part gets called throughout the code, when a user does something that gains xp. It also deals with level ups, doing so when xp is over or equals to 100.
 
 Utils
 -----
@@ -647,13 +685,39 @@ Utils
 achievement_utils.dart
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Provides helper functions for checking and unlocking achievements stored in the database.
+Provides helper functions for checking achivements. This only does so for the Trail Blazer achivement, since its the only one needed outside profile page (i can't import the entire page, since it would be inefficent)
 
 .. code-block:: dart
 
-    // insert important code
+  Future<void> checkAndUnlockTrailBlazer(BuildContext context, int userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyClaimed = prefs.getBool('trailBlazerClaimed') ?? false;
+    if (alreadyClaimed) return;
 
-// explain code
+    final db = await AppDatabase.instance.database;
+    final count =
+        Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM route WHERE user_id = ?', [
+            userId,
+          ]),
+        ) ??
+        0;
+
+    if (count >= 1) {
+      await prefs.setBool('trailBlazerClaimed', true);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Trail Blazer achievement unlocked! You saved your first route!',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+This basically works like the other achivements. Checks if something is true, if it is, trailBlazerClaimed is true.
 
 last_online_updater.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~
