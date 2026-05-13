@@ -11,9 +11,60 @@ hat_state.dart
 
 .. code-block:: dart
 
-    // insert important code
+Future<int> _resolveLittleGuyId() async {
+    if (_littleGuyId != null) return _littleGuyId!;
+    final db = await AppDatabase.instance.database;
+    final rows = await db.query(
+      'little_guy',
+      columns: ['little_guy_id'],
+      where: 'user_id = ?',
+      whereArgs: [_userId],
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      throw StateError('No little_guy row for user_id $_userId');
+    }
+    _littleGuyId = rows.first['little_guy_id'] as int;
+    return _littleGuyId!;
+  }
 
-// explain code
+``_resolveLittleGuyId`` looks up the little_guy_id for the current user from the database and cachine the result in _littleGuyId and is reused, so that when it is called again, it doesn't have to use the database. It is used by equipHat, unEquipHat and loadFromDb so that hat changes are correctly applied to the little guy
+
+.. code-block:: dart
+  // load hat from db and notify listeners, which is the little guy.dart
+  Future<void> loadFromDb() async {
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
+    final hat = await dressDb.getEquippedHat(await _resolveLittleGuyId());
+    equippedHatPath = hat?['image_path'] as String?;
+    notifyListeners();
+  }
+
+``loadFromDb`` queries the database to fetch the currently equipped hat using the getEquippedHat function in dress_database.dart. On startup its called to restore the gat the user equipped in the last session.
+
+.. code-block:: dart
+  // equip hat
+  Future<void> equipHat(int itemId, String imagePath) async {
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
+    await dressDb.equipHat(await _resolveLittleGuyId(), itemId);
+    equippedHatPath = imagePath;
+    notifyListeners();
+  }
+
+``equipHat`` saves the chosen hat to the database and updates the equippedHatPath to the new hat path. It then notifies little_guy.dart to re-render the little guy with the new equipped hat.
+
+.. code-block:: dart
+  // unequip hat
+  Future<void> unequipHat() async {
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
+    await dressDb.unequipHat(await _resolveLittleGuyId());
+    equippedHatPath = null;
+    notifyListeners();
+  }
+
+``unequipHat`` removes the equipped hat from the database, and also clears the cached hat path. It then notifies the little_guy.dart to re-render the little guy without the hat.
 
 step_goal_controller.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,9 +98,78 @@ dress_database.dart
 
 .. code-block:: dart
 
-    // insert important code
+    Future<List<Map<String, dynamic>>> getHatsOwnedByUser(int userId) async {
+    return await _db.rawQuery(
+      '''
+      SELECT
+        item.item_id,
+        item.item_name,
+        item.image_path,
+        item.price,
+        item.type
+      FROM inventory
+      JOIN item on inventory.item_id = item.item_id
+      WHERE inventory.user_id = ?
+      AND item.type = 'hat'
+  ''',
+      [userId],
+    );
+  }
 
-// explain code
+``getHatsOwnedByUser`` uses the userId which is 1, to return information on the hat, such as its name, id, image path and type so that when the dress_view.dart is intialised, those variables are saved to a Map, containing that information to be used when other functions are called. THis is then used to populate the grid where the user can select a hat to wear
+
+.. code-block:: dart
+
+    Future<void> equipHat(int littleGuyId, int itemId) async {
+    // remove currently equipped hat
+    await _db.delete(
+      'little_guy_wearing',
+      where: 'little_guy_id = ?',
+      whereArgs: [littleGuyId],
+    );
+
+    // equip new hat
+    await _db.insert('little_guy_wearing', {
+      'little_guy_id': littleGuyId,
+      'item_id': itemId,
+    });
+  }
+
+``equipHat`` equips a hat to the little guy by first deleting the little_guy_id from the little_guy_wearing table, this is done because there can be only 1 pet per person, hence the choice to delete the record. Then to equip the hat, the function performs an insertion query to the little_guy_wearing table with the item_id, which is the hat. The itemId is provided from the dress_view.dart using the Map variable called hat, which has item_id stored to being called when the user taps a hat in the dress_view.dart
+
+.. code-block:: dart
+
+  // unequip hat to the db
+  Future<void> unequipHat(int littleGuyId) async {
+    await _db.delete(
+      'little_guy_wearing',
+      where: 'little_guy_id = ?',
+      whereArgs: [littleGuyId],
+    );
+  }
+
+``unequipHat`` takes the littleGuyId provided by the Map variable hat when called in the dress_view.dart when the user taps a selected hat and queries the database to delete the record matching with the little_guy_id, removing the record of the hat being equipped to the little guy. 
+
+.. code_block:: dart
+
+  // get equipped hat from db
+  Future<Map<String, dynamic>?> getEquippedHat(int littleGuyId) async {
+    final result = await _db.rawQuery(
+      '''
+    SELECT item.item_id, item.image_path
+    FROM little_guy_wearing
+    JOIN item ON item.item_id = little_guy_wearing.item_id
+    WHERE little_guy_wearing.little_guy_id = ?
+    LIMIT 1
+  ''',
+      [littleGuyId],
+    );
+
+    if (result.isEmpty) return null;
+    return result.first;
+  }
+
+``getEquippedHat`` returns the hat being worn by the little guy for use in the hat_state.dart. The function performs a select query on the database using the littleGuyId provided in hat_state.dart and returns the item_id and image_path from little_guy_wearing, so that the hat_state can use the hat selected and display the selected hat onto the UI.
 
 goal_service_database.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -306,9 +426,147 @@ shop_database.dart
 
 .. code-block:: dart
 
-    // insert important code
+  Future<List<Map<String, dynamic>>> getItemsByType(String type) async {
+    return await _db.query('item', where: 'type = ?', whereArgs: [type]);
+  }
 
-// explain code
+``getItemsByType`` queries the database for all the items in the database, which are food and hats, returining a list of items with the type 'food' or 'hat. This function is called in the shop_view.dart when the user switches between buying food and clothes to load the relevant items. 
+
+.. code-block::dart
+
+  // get user currency
+  Future<int> getUserCurrency(int userId) async {
+    final users = await _db.query(
+      'user',
+      columns: ['currency'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+    if (users.isEmpty) return 0;
+    return users.first['currency'] as int;
+  }
+
+``getUserCurrency`` queries the database using the userId provided when called from the shop_view.dart. This returns the total amount of currency as an int, which the user has from the database. The use for this is so that when purchasing items, the user can see if they have enough money before buying an item
+
+.. code_block:: dart
+  // check if user owns item
+  Future<bool> userOwnsItem(int userId, int itemId) async {
+    final result = await _db.query(
+      'inventory',
+      where: 'user_id = ? AND item_id = ?',
+      whereArgs: [userId, itemId],
+    );
+    return result.isNotEmpty;
+  }
+
+``userOwnsItems`` checks for items owned by the user. This performs a select query on the inventory table, where the userId and an itemId and returns a .isNotEmpty result to show that there is an item that matches that item_id. This is used when purchasing a hat and it checks if they already own that hat, to prevent them from buying two of the same hat
+
+.. code-block:: dart
+  // purchase item if not owned
+  Future<String> purchaseItem(int userId, int itemId) async {
+    /*
+    get item type
+    - if hat can buy normally
+    - if food, check if in inventory, if yes then increment quantity
+    */
+    final items = await _db.query(
+      'item',
+      where: 'item_id = ?',
+      whereArgs: [itemId],
+    );
+
+    if (items.isEmpty) return 'Item not found';
+
+    final itemType = items.first['type'] as String;
+    final itemPrice = items.first['price'] as int;
+
+    // check if user already owns a hat
+    if (itemType == 'hat' && await userOwnsItem(userId, itemId)) {
+      return 'already_owned';
+    }
+
+    // get user currency
+    final users = await _db.query(
+      'user',
+      columns: ['currency'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    final userCurrency = users.first['currency'] as int;
+
+    // check if user has enough money
+    if (userCurrency < itemPrice) return 'insufficient_funds';
+
+    // purchase transaction
+    await _db.transaction((txn) async {
+      // deduct money
+      await txn.update(
+        'user',
+        {'currency': userCurrency - itemPrice},
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+
+      // add/update inventory
+      final exists = await txn.query(
+        'inventory',
+        where: 'user_id = ? AND item_id = ?',
+        whereArgs: [userId, itemId],
+      );
+
+      if (exists.isNotEmpty) {
+        // food exists in inventory, increment quantity
+        final currentQuantity = exists.first['quantity'] as int;
+        await txn.update(
+          'inventory',
+          {'quantity': currentQuantity + 1},
+          where: 'user_id = ? AND item_id = ?',
+          whereArgs: [userId, itemId],
+        );
+      } else {
+        // new food item - add to inventory
+        await txn.insert('inventory', {
+          'user_id': userId,
+          'item_id': itemId,
+          'quantity': 1,
+        });
+      }
+    });
+
+    return 'success';
+  }
+
+``purchaseItem`` allows a user to purchase an item, whether it is a hat or food. It takes the itemId, which is taken from the shop_view.dart when the function is called, and queires the database to check if the item can be found and returns an items variable. If the item can be found, the item type and currency are saved into separate variables, itemType and itemPrice. The function then checks if the user already owns an item using the userOwnsItem function defined earlier, and if they do it returns 'already_owned'. The function then retrieves the userCurrency using the userId, where it then compares the itemPrice to the userCurrency, and returns 'insufficient_funds' if the userCurrency is lower than the itemPrice. The function then performs a transaction, where the itemPrice is deducted from the user table. A query is then performed to check if a food item is in the user's inventory. If the food is in the inventory, a transaction is executed to increment the quantity in the inventory table using the userId and itemId, otherwise if there isn't any food, then the food item is inserted into the table with the userId, item_id and a quantity of 1. The funciton returns a 'success' message so that the UI can confirm that the item was purchased
+
+.. code-block:: dart
+  // get quantities for all user's inventory
+  Future<Map<int, int>> getUserItemQuantities(int userId) async {
+    final inventory = await _db.query(
+      'inventory',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    Map<int, int> quantities = {};
+    for (var item in inventory) {
+      quantities[item['item_id'] as int] = item['quantity'] as int;
+    }
+
+    return quantities;
+  }
+
+``getUserItemQuantities`` returns a Map of quantities, that contains the item_id of an item and its quantity. It does this by querying the inventory table for items using the userId. If the user doesn't own anything, it will return an empty map. This map is used in shop_view.dart in _loadShopData and storing it in _itemQuantities.
+
+.. code-block:: dart
+
+  Future<int> getTotalShopItems() async {
+    final result = await _db.rawQuery('SELECT COUNT(*) as count FROM item');
+    return (result.first['count'] as int);
+  }
+
+``getTotalShopItems`` counts and returns the total number of items in the shop's item table as an integer, this function is mainly used for testing.
+
 
 step_points_service.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~
