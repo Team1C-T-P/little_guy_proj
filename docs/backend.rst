@@ -65,11 +65,226 @@ goal_service_database.dart
 pet_maintainance_database.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``PetStatsDatabase`` reads and writes the virtual pet's stats (hunger, hygiene, enjoyment) and the owning user's profile data.
+``pet_maintainance_database`` reads and writes the virtual pet's stats (hunger, hygiene, enjoyment) and the owning user's profile data.
+
+``getUserName``
 
 .. code-block:: dart
 
-    // insert important code
+    Future<String?> getUserName(int userId) async {
+        final result = await _db.query(
+          'user',
+          columns: ['user_name'],
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        if (result.isEmpty) throw Exception('Failed to get user name: User not found');
+        return result.first['user_name'] as String;
+    }
+
+// explain code
+
+``getPetName``
+
+.. code-block:: dart
+
+    Future<String?> getPetName(int userId) async {
+        final result = await _db.query(
+          'little_guy',
+          columns: ['little_guy_name'],
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        if (result.isEmpty) throw Exception('Failed to get pet name: Pet not found');
+        return result.first['little_guy_name'] as String;
+      }
+
+// explain code
+
+``getPetStat``
+
+.. code-block:: dart
+
+    Future<double> getPetStat(int petId, String stat) async {
+        const allowedStats = {'hunger_level', 'hygiene_level', 'enjoyment_level'};
+
+        if (!allowedStats.contains(stat)) {
+          throw Exception('Stat does not exist');
+        }
+
+        final stats = await _db.query(
+          'little_guy',
+          columns: [stat],
+          where: 'little_guy_id = ?',
+          whereArgs: [petId],
+        );
+        // Throw on missing pet to match the rest of this class (getUserName,
+        // getPetName, getLastOnlineByUserId all throw). Returning 0 silently
+        // masked the missing-row case at every call site.
+        if (stats.isEmpty) {
+          throw Exception('Failed to get pet stat: Pet not found');
+        }
+        return (stats.first[stat] as int).toDouble() / 100;
+      }
+
+// explain code
+
+``getLastOnlineByUserId``
+
+.. code-block:: dart
+
+    Future<String?> getLastOnlineByUserId(int userId) async {
+        final result = await _db.query(
+          'user',
+          columns: ['last_online'],
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        if (result.isEmpty) {
+          throw Exception('Failed to get last online time: User not found');
+        };
+        return result.first['last_online'] as String;
+      }
+
+// explain code
+
+``updateUserName``
+
+.. code-block:: dart
+
+    Future<void> updateUserName(int userId, String newName) async {
+
+        // if newName is empty, keep the old name. (?)
+        if (newName.isEmpty) return;
+        final result = await _db.update(
+          'user',
+          {'user_name': newName},
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        if (result == 0) {
+          throw Exception('Failed to update user name: User not found');
+        }
+      }
+
+// explain code
+
+``updatePetName``
+
+.. code-block:: dart
+
+    Future<void> updatePetName(int userId, String newName) async {
+
+        // if newName is empty, keep the old name. (?)
+        if (newName.isEmpty) return; 
+        final result = await _db.update(
+          'little_guy',
+          {'little_guy_name': newName},
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+        if (result == 0) {
+          throw Exception('Failed to update pet name: Pet not found');
+        }
+      }
+
+// explain code
+
+``updatePetStat``
+
+.. code-block:: dart
+
+    Future<void> updatePetStat(int petId, String stat, double value) async {
+        final roundedValue = value.clamp(0.0, 1.0);
+
+        final result = await _db.update(
+          'little_guy',
+          {stat: (roundedValue * 100).toInt()},
+          where: 'little_guy_id = ?',
+          whereArgs: [petId],
+        );
+
+        if (result == 0) {
+          // If no rows were updated, throw an error
+          throw Exception('Failed to update pet stat: One or more argument is invalid');
+        }
+      }
+
+// explain code
+
+``updateLastOnlineByUserId``
+
+.. code-block:: dart
+
+    Future<void> updateLastOnlineByUserId(int userId, String isoDate) async {
+
+        try {
+          DateTime.parse(isoDate);
+        } catch (e) {
+          throw Exception('Failed to update last online time: Invalid ISO date format');
+        }
+
+        final result = await _db.update(
+          'user',
+          {'last_online': isoDate},
+          where: 'user_id = ?',
+          whereArgs: [userId],
+        );
+
+        if (result == 0) {
+          throw Exception('Failed to update last online time: User not found');
+        }
+      }
+
+// explain code
+
+``getFoodByUserId``
+
+.. code-block:: dart
+
+    Future<List<Map<String, dynamic>>> getFoodByUserId(int userId) async {
+        final food = await _db.rawQuery(
+          '''
+          SELECT it.item_id, inv.quantity, it.image_path
+          FROM inventory inv
+          JOIN item it ON inv.item_id = it.item_id
+          WHERE inv.user_id = ? AND it.type = ?
+        ''',
+          [userId, 'food'],
+        );
+        return food;
+      }
+
+// explain code
+
+``useFood``
+
+.. code-block:: dart
+
+    Future<void> useFood(int foodId, int userId) async {
+        // First check if the item exists for this user
+        final itemExists = await _db.rawQuery(
+          '''
+          SELECT item_id FROM inventory
+          WHERE user_id = ? AND item_id = ?
+        ''',
+          [userId, foodId],
+        );
+        
+        if (itemExists.isEmpty) {
+          throw Exception('Failed to use food: User or item not found');
+        }
+    
+        // Decrease quantity in inventory if available
+        await _db.rawUpdate(
+          '''
+          UPDATE inventory
+          SET quantity = quantity - 1
+          WHERE user_id = ? AND item_id = ? AND quantity > 0
+        ''',
+          [userId, foodId],
+        );
+      }
 
 // explain code
 
@@ -469,9 +684,36 @@ Calculates how much the pet's stats should decrease based on the time elapsed si
 
 .. code-block:: dart
 
-    // insert important code
+    Future<void> degradeStats() async {
+    double hunger = await petStatsDB.getPetStat(petID, 'hunger_level');
+    double enjoyment = await petStatsDB.getPetStat(petID, 'enjoyment_level');
+    double hygiene = await petStatsDB.getPetStat(petID, 'hygiene_level');
+    String? lastOnlineIso = await petStatsDB.getLastOnlineByUserId(userID);
+    lastOnlineIso ??= DateTime.now().toUtc().toIso8601String();
 
-// explain code
+    DateTime lastOnline = DateTime.parse(lastOnlineIso);
+    DateTime now = DateTime.now().toUtc();
+
+    if (lastOnline.isAfter(now)) {
+      throw Exception(
+        'Failed to degrade stats: Last online time is in the future',
+      );
+    }
+
+    int hoursSinceLastOnline = now.difference(lastOnline).inHours;
+    double decayBy = 0.1 * (hoursSinceLastOnline / 2);
+
+    hunger = hunger - decayBy;
+    enjoyment = enjoyment - decayBy;
+    hygiene = hygiene - decayBy;
+
+    await petStatsDB.updatePetStat(petID, 'hunger_level', hunger);
+    await petStatsDB.updatePetStat(petID, 'enjoyment_level', enjoyment);
+    await petStatsDB.updatePetStat(petID, 'hygiene_level', hygiene);
+    await petStatsDB.updateLastOnlineByUserId(userID, now.toIso8601String());
+  }
+
+// This is called whenever loading the main page of the app, it functions to calculate the hours since the user was last online, then degrade each stat by 10% for every 2 hours since the user was last online.
 
 step_counter.dart
 ~~~~~~~~~~~~~~~~~
