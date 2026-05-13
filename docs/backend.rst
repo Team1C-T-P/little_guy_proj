@@ -11,7 +11,7 @@ hat_state.dart
 
 .. code-block:: dart
 
-Future<int> _resolveLittleGuyId() async {
+  Future<int> _resolveLittleGuyId() async {
     if (_littleGuyId != null) return _littleGuyId!;
     final db = await AppDatabase.instance.database;
     final rows = await db.query(
@@ -31,6 +31,7 @@ Future<int> _resolveLittleGuyId() async {
 ``_resolveLittleGuyId`` looks up the little_guy_id for the current user from the database and cachine the result in _littleGuyId and is reused, so that when it is called again, it doesn't have to use the database. It is used by equipHat, unEquipHat and loadFromDb so that hat changes are correctly applied to the little guy
 
 .. code-block:: dart
+
   // load hat from db and notify listeners, which is the little guy.dart
   Future<void> loadFromDb() async {
     final db = await AppDatabase.instance.database;
@@ -43,6 +44,7 @@ Future<int> _resolveLittleGuyId() async {
 ``loadFromDb`` queries the database to fetch the currently equipped hat using the getEquippedHat function in dress_database.dart. On startup its called to restore the gat the user equipped in the last session.
 
 .. code-block:: dart
+
   // equip hat
   Future<void> equipHat(int itemId, String imagePath) async {
     final db = await AppDatabase.instance.database;
@@ -55,6 +57,7 @@ Future<int> _resolveLittleGuyId() async {
 ``equipHat`` saves the chosen hat to the database and updates the equippedHatPath to the new hat path. It then notifies little_guy.dart to re-render the little guy with the new equipped hat.
 
 .. code-block:: dart
+
   // unequip hat
   Future<void> unequipHat() async {
     final db = await AppDatabase.instance.database;
@@ -449,6 +452,7 @@ shop_database.dart
 ``getUserCurrency`` queries the database using the userId provided when called from the shop_view.dart. This returns the total amount of currency as an int, which the user has from the database. The use for this is so that when purchasing items, the user can see if they have enough money before buying an item
 
 .. code_block:: dart
+
   // check if user owns item
   Future<bool> userOwnsItem(int userId, int itemId) async {
     final result = await _db.query(
@@ -462,6 +466,7 @@ shop_database.dart
 ``userOwnsItems`` checks for items owned by the user. This performs a select query on the inventory table, where the userId and an itemId and returns a .isNotEmpty result to show that there is an item that matches that item_id. This is used when purchasing a hat and it checks if they already own that hat, to prevent them from buying two of the same hat
 
 .. code-block:: dart
+
   // purchase item if not owned
   Future<String> purchaseItem(int userId, int itemId) async {
     /*
@@ -540,6 +545,7 @@ shop_database.dart
 ``purchaseItem`` allows a user to purchase an item, whether it is a hat or food. It takes the itemId, which is taken from the shop_view.dart when the function is called, and queires the database to check if the item can be found and returns an items variable. If the item can be found, the item type and currency are saved into separate variables, itemType and itemPrice. The function then checks if the user already owns an item using the userOwnsItem function defined earlier, and if they do it returns 'already_owned'. The function then retrieves the userCurrency using the userId, where it then compares the itemPrice to the userCurrency, and returns 'insufficient_funds' if the userCurrency is lower than the itemPrice. The function then performs a transaction, where the itemPrice is deducted from the user table. A query is then performed to check if a food item is in the user's inventory. If the food is in the inventory, a transaction is executed to increment the quantity in the inventory table using the userId and itemId, otherwise if there isn't any food, then the food item is inserted into the table with the userId, item_id and a quantity of 1. The funciton returns a 'success' message so that the UI can confirm that the item was purchased
 
 .. code-block:: dart
+
   // get quantities for all user's inventory
   Future<Map<int, int>> getUserItemQuantities(int userId) async {
     final inventory = await _db.query(
