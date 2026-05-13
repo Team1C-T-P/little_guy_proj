@@ -429,40 +429,119 @@ This is  where _playWithPet(); gets called.
 shop_view.dart
 ~~~~~~~~~~~~~~
 
-The Shop screen where users spend coins on food and accessories. Items are fetched from the database and displayed in a grid, with owned items marked accordingly.
+The Shop screen where users spend coins on food and accessories It shows:
 
-.. note::
-   Add detail on how the purchase flow is triggered and how the UI updates after a successful purchase.
+- user's current coin balance
+- a grid of items to buy
+- buttons to switch between Food and Clothes
+
+The page is a StatefulWidget, so that it will automatically update when the user changes tabs or buys an item
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+   int _coinBalance = 0;
+   List<Map<String, dynamic>> _items = [];
+   Set<int> _ownedItemIds = {};
+   Map<int, int> _itemQuantities = {};
+   bool _isLoading = true;
+   String _currentType = 'hat';
+
+These variabes store the current state of the shop:
+
+- ``_coinBalance`` holds the user's coins
+- ``_items`` stores the items shown on screen
+- ``_ownedItemIds`` keeps track of owned hats
+- ``_itemQuantities`` stores the quantity of food the user owns
+- ``_isLoading`` shows a loding spinner while the data loads
+- ``_currentType`` tracks whether the user is viewing food or hats
+
+.. code-block:: dart
+
+   Future<void> _loadShopData(String type) async {
+      final currency = await _shopDb.getUserCurrency(1);
+      final items = await _shopDb.getItemsByType(type);
+      final ownedIds = await _shopDb.getUserItems(1);
+      final quantities = await _shopDb.getUserItemQuantities(1);
+      ...
+   }
+
+``_loadShopData`` loads all the shop information from the database, retrieving:
+
+- the user's balance
+- the current items
+- owned items,
+- item quantities
+
+This method is called when the page first opens, the user changes category from Food/Hat, or when a purchase is completed
+
+.. code-block:: dart
+
+   _goalListener = () {
+       if (mounted) _loadShopData(_currentType);
+   };
+   _goalController.addListener(_goalListener);
+
+This listener allows the shop to listen for updates from StepGoalController, so if the user earns coins somewhere else in the app, the shop refreshes automatically. It's added in ``initState`` and removed in ``dispose`` to avoid memory leaks
+
+.. code-block:: dart
+
+   if (itemType == 'food' && quantity > 0)
+      Text('You own: $quantity', ...)
+   else if (itemType == 'hat' && alreadyOwned)
+      Text('You already own this item', ...)
+   if (_coinBalance < price)
+      Text('You do not have enough coins to purchase this item.', ...)
+
+The purchase dialogue will show different messages based on different situations:
+
+- Food items showing how many the user owns
+- Hats showing a warning if the user owns it already
+- A red warning appears if the user doesn't have enough coins 
+
+These messages will then help the user understand why they can/can't purcahase an item.
+
 
 dress_view.dart
 ~~~~~~~~~~~~~~~
 
-The Dress screen where users equip and unequip hats and accessories on their Little Guy. Changes are reflected immediately on the pet sprite via ``HatState``.
+The Dress screen allows the users to equip hats onto the little guy and also displays:
 
-.. note::
-   Add detail on how the hat grid is built and how ``HatState.equipHat`` / ``HatState.unequipHat`` are called.
+- the little guy,
+- a grid of currently owned hats,
+- the hat currently equipped to the little guy
+
+When a hat is selected, the database is updated and the little guy gets updated immediately.
 
 .. code-block:: dart
 
-  Future<void> _loadEquippedHat() async {
-    try {
-      final db = await AppDatabase.instance.database;
-      final dressDb = DressDatabase(db);
-      final equipped = await dressDb.getEquippedHat(1);
-      if (!mounted) return;
-      if (equipped != null) {
-        setState(() {
-          _selectedHatId = equipped['item_id'] as int;
-        });
-      }
-    } catch (e) {
-      debugPrint('DressUp: failed to load equipped hat ($e)');
-    }
-  }
+   List<Map<String, dynamic>> _ownedHats = [];
+   int? _equippedHatId;
+   bool _isLoading = true;
+
+These variables store the state of the dress_view screen:
+
+- ``_ownedHats`` stores all hats owned by user
+- ``_equippedHatId`` stores the currently equipped hat
+- ``_isLoading`` controls the loading spinner
+
+.. code_block:: dart
+
+   Future<void> _loadDressData() async {
+      final hats = await _dressDb.getOwnedHats(1);
+      final equipped = await _dressDb.getEquippedHat(1);
+      ...
+   }
+
+``_loadDressData`` loads the owned hats and equipped hat from the database, and it's called when the page opens or the equipped hat changes, keeping the UI synced with the database.
+
+.. code-blocks:: dart
+
+   await _dressDb.equipHat(userId, hatId);
+   setState(() {
+      _equippedHatId = hatId;
+   });
+
+When the user equips a hat, the database is updated, the equipped hat ID changes and refreshed the UI, so the little guy updates without having to reopen the page.
 
 clean_view.dart
 ~~~~~~~~~~~~~~~
