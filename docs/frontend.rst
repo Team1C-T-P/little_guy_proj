@@ -35,12 +35,81 @@ Pages
 main_page_view.dart
 ~~~~~~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of the main page layout and how it ties together the bottom navigation bar and child views.
+This is the main page that loads up when you have signed in. It contains the little guy, as well as its stats, such as its cleanliness, hunger and enjoyment. There is an area that displays the user's step goal, with buttons to increase or decrease it. There are also buttons to feed, play and clean the pet.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  late final VoidCallback _goalListener;
+
+``_goalListener`` is used to attach a listener to StepGoalController so that when the steps or goals change, the screen will rebuild itself. 
+
+.. code-block:: dart
+
+  Future<void> _loadPetStats() async {
+    try {
+      double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
+      double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
+      double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
+
+      if (!mounted) return;
+      setState(() {
+        _hunger = hunger;
+        _enjoyment = enjoyment;
+        _hygiene = hygiene;
+      });
+    } catch (e) {
+      debugPrint('HomeScreen: failed to load pet stats ($e)');
+    }
+  }
+
+``_loadPetStats`` fetchesthe pets stats from the database, thatis then used tto update the progress bars. If the widget isn't on the screen when the data loads, it returns uwing the ``if (!mounted) return``
+
+.. code-block:: dart
+
+   Expanded(
+      child: GreenButton(
+         buttonText: "+250",
+         onPressed: () async {
+            final newGoal =
+               _goalController.stepGoal + 250;
+            await _goalController.updateGoal(newGoal);
+         },
+      ),
+   ),
+   Expanded(
+      child: GreenButton(
+         buttonText: "-250",
+         onPressed: () async {
+            final newGoal =
+               (_goalController.stepGoal - 250).clamp(
+                  0,
+                  999999,
+               );
+            await _goalController.updateGoal(newGoal);
+
+The buttons, here control how much the goal total changes, with a limit of 999999 steps. When they get pressed they call the ``_goalController`` to update the goal and refresh the UI.
+
+.. code-block:: dart
+
+   SizedBox(
+      width: 150,
+      height: 60,
+      child: FittedBox(
+         child: GreenButton(
+            buttonText: "Clean",
+            onPressed: () async {
+               await Navigator.of(context).push(
+                  MaterialPageRoute(
+                     builder: (context) => const CleanScreen(),
+                  ),
+               );
+               await _loadPetStats();
+            },
+         ),
+      ),
+   ),
+
+The green buttons that have the "Play", "Clean" and "Feed", that allow you to interact with the little guy all have this layout, where they will load a separate screen, with their own functions, allowing you to interact with the little guy.
 
 nav_bar.dart
 ~~~~~~~~~~~~
