@@ -76,7 +76,7 @@ class _TestScreenState extends State<TestScreen> {
         steps: steps,
       );
 
-      // ✅ Grant XP (1 XP per 100 steps)
+      // Grant XP (1 XP per 100 steps)
       final db = await AppDatabase.instance.database;
       final levelService = LevelService(db);
       final levelResult = await levelService.addXp(1, steps ~/ 100);

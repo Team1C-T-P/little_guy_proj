@@ -17,7 +17,8 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) throw Exception('Failed to get user name: User not found');
+    if (result.isEmpty)
+      throw Exception('Failed to get user name: User not found');
     return result.first['user_name'] as String;
   }
 
@@ -28,7 +29,8 @@ class PetStatsDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
-    if (result.isEmpty) throw Exception('Failed to get pet name: Pet not found');
+    if (result.isEmpty)
+      throw Exception('Failed to get pet name: Pet not found');
     return result.first['little_guy_name'] as String;
   }
 
@@ -63,13 +65,13 @@ class PetStatsDatabase {
     );
     if (result.isEmpty) {
       throw Exception('Failed to get last online time: User not found');
-    };
+    }
+    ;
     return result.first['last_online'] as String;
   }
 
   // Update Queries
   Future<void> updateUserName(int userId, String newName) async {
-
     // if newName is empty, keep the old name. (?)
     if (newName.isEmpty) return;
     final result = await _db.update(
@@ -84,9 +86,8 @@ class PetStatsDatabase {
   }
 
   Future<void> updatePetName(int userId, String newName) async {
-
     // if newName is empty, keep the old name. (?)
-    if (newName.isEmpty) return; 
+    if (newName.isEmpty) return;
     final result = await _db.update(
       'little_guy',
       {'little_guy_name': newName},
@@ -110,16 +111,19 @@ class PetStatsDatabase {
 
     if (result == 0) {
       // If no rows were updated, throw an error
-      throw Exception('Failed to update pet stat: One or more argument is invalid');
+      throw Exception(
+        'Failed to update pet stat: One or more argument is invalid',
+      );
     }
   }
 
   Future<void> updateLastOnlineByUserId(int userId, String isoDate) async {
-
     try {
       DateTime.parse(isoDate);
     } catch (e) {
-      throw Exception('Failed to update last online time: Invalid ISO date format');
+      throw Exception(
+        'Failed to update last online time: Invalid ISO date format',
+      );
     }
 
     final result = await _db.update(
@@ -138,7 +142,7 @@ class PetStatsDatabase {
 class InventoryDatabase {
   final Database _db;
 
-    /* Accept an injected Database instance.
+  /* Accept an injected Database instance.
   In production, pass: InventoryDatabase(await AppDatabase.instance.database)
   In tests, pass the in-memory DB from TestDatabase.createFresh()*/
   InventoryDatabase(this._db);
@@ -170,11 +174,11 @@ class InventoryDatabase {
     ''',
       [userId, foodId],
     );
-    
+
     if (itemExists.isEmpty) {
       throw Exception('Failed to use food: User or item not found');
     }
-    
+
     // Decrease quantity in inventory if available
     await _db.rawUpdate(
       '''

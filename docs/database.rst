@@ -224,7 +224,7 @@ Links a user to their active goal and tracks progress.
 achievement / user_achievement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Stores achievement definitions and per-user unlock records.
+Stores achievement definitions and per-user unlock records. Included for future development to prevent issues.
 
 **achievement**
 
