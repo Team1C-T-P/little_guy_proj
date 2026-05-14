@@ -47,7 +47,23 @@ dress_database.dart
 
 .. code-block:: dart
 
-    // insert important code
+   Future<List<Map<String, dynamic>>> getHatsOwnedByUser(int userId) async {
+    return await _db.rawQuery(
+      '''
+      SELECT
+        item.item_id,
+        item.item_name,
+        item.image_path,
+        item.price,
+        item.type
+      FROM inventory
+      JOIN item on inventory.item_id = item.item_id
+      WHERE inventory.user_id = ?
+      AND item.type = 'hat'
+  ''',
+      [userId],
+    );
+  }
 
 // explain code
 
