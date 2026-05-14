@@ -616,14 +616,80 @@ summary_view.dart
 community_view.dart
 ~~~~~~~~~~~~~~~~~~~
 
-The Community screen with a social feed and leaderboard.
+The Community screen with a social feed and leaderboard. Currently only has the UI not the backend. The primary way your supposed to add people is by name at the top, then you can see them below the add button. Then development after that can expand on that foundation.
 
-.. note::
-   Add detail on how community data is fetched and displayed, and what interactions are available.
+The reason this was cut instead of profile is because it doesnt interact with the core progression of the game (you do steps, you get rewarded).
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<List<Map<String, dynamic>>> _loadFriends() async {
+    return [
+      {"username": "meowmeowmeowmeowmeowmeow", "steps": "100000"},
+      {"username": "BigGamer", "steps": "3000000"},
+      {"username": "TotallyTofit", "steps": "0"},
+      {"username": "XXX_littlestguy_XXX", "steps": "10"},
+      {"username": "XXX_littlestguy_XXX", "steps": "10"},
+      {"username": "XXX_littlestguy_XXX", "steps": "10"},
+    ];
+  }
+
+The way the current code works is first making a list used as a placeholder for the DB. We can replace this later with less hassel then most alternative methods.
+
+.. code-block:: dart
+
+  Expanded(
+    child: ListView.builder(
+      itemCount: friends.length,
+      itemBuilder: (context, index) {
+        final friend = friends[index];
+        return Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: 8,
+            horizontal: 16,
+          ),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(width: 200, height: 100, child: LittleGuy()),
+              const SizedBox(height: 8),
+              Divider(
+                color: const Color.fromARGB(255, 213, 248, 255),
+                thickness: 1,
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  friend['username'],
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  const Text("Steps: "),
+                  Text(
+                    friend['steps'],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  ),
+
+This is part of the code that uses the above list to show all the users using the usefully named ListView.builder().
 
 feed_view.dart
 ~~~~~~~~~~~~~~
@@ -870,12 +936,73 @@ The Settings screen where users can update their daily step goal and other prefe
 test_view.dart
 ~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of ``test_view.dart`` — whether this is a developer debug screen or has another purpose, and whether it is accessible in production builds.
+Test view is only for developers testing steps and the goal, without this there wouldn't be a way to add steps beyond, taking a walk.
+
+It is also used to test the level up system, since it a step gives xp.
 
 .. code-block:: dart
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Test Screen')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Total Steps:', style: TextStyle(fontSize: 24)),
+            Text(
+              '$_totalSteps',
+              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Current Steps: ${_goalController.currentSteps}',
+              style: const TextStyle(fontSize: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Goal: ${_goalController.stepGoal}',
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(height: 8),
+            Text('Currency: $_currency', style: const TextStyle(fontSize: 20)),
+            Text(
+              'Steps toward next goal: ${(_goalController.stepGoal - _totalSteps).clamp(0, double.infinity).toInt()}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _recordTestSteps(1),
+              child: const Text('Record 1 Step'),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () => _recordTestSteps(250),
+              child: const Text('Record 250 Steps'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newGoal = _goalController.stepGoal + 250;
+                await _goalController.updateGoal(newGoal);
 
-    // Add relevant code snippet here
+                setState(() {
+                  _goalController.stepGoal = newGoal;
+                });
+              },
+              child: const Text('Increase Goal by 250'),
+            ),
+
+            const SizedBox(height: 12),
+            Text(
+              _status,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
 Widgets
 -------
@@ -885,12 +1012,47 @@ progress_bar.dart
 
 A reusable widget that renders a filled progress bar, used to display the pet's hunger, hygiene, and enjoyment stats.
 
-.. note::
-   Add detail on the parameters the widget accepts (e.g. current value, max value, colour) and how it is used across screens.
+Widget Parameters
+^^^^^^^^^^^^^^^^^
 
+The progress_bar constructor requires two parameters:
+
+- progress: the current progress for bar.
+- iconPath: the image used for the left side of the row.
+
+
+Code
+^^^^
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  class _ProgressBarState extends State<ProgressBar> {
+    @override
+    Widget build(BuildContext context) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 40,
+            height: 40,
+            child: Image.asset(widget.iconPath),
+          ),
+          SizedBox(
+            width: 100,
+            child: LinearProgressIndicator(
+              value: widget.progress,
+              backgroundColor: Color.fromARGB(255, 248, 255, 233,),
+              color: Color.fromARGB(255, 159, 239, 167),
+              minHeight: 10,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(10),
+              ),
+            ),
+          )
+        ],
+      );
+    }
+  }
 
 button.dart
 ~~~~~~~~~~~
@@ -908,6 +1070,16 @@ The ``GreenButton`` constructor requires two parameters:
 
 - ``buttonText``: The label displayed inside the button
 - ``onPressed``: A callback function triggered when the button is tapped
+
+Usage Example
+^^^^^^^^^^^^^
+
+.. code-block:: dart
+  
+  child: ProgressBar(
+    iconPath: 'assets/images/enjoyment.png',
+    progress: _enjoyment,
+  ),
 
 Styling
 ^^^^^^^
