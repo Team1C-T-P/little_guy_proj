@@ -86,13 +86,73 @@ Models
 database.dart
 ~~~~~~~~~~~~~
 
-``AppDatabase`` is a singleton that manages the SQLite database connection and schema creation, with a test-only hook for injecting an in-memory database.
+``AppDatabase`` is a singleton that manages the SQLite database connection and schema creation, with a test-only hook for injecting an in-memory database. Most of this file just contains create tables statements with a few statements that will populate the tables upon app initialization
 
 .. code-block:: dart
 
-    // insert important code
+  Future<void> _autoAddItemsFromAssets() async {
+    final db = await database;
 
-// explain code
+    // Check if items already exist
+    final existingItems = await db.query('item', limit: 1);
+    if (existingItems.isNotEmpty) return;
+
+    // Scan for all images in hats and food
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
+    final hatImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/hats/') &&
+              (path.endsWith('.png') || path.endsWith('.jpg')),
+        )
+        .toList();
+
+    final foodImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/food/') &&
+              (path.endsWith('.png') || path.endsWith('.jpg')),
+        )
+        .toList();
+
+This function helps to automatically add hats and food to the database without having to manually add the image paths and names of each item, using the file path to the item and adding them to a list. 
+
+.. code-block:: dart
+
+    // Add food
+    for (var imagePath in foodImages) {
+      final fileName = imagePath.split('/').last.split('.').first.toLowerCase();
+      final itemName = _formatItemName(fileName);
+      final price = foodPrices[fileName] ?? 100; // Default 100 for food
+
+      await db.insert('item', {
+        'item_name': itemName,
+        'image_path': imagePath,
+        'quantity': 1,
+        'price': price,
+        'type': 'food',
+      });
+    }
+
+This section creates the item names of the food using the fileName and then inserts that into the database without, and providing the standard food price
+
+.. code-block:: dart
+
+  String _formatItemName(String fileName) {
+    // Convert filename to nice name
+    final formatted = fileName
+        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[0]}')
+        .trim();
+
+    if (formatted.isEmpty) return fileName;
+
+    return formatted[0].toUpperCase() + formatted.substring(1);
+  }
+
+This function takes the filename provided in the previous section of code and formats them properly and returns it to the function where it was called, which was in ``_autoAddItemsFromAssets()``
 
 dress_database.dart
 ~~~~~~~~~~~~~~~~~~~
