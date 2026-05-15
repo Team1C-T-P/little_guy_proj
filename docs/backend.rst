@@ -250,7 +250,7 @@ pet_maintainance_database.dart
 
 ``pet_maintainance_database`` reads and writes the virtual pet's stats (hunger, hygiene, enjoyment) and the owning user's profile data.
 
-``getUserName``
+``getUserName`` returns the name of the user from a given user ID
 
 .. code-block:: dart
 
@@ -265,9 +265,7 @@ pet_maintainance_database.dart
         return result.first['user_name'] as String;
     }
 
-// explain code
-
-``getPetName``
+``getPetName`` returns the name of the user's pet from a given user ID
 
 .. code-block:: dart
 
@@ -282,9 +280,7 @@ pet_maintainance_database.dart
         return result.first['little_guy_name'] as String;
       }
 
-// explain code
-
-``getPetStat``
+``getPetStat`` returns the value for a given statistic which is namely used for updating and degrading the pets stats 
 
 .. code-block:: dart
 
@@ -308,11 +304,9 @@ pet_maintainance_database.dart
           throw Exception('Failed to get pet stat: Pet not found');
         }
         return (stats.first[stat] as int).toDouble() / 100;
-      }
+      )
 
-// explain code
-
-``getLastOnlineByUserId``
+``getLastOnlineByUserId`` Returns the ISO date which was the last online of a given user
 
 .. code-block:: dart
 
@@ -329,9 +323,7 @@ pet_maintainance_database.dart
         return result.first['last_online'] as String;
       }
 
-// explain code
-
-``updateUserName``
+``updateUserName`` Updates the user's name by an id, unless it is empty, or user does not exist
 
 .. code-block:: dart
 
@@ -350,9 +342,7 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
-
-``updatePetName``
+``updatePetName`` Updates the user's pet' name by an id, unless it is empty, or user does not exist
 
 .. code-block:: dart
 
@@ -371,9 +361,7 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
-
-``updatePetStat``
+``updatePetStat`` Updates a given stat for a given pet, ensuring that the entered value is between 0.0, and 1.0
 
 .. code-block:: dart
 
@@ -393,9 +381,8 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
 
-``updateLastOnlineByUserId``
+``updateLastOnlineByUserId`` Updates a given user's last online ISO date, ensuring that it is a valid iso date
 
 .. code-block:: dart
 
@@ -419,9 +406,7 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
-
-``getFoodByUserId``
+``getFoodByUserId`` returns a list of food items tthat the user owns, along  wth their quantity, and the image path for said food.
 
 .. code-block:: dart
 
@@ -438,9 +423,7 @@ pet_maintainance_database.dart
         return food;
       }
 
-// explain code
-
-``useFood``
+``useFood`` decreases the quantity of a given food type for a given user by 1
 
 .. code-block:: dart
 
@@ -468,8 +451,6 @@ pet_maintainance_database.dart
           [userId, foodId],
         );
       }
-
-// explain code
 
 route_service.dart
 ~~~~~~~~~~~~~~~~~~
@@ -1101,7 +1082,7 @@ Calculates how much the pet's stats should decrease based on the time elapsed si
     await petStatsDB.updateLastOnlineByUserId(userID, now.toIso8601String());
   }
 
-// This is called whenever loading the main page of the app, it functions to calculate the hours since the user was last online, then degrade each stat by 10% for every 2 hours since the user was last online.
+This is called whenever loading the main page of the app, it functions to calculate the hours since the user was last online, then degrade each stat by 10% for every 2 hours since the user was last online.
 
 step_counter.dart
 ~~~~~~~~~~~~~~~~~
