@@ -549,95 +549,95 @@ This section helps to load all the data thats needed, such as the currenct balan
 
 .. code-block:: dart
 
-void _showPurchaseDialog(Map<String, dynamic> item) {
-    final itemId = item['item_id'] as int;
-    final itemName = item['item_name'] as String;
-    final price = item['price'] as int;
-    final itemType = item['type'] as String;
-    final alreadyOwned = _ownedItemIds.contains(itemId);
-    final quantity = _itemQuantities[itemId] ?? 0;
+  void _showPurchaseDialog(Map<String, dynamic> item) {
+      final itemId = item['item_id'] as int;
+      final itemName = item['item_name'] as String;
+      final price = item['price'] as int;
+      final itemType = item['type'] as String;
+      final alreadyOwned = _ownedItemIds.contains(itemId);
+      final quantity = _itemQuantities[itemId] ?? 0;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Purchase $itemName?'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Price: $price coins'),
-            SizedBox(height: 10),
-            Text('Your Balance: $_coinBalance coins'),
-            SizedBox(height: 10),
-            // show quantity of food owned, and owned for hats
-            if (itemType == 'food' && quantity > 0)
-              Text(
-                'You own: $quantity',
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Purchase $itemName?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Price: $price coins'),
+              SizedBox(height: 10),
+              Text('Your Balance: $_coinBalance coins'),
+              SizedBox(height: 10),
+              // show quantity of food owned, and owned for hats
+              if (itemType == 'food' && quantity > 0)
+                Text(
+                  'You own: $quantity',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              else if (itemType == 'hat' && alreadyOwned)
+                Text(
+                  'You already own this item',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              )
-            else if (itemType == 'hat' && alreadyOwned)
-              Text(
-                'You already own this item',
-                style: TextStyle(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
+              if (_coinBalance < price)
+                Text(
+                  'You do not have enough coins to purchase this item.',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            if (_coinBalance < price)
-              Text(
-                'You do not have enough coins to purchase this item.',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            ],
           ),
-          // allow purchase if have enough money if food or new hat
-          if (_coinBalance >= price && (itemType == 'food' || !alreadyOwned))
+          actions: [
             TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                final result = await _shopDb.purchaseItem(1, itemId);
-
-                // Guard against the user leaving the Shop tab mid-purchase
-                // — touching context after dispose throws.
-                if (!mounted) return;
-
-                if (result == 'success') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Purchased $itemName!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  _loadShopData(_currentType);
-                } else if (result == 'already_owned') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('You already own this item'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                } else if (result == 'insufficient_funds') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Not enough funds to purchase this item'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: Text('Buy'),
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
             ),
+            // allow purchase if have enough money if food or new hat
+            if (_coinBalance >= price && (itemType == 'food' || !alreadyOwned))
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final result = await _shopDb.purchaseItem(1, itemId);
+
+                  // Guard against the user leaving the Shop tab mid-purchase
+                  // — touching context after dispose throws.
+                  if (!mounted) return;
+
+                  if (result == 'success') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Purchased $itemName!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    _loadShopData(_currentType);
+                  } else if (result == 'already_owned') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('You already own this item'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  } else if (result == 'insufficient_funds') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Not enough funds to purchase this item'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Text('Buy'),
+              ),
 
 This section handles the dialogue and process of buying items, showing different messages based on the scenario. When buying food, it shows the quantity you currently own, if trying to buy a hat you already own, it tells you that, and if you don't have enough currency in your balance, it cancels the transaction and tells you. On a successful purchase, it will tell you that you sucessfully did so.
 
