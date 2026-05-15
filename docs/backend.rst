@@ -1237,16 +1237,6 @@ Provides helper functions for checking achivements. This only does so for the Tr
 
 This basically works like the other achivements. Checks if something is true, if it is, trailBlazerClaimed is true.
 
-last_online_updater.dart
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Updates the user's ``last_online`` timestamp in the database whenever the app is opened or closed.
-
-.. code-block:: dart
-
-    // insert important code
-
-// explain code
 
 location_service.dart
 ~~~~~~~~~~~~~~~~~~~~~
