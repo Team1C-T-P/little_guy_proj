@@ -1608,14 +1608,169 @@ Here is the achivement UI, where _madHatterCompleted is checked. If true, it'll 
 settings_view.dart
 ~~~~~~~~~~~~~~~~~~
 
-The Settings screen where users can update their daily step goal and other preferences.
+The Settings screen allows the user to update basic profile information such as their username and pet name, as well as adjust simple app preferences like notifications and UI scaling. It is implemented as a `StatefulWidget` because it manages form input state and loads data from the database.
 
-.. note::
-   Add detail on what settings are available and how changes are persisted.
+Key responsibilities:
+- Load and display user + pet names from database
+- Allow editing and saving of profile data
+- Toggle simple app settings (notifications, slider preference)
+- Persist changes back to SQLite
+
+---
+
+### Loading User and Pet Data
+
+When the screen loads, it fetches existing values from the database and populates the text fields.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<void> _loadData() async {
+    try {
+      final userName = await _db.getUserName(_userId);
+      final petName = await _db.getPetName(_userId);
+
+      if (!mounted) return;
+
+      setState(() {
+        _userNameController.text = userName ?? '';
+        _petNameController.text = petName ?? '';
+      });
+    } catch (e) {
+      debugPrint('Settings: could not load user/pet data ($e)');
+    }
+  }
+
+This:
+- Retrieves stored user and pet names
+- Safely updates UI after async database calls
+- Handles missing data (new user flow) without crashing
+
+---
+
+### Editable Profile Fields
+
+The screen uses `TextField` controllers to allow direct editing of stored values.
+
+.. code-block:: dart
+
+  TextField(
+    controller: _petNameController,
+    decoration: const InputDecoration(
+      labelText: 'Pet name',
+      prefixIcon: Icon(Icons.pets),
+    ),
+  )
+
+  TextField(
+    controller: _userNameController,
+    decoration: const InputDecoration(
+      labelText: 'User name',
+      prefixIcon: Icon(Icons.person),
+    ),
+  )
+
+These fields:
+- Reflect current database values
+- Allow inline editing before saving
+- Are cleared safely using `dispose()`
+
+---
+
+### Notification Toggle
+
+A simple switch is used to enable or disable notifications (UI-only in current implementation).
+
+.. code-block:: dart
+
+  Switch(
+    value: _switchBtn,
+    onChanged: (bool value) {
+      setState(() {
+        _switchBtn = value;
+
+        if (_switchBtn) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notifications enabled')),
+          );
+        }
+      });
+    },
+  )
+
+This:
+- Toggles local boolean state
+- Provides immediate user feedback via SnackBar
+- Does not yet persist to database (future improvement point)
+
+---
+
+### Slider Setting (UI Preference)
+
+A slider is used for adjusting a UI preference value (currently labelled as font size/volume depending on implementation).
+
+.. code-block:: dart
+
+  Slider(
+    value: _soundVolume,
+    min: 0,
+    max: 1,
+    onChanged: (double value) {
+      setState(() {
+        _soundVolume = value;
+      });
+    },
+  )
+
+This:
+- Updates a continuous value in real time
+- Provides immediate visual feedback
+- Currently stored only in local state
+
+---
+
+### Saving Settings to Database
+
+When the user taps “Submit”, updated values are written back to SQLite.
+
+.. code-block:: dart
+
+  GreenButton(
+    buttonText: "Submit",
+    onPressed: () async {
+      await _db.updateUserName(_userId, _userNameController.text);
+      await _db.updatePetName(_userId, _petNameController.text);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings saved')),
+        );
+      }
+    },
+  )
+
+This:
+- Persists user and pet name changes
+- Updates database records via `PetStatsDatabase`
+- Confirms success with feedback message
+
+---
+
+### Screen State Management
+
+The screen manages three main types of state:
+- Text controllers → user/pet names
+- `_switchBtn` → notification toggle
+- `_soundVolume` → slider value
+
+It also ensures:
+- Controllers are disposed properly
+- Async database updates do not trigger UI after disposal (`mounted` checks)
+
+---
+
+If you want, I can next:
+- make all your View docs consistent in tone/length (so they look like one polished dissertation section)
+- or compress everything into a “final submission-ready” version
 
 test_view.dart
 ~~~~~~~~~~~~~~
