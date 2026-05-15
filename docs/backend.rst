@@ -668,13 +668,141 @@ pet_maintainance_database.dart
 route_service.dart
 ~~~~~~~~~~~~~~~~~~
 
-``RouteService`` saves, retrieves, and deletes GPS walking routes recorded on the Map screen.
+
+The RouteService handles storing, retrieving, and deleting saved walking routes in the SQLite database. It acts as a data layer between the Map/Route UI and the underlying database schema.
+
+Routes are stored as encoded GPS paths and converted back into `LatLng` objects when retrieved.
+
+Key responsibilities:
+- Save GPS routes to the database
+- Convert `LatLng` lists to JSON for storage
+- Decode stored routes back into usable map data
+- Delete saved routes
+
+---
+
+### Database Resolution (Test + Production Support)
+
+The service supports dependency injection for testing, otherwise it defaults to the main app database.
 
 .. code-block:: dart
 
-    // insert important code
+  class RouteService {
+    final Database? _injectedDb;
 
-// explain code
+    RouteService({Database? db}) : _injectedDb = db;
+
+    Future<Database> _resolveDb() async {
+      return _injectedDb ?? await AppDatabase.instance.database;
+    }
+  }
+
+This:
+- Allows in-memory DB usage for tests
+- Uses singleton database in production
+- Keeps database access consistent across the app
+
+---
+
+### Saving a Route
+
+Routes are saved by converting a list of `LatLng` points into JSON.
+
+.. code-block:: dart
+
+  Future<int> saveRoute(int userId, String name, List<LatLng> path) async {
+    final db = await _resolveDb();
+
+    final pathList = path
+        .map((p) => {'lat': p.latitude, 'lng': p.longitude})
+        .toList();
+
+    final jsonString = jsonEncode(pathList);
+
+    return await db.insert('route', {
+      'user_id': userId,
+      'route_name': name,
+      'route_path': jsonString,
+    });
+  }
+
+This:
+- Converts `LatLng` objects into simple `{lat, lng}` maps
+- Encodes the list into a JSON string
+- Stores route name + user ID + path in SQLite
+
+---
+
+### Retrieving Saved Routes
+
+Routes are loaded from the database and decoded back into map-ready coordinates.
+
+.. code-block:: dart
+
+  Future<List<Map<String, dynamic>>> getSavedRoutes(int userId) async {
+    final db = await _resolveDb();
+
+    final rows = await db.query(
+      'route',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    return rows.map((row) {
+      final decoded = jsonDecode(row['route_path'] as String) as List;
+
+      final path = decoded
+          .map((e) => LatLng(e['lat'], e['lng']))
+          .toList();
+
+      return {
+        'route_id': row['route_id'],
+        'route_name': row['route_name'],
+        'route_path': path,
+      };
+    }).toList();
+  }
+
+This:
+- Queries all routes for a user
+- Decodes JSON back into coordinate lists
+- Converts data into `LatLng` format for Flutter Map
+- Returns structured route objects for UI display
+
+---
+
+### Deleting a Route
+
+.. code-block:: dart
+
+  Future<void> deleteRoute(int routeId) async {
+    final db = await _resolveDb();
+
+    await db.delete(
+      'route',
+      where: 'route_id = ?',
+      whereArgs: [routeId],
+    );
+  }
+
+This:
+- Removes a route permanently from the database
+- Uses `route_id` as the primary key reference
+
+---
+
+### Data Format Overview
+
+Internally, routes are stored as:
+
+- `route_name` → string label
+- `route_path` → JSON string of coordinates
+- Each coordinate → `{ lat, lng }`
+
+This design ensures:
+- Simple SQLite storage
+- Easy conversion to map-friendly objects
+- Compatibility with `flutter_map` and `latlong2`
 
 shop_database.dart
 ~~~~~~~~~~~~~~~~~~
