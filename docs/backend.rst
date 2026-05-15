@@ -1369,13 +1369,84 @@ This basically works like the other achivements. Checks if something is true, if
 location_service.dart
 ~~~~~~~~~~~~~~~~~~~~~
 
-Wraps the platform location API to provide a stream of GPS coordinates used by the Map screen's route recorder.
+The LocationService provides a central wrapper around the device GPS system using the `geolocator` package. It is responsible for handling permission checks, fetching the initial position, and providing a live stream of location updates used by the Map screen.
+
+This service uses a singleton pattern so the same instance is reused across the app.
+
+Key responsibilities:
+- Check and request location permissions
+- Get the user’s initial GPS position
+- Provide real-time location updates via stream
+
+---
+
+### Permission Handling & Initial Position
+
+The main method ensures that location services are enabled and permissions are granted before returning the current position.
 
 .. code-block:: dart
 
-    // insert important code
+  Future<Position?> determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
-// explain code
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+        'Location permissions are permanently denied');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+This:
+- Validates GPS availability
+- Requests runtime permissions if needed
+- Safely fails if permissions are blocked permanently
+- Returns the device’s current position when ready
+
+---
+
+### Live Location Stream
+
+Real-time tracking is handled through a continuous GPS stream.
+
+.. code-block:: dart
+
+  Stream<Position> getLocationStream() {
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+    );
+
+    return Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    );
+  }
+
+This:
+- Streams live GPS updates
+- Uses high accuracy mode for walking tracking
+- Feeds position updates into the Map screen route recorder
+
+---
+
+### Design Note
+
+This service acts as a thin abstraction over `Geolocator`, keeping all permission logic and stream configuration in one reusable location layer instead of spreading it across UI screens.
 
 stat_degradation_service.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
