@@ -1104,12 +1104,198 @@ This ensures a clean user experience even when no data is available.
 summary_view.dart
 ~~~~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of the Summary screen — what stats or history it shows the user.
+
+The Summary screen is shown at the end of a walk session and displays the user’s route, step count, and a summary of their activity. It also allows the user to save the walk as a named route and return to the home screen.
+
+This screen is a `StatefulWidget` because it handles database writes, user input (route naming), and UI state updates such as save confirmation.
+
+Key responsibilities:
+- Display completed walk route on a static map
+- Show total steps for the session
+- Generate a fun fact based on activity
+- Save walk summary to database
+- Save route with a custom name
+- Return user to home screen
+
+---
+
+### Saving Walk Summary
+
+When the screen loads, the walk is automatically saved to the database.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<void> _saveWalkToDatabase() async {
+    if (widget.route.isEmpty) return;
+
+    final start = widget.route.first;
+    final end = widget.route.last;
+
+    final walkData = {
+      'user_id': 1,
+      'walk_date': DateTime.now().toIso8601String(),
+      'total_steps': widget.totalSteps,
+      'start_lat': start.latitude,
+      'start_lng': start.longitude,
+      'end_lat': end.latitude,
+      'end_lng': end.longitude,
+    };
+
+    await AppDatabase.instance.insertWalkSummary(walkData);
+
+    if (mounted) {
+      setState(() => _isSaved = true);
+    }
+  }
+
+This:
+- Stores walk metadata (steps + coordinates)
+- Records start and end points of the route
+- Updates UI once saved successfully
+
+---
+
+### Route Map Display
+
+The completed route is displayed using a static, non-interactive map.
+
+.. code-block:: dart
+
+  PolylineLayer(
+    polylines: [
+      Polyline(
+        points: widget.route,
+        strokeWidth: 6.0,
+        color: const Color.fromARGB(255, 77, 151, 86),
+      ),
+    ],
+  )
+
+This:
+- Draws the full completed route
+- Centers the map on the last known position
+- Disables interaction for review-only mode
+
+A marker is also shown at the final position:
+
+.. code-block:: dart
+
+  Marker(
+    point: widget.route.last,
+    child: const Icon(Icons.location_on, color: Colors.red),
+  )
+
+---
+
+### Fun Fact Generator
+
+A simple helper function generates a message based on step count.
+
+.. code-block:: dart
+
+  String _generateFunFact(int steps) {
+    double meters = steps * 0.762;
+    int doubleDeckerBuses = (meters / 11.2).round();
+
+    if (steps < 100) return "Just getting warmed up!";
+    if (steps < 1000)
+      return "You walked the length of $doubleDeckerBuses London buses!";
+    return "Amazing! You covered ${meters.toStringAsFixed(1)} meters today!";
+  }
+
+This:
+- Converts steps into approximate meters
+- Provides contextual achievements based on distance
+- Adds lightweight motivational feedback
+
+---
+
+### Route Saving with Name Input
+
+Users can save their walk as a named route for later viewing in `RoutesView`.
+
+.. code-block:: dart
+
+  GreenButton(
+    buttonText: "Save as Route",
+    onPressed: () async {
+      String routeName = '';
+
+      final name = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Name your Route'),
+          content: TextField(
+            onChanged: (val) => routeName = val,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, routeName),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+
+      if (name != null && name.isNotEmpty) {
+        await RouteService().saveRoute(1, name, widget.route);
+
+        await checkAndUnlockTrailBlazer(context, 1);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Route "$name" saved!')),
+          );
+        }
+      }
+    },
+  )
+
+This:
+- Prompts the user to name their route
+- Saves route coordinates + name to database
+- Triggers achievement check (`Trail Blazer`)
+- Confirms success with a SnackBar
+
+---
+
+### Navigation Back to Home
+
+.. code-block:: dart
+
+  GreenButton(
+    buttonText: "Return Home",
+    onPressed: () {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              const MyHomePage(title: 'FLittle Guy'),
+        ),
+        (route) => false,
+      );
+    },
+  )
+
+This:
+- Clears navigation stack
+- Returns user to the main app screen
+- Prevents back-navigation to summary screen
+
+---
+
+### Screen State
+
+The screen also tracks whether the walk has been saved:
+
+- `_isSaved = true` → shows confirmation message
+- `_isSaved = false` → waiting for database write
+
+This provides clear feedback that the walk has been successfully recorded.
 
 community_view.dart
 ~~~~~~~~~~~~~~~~~~~
