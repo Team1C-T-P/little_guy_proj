@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flame_playground/services/level_service.dart';
 import 'package:flutter_flame_playground/widgets/progress_bar.dart';
 import 'package:flutter_flame_playground/little_guy.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pet_maintainance_database.dart';
 import '../models/database.dart';
 

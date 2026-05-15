@@ -6,10 +6,8 @@ import 'package:flutter_flame_playground/little_guy.dart';
 import 'package:flutter_flame_playground/models/pet_maintainance_database.dart';
 import 'package:flutter_flame_playground/controller/step_goal_controller.dart';
 import 'package:flutter_flame_playground/models/dress_database.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_flame_playground/services/level_service.dart';
-import 'package:flutter_flame_playground/utils/achievement_utils.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
