@@ -1834,11 +1834,255 @@ Code
 little_guy.dart
 ~~~~~~~~~~~~~~~
 
-The core Flame game widget that renders the animated Little Guy sprite, including any equipped hat overlay.
+The Little Guy file contains the core animated character system used throughout the app. It defines the main idle walking pet, as well as two interaction animations: cleaning and petting.
 
-.. note::
-   Add detail on the Flame component structure, how animations are triggered, and how ``HatState`` changes cause a re-render.
+This file is built around Flutter’s animation system (`AnimationController` + `TweenSequence`) and responds to external state changes such as equipped hats via `HatState`.
+
+Key responsibilities:
+- Render the main Little Guy character
+- Animate idle walking movement
+- Display equipped hats on top of the character
+- Provide cleaning animation (soap, bubbles, rain)
+- Provide petting animation (scale bounce effect)
+
+---
+
+## Little Guy (Idle Character + Hat System)
+
+The main `LittleGuy` widget is the default animated pet shown across screens.
+
+It listens to `HatState` so that any hat changes immediately update the rendered character.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  void _onHatChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+
+    HatState.instance.addListener(_onHatChanged);
+    HatState.instance.loadFromDb();
+  }
+
+This:
+- Subscribes to hat updates globally
+- Reloads equipped hat from database on startup
+- Triggers rebuild when hat changes
+
+---
+
+### Idle Walking Animation
+
+The character continuously moves left and right using a repeating animation controller.
+
+.. code-block:: dart
+
+  _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 3),
+  )..repeat();
+
+  _walkAnimation = TweenSequence([
+    TweenSequenceItem(
+      tween: Tween(begin: 0.0, end: 30.0)
+          .chain(CurveTween(curve: Curves.easeInOut)),
+      weight: 25,
+    ),
+    TweenSequenceItem(tween: ConstantTween(30.0), weight: 10),
+    TweenSequenceItem(
+      tween: Tween(begin: 30.0, end: -30.0)
+          .chain(CurveTween(curve: Curves.easeInOut)),
+      weight: 25,
+    ),
+    TweenSequenceItem(tween: ConstantTween(-30.0), weight: 10),
+    TweenSequenceItem(
+      tween: Tween(begin: -30.0, end: 0.0)
+          .chain(CurveTween(curve: Curves.easeInOut)),
+      weight: 30,
+    ),
+  ]).animate(_controller);
+
+This creates a smooth looping walk cycle across the screen.
+
+---
+
+### Character Rendering + Hat Overlay
+
+The character is drawn using a `Stack`, with an optional hat rendered above it.
+
+.. code-block:: dart
+
+  final hatPath = HatState.instance.equippedHatPath;
+
+  Stack(
+    alignment: Alignment.center,
+    children: [
+      Image.asset('assets/images/funnyguy.png', width: 180),
+
+      if (hatPath != null)
+        Positioned(
+          top: -20,
+          child: Image.asset(hatPath, width: 90),
+        ),
+    ],
+  )
+
+This:
+- Renders base pet sprite
+- Overlays equipped hat (if any)
+- Keeps hat aligned above head position
+
+---
+
+## Cleaning Animation (CleaningLittleGuy)
+
+The `CleaningLittleGuy` widget plays a multi-stage animation when the pet is cleaned:
+- Soap movement
+- Bubble fade-in/out
+- Rain wash effect
+
+It is triggered externally using a `ValueNotifier<bool>`.
+
+---
+
+### Trigger System
+
+.. code-block:: dart
+
+  void _onTrigger() {
+    if (widget.trigger.value) {
+      startCleaningAnimation();
+      widget.trigger.value = false;
+    }
+  }
+
+This:
+- Listens for external trigger events
+- Starts animation once
+- Resets trigger to prevent repeats
+
+---
+
+### Cleaning Animation Controller
+
+The cleaning animation is split into timed phases using intervals:
+
+.. code-block:: dart
+
+  _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 2),
+  );
+
+This drives:
+- Soap movement across the screen
+- Bubble opacity changes
+- Rain effect at the end
+
+---
+
+### Visual Effects
+
+Soap movement:
+
+.. code-block:: dart
+
+  Transform.translate(
+    offset: Offset(_soapAnimationX.value, _soapAnimationY.value),
+    child: Image.asset('assets/images/hygiene.png', width: 50),
+  )
+
+Bubbles fade in/out:
+
+.. code-block:: dart
+
+  Opacity(
+    opacity: _bubbleOpacityAnimation.value,
+    child: Image.asset('assets/images/bubbles.png', width: 360),
+  )
+
+Rain effect:
+
+.. code-block:: dart
+
+  Transform.translate(
+    offset: Offset(0, _rainFallAnimation.value),
+    child: Image.asset('assets/images/rain.png', width: 360),
+  )
+
+This creates a full “wash cycle” animation.
+
+---
+
+## Petting Animation (PetLittleGuy)
+
+The `PetLittleGuy` widget handles interaction when the user taps the pet. It creates a simple bounce/scale animation.
+
+---
+
+### Pet Trigger System
+
+.. code-block:: dart
+
+  void _onTrigger() {
+    if (widget.trigger.value) {
+      startPettingAnimation();
+      widget.trigger.value = false;
+    }
+  }
+
+This:
+- Listens for tap events from parent screen
+- Triggers animation once per tap
+- Resets trigger flag
+
+---
+
+### Pet Animation
+
+.. code-block:: dart
+
+  _petAnimation = TweenSequence([
+    TweenSequenceItem(
+      tween: Tween(begin: 1.0, end: 0.7),
+      weight: 3,
+    ),
+    TweenSequenceItem(
+      tween: Tween(begin: 0.7, end: 1.1),
+      weight: 2,
+    ),
+    TweenSequenceItem(
+      tween: Tween(begin: 1.1, end: 1.0),
+      weight: 1,
+    ),
+  ]).animate(_controller);
+
+This produces a:
+- Squash effect (down)
+- Stretch effect (up)
+- Return to normal size
+
+---
+
+### Final Output
+
+The pet is rendered using scale transformation:
+
+.. code-block:: dart
+
+  Transform.scale(
+    scaleY: _petAnimation.value,
+    child: Image.asset('assets/images/funnyguy.png', width: 360),
+  )
+
+---
+
+## Summary
+
+This file acts as the **core visual engine of the app’s mascot system**, handling:
+- Idle movement
+- Equipment overlays (hats)
+- Interaction animations (cleaning + petting)
+
+It is designed to be fully reactive, meaning all visual changes are driven by state (`HatState` + triggers) rather than manual UI refresh calls.
