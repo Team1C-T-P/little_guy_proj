@@ -88,7 +88,7 @@ step_goal_controller.dart
       print('Error refreshing stats: $e');
     }
   }
-// This is the initiial loading of data when main page is clicked on to, it is also used when a goal has been reached and the UI needs to be refreshed with the new values. The function first checks if the tables used for goals and steps exist, causing it to be initiated if not. The variables are assigned by calling from other files or this class. An error is thrown if there is an issue that occurs.
+// This is the initiial loading of data when main page is clicked on to, it is also used when a goal has been reached and the UI needs to be refreshed with the new values. The function first checks if the tables used for goals and steps exist, causing it to be initiated if not. The variables are assigned by calling from other files or this class. An error is thrown if there is an issue that occurs. The UI is refreshed through notifyListeners().
 
 .. code-block:: dart
 
@@ -107,7 +107,7 @@ step_goal_controller.dart
     final summary = await stepService!.getAccountSummary(userId);
     return summary.totalSteps;
   }
-// This function loads the total steps a user has made into a local variable from stepService returning its value
+// The principle of this function is the same as above where it loads the total steps a user has made into a local variable from stepService returning its value
 
 .. code-block:: dart
 
@@ -121,6 +121,7 @@ step_goal_controller.dart
     goalReached = false;
     notifyListeners();
   }
+// Everytime the target goal is changed through the main page, this function occurs so that the UI values and database stay up to date. It first validates that the user has not tried making the goal be below its requiremnt amount, throwing an exception if they have. If it is valid, it is saved to the database and updated on the local variable. The UI is refreshed through notifyListeners().
 
 .. code-block:: dart
 
@@ -141,6 +142,7 @@ step_goal_controller.dart
         stepGoal = 250;
         goalReached = true;
       }
+// Here is where a goal being reached is tracked. It loads the necessary most up to date data from the db through other classes before checking if current steps is the same as or exceeds the goal. If it does, reset goal is called to update the currency through goal service. The variable values are changed back to default numbers to get ready for a new goal.
 
 
 Models
@@ -300,13 +302,155 @@ dress_database.dart
 goal_service_database.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``GoalService`` creates and updates the user's recurring weekly step goal, and tracks their progress toward it.
+``GoalService`` creates and updates the user's recurring goals table values. This deals directly with the database where the functions in this class is calle dby stepGoal controller
 
 .. code-block:: dart
 
-    // insert important code
+    Future<int> setDailyStepGoal(int userId, int stepGoal) async {
+    // Check if user already has a goal
+    final existing = await _db.rawQuery(
+      '''
+      SELECT g.goal_id
+      FROM goal g
+      JOIN user_goal ug ON ug.goal_id = g.goal_id
+      WHERE ug.user_id = ?
+      LIMIT 1
+    ''',
+      [userId],
+    );
 
-// explain code
+    if (existing.isNotEmpty) {
+      final goalId = existing.first['goal_id'] as int;
+
+      // Update existing goal
+      await _db.update(
+        'goal',
+        {'target_goal': stepGoal},
+        where: 'goal_id = ?',
+        whereArgs: [goalId],
+      );
+
+      return goalId;
+    }
+
+    // Otherwise create a new goal
+    final now = DateTime.now();
+    final weekStart = DateTime(now.year, now.month, now.day);
+    final weekEnd = weekStart.add(Duration(days: 7));
+
+    final goalId = await _db.insert('goal', {
+      'target_goal': stepGoal,
+      'is_recurring': 1,
+      'target_deadline': now.toIso8601String(),
+      'min_allowed_value': 0,
+    });
+
+    await _db.insert('user_goal', {
+      'user_id': userId,
+      'goal_id': goalId,
+      'current_progress': 0,
+      'reward_claimed': 0,
+      'week_start_date': weekStart.toIso8601String(),
+      'week_end_date': weekEnd.toIso8601String(),
+    });
+
+    return goalId;
+  }
+// This function creates or updates the goal in the database. It checks whether the user has an already existing goal with existing.isNotEmpty. If it does the function updates the existing goal with the stepGoal parameter before returning the goalId. If it does not exist, a new goal entry is created where it then inserts user_goal to link the goal to the user. The function returns the goal_id of the created or updated goal.
+
+  Future<int?> getDailyStepGoal(int userId) async {
+    final rows = await _db.rawQuery(
+      '''
+      SELECT g.target_goal
+      FROM goal g
+      JOIN user_goal ug ON ug.goal_id = g.goal_id
+      WHERE ug.user_id = ?
+        AND g.is_recurring = 1
+      ORDER BY g.goal_id DESC
+      LIMIT 1
+    ''',
+      [userId],
+    );
+
+    if (rows.isNotEmpty) {
+      return rows.first['target_goal'] as int;
+    } else {
+      return null;
+    }
+  }
+//Here the function performs a joint query to get the goal data of the user. It is ordered by goal_id so that the most recent goal is selected. If a goal exists, the target goal value is returned otherwise it returns null. 
+
+  Future<int> getCurrentSteps(int userId) async {
+    final rows = await _db.rawQuery(
+      '''
+      SELECT ug.current_progress
+      FROM user_goal ug
+      JOIN goal g ON g.goal_id = ug.goal_id
+      WHERE ug.user_id = ?
+      ORDER BY g.goal_id DESC
+      LIMIT 1
+    ''',
+      [userId],
+    );
+
+    if (rows.isEmpty) return 0;
+
+    return rows.first['current_progress'] as int;
+  }
+// The user's current_progress (steps) is retrieved from user_goal and returned. If there is none, it returns 0.
+
+  Future<int> resetGoal(int userId) async {
+    final rows = await _db.rawQuery(
+      '''
+      SELECT g.goal_id
+      FROM goal g
+      JOIN user_goal ug ON ug.goal_id = g.goal_id
+      WHERE ug.user_id = ?
+      ORDER BY g.goal_id DESC
+      LIMIT 1
+    ''',
+      [userId],
+    );
+
+    if (rows.isEmpty) return 0;
+
+    final goalId = rows.first['goal_id'] as int;
+    const int goalReward = 25;
+
+    // Three writes (user currency, goal target, user_goal progress) must
+    // succeed or fail together. A partial reset would either award
+    // currency without resetting progress, or reset progress without
+    // paying out — both are user-visible bugs. Wrap in a transaction.
+    return _db.transaction((txn) async {
+      final result = await txn.rawQuery(
+        '''
+        UPDATE user
+        SET currency = currency + ?
+        WHERE user_id = ?
+        RETURNING currency
+        ''',
+        [goalReward, userId],
+      );
+
+      await txn.update(
+        'goal',
+        {'target_goal': 250},
+        where: 'goal_id = ?',
+        whereArgs: [goalId],
+      );
+
+      await txn.update(
+        'user_goal',
+        {'current_progress': 0},
+        where: 'goal_id = ? AND user_id = ?',
+        whereArgs: [goalId, userId],
+      );
+
+      return result.first['currency'] as int;
+    });
+  }
+// This function occurs after refreshGoal() is called. It frist retrieves the most recent goal_id from the user returning 0 if none exists. The reset procress is wrapped in a transaction so that all updates happen or none do. The user's currency is increased by a fixed amount, the target_goal is reset back to its default value of 250 and user's current_progress back to 0. The updated currency value gets returned so the UI can be updated.
+
 
 pet_maintainance_database.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
