@@ -358,6 +358,8 @@ goal_service_database.dart
   }
 // This function creates or updates the goal in the database. It checks whether the user has an already existing goal with existing.isNotEmpty. If it does the function updates the existing goal with the stepGoal parameter before returning the goalId. If it does not exist, a new goal entry is created where it then inserts user_goal to link the goal to the user. The function returns the goal_id of the created or updated goal.
 
+.. code-block:: dart
+
   Future<int?> getDailyStepGoal(int userId) async {
     final rows = await _db.rawQuery(
       '''
@@ -380,6 +382,8 @@ goal_service_database.dart
   }
 //Here the function performs a joint query to get the goal data of the user. It is ordered by goal_id so that the most recent goal is selected. If a goal exists, the target goal value is returned otherwise it returns null. 
 
+.. code-block:: dart
+
   Future<int> getCurrentSteps(int userId) async {
     final rows = await _db.rawQuery(
       '''
@@ -398,6 +402,8 @@ goal_service_database.dart
     return rows.first['current_progress'] as int;
   }
 // The user's current_progress (steps) is retrieved from user_goal and returned. If there is none, it returns 0.
+
+.. code-block:: dart
 
   Future<int> resetGoal(int userId) async {
     final rows = await _db.rawQuery(
