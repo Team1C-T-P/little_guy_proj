@@ -1489,10 +1489,66 @@ This is called whenever loading the main page of the app, it functions to calcul
 step_counter.dart
 ~~~~~~~~~~~~~~~~~
 
-A lightweight singleton that accumulates raw step increments from the platform pedometer before they are saved to the database.
+The StepCounter is a lightweight singleton utility used to track the total number of steps detected during a walking session. It acts as a global in-memory counter that accumulates step events before they are persisted to the database.
+
+It is intentionally simple and stateless in design, ensuring fast updates with minimal overhead.
+
+Key responsibilities:
+- Maintain a global step count during runtime
+- Increment step count from pedometer events
+- Provide a shared instance across the application
+
+---
+
+### Singleton Structure
+
+The class is implemented as a singleton to ensure there is only one active step counter throughout the app lifecycle.
 
 .. code-block:: dart
 
-    // insert important code
+  class StepCounter {
+    static final StepCounter _instance = StepCounter._internal();
 
-// explain code
+    factory StepCounter() => _instance;
+
+    StepCounter._internal();
+
+    int stepCount = 0;
+  }
+
+This ensures:
+- All screens reference the same step count instance
+- No duplication of step tracking occurs
+- State remains consistent across navigation
+
+---
+
+### Step Incrementation
+
+Each detected step from the pedometer stream increments the global counter.
+
+.. code-block:: dart
+
+  void addStep() {
+    stepCount++;
+  }
+
+This:
+- Increases the in-memory step total by 1
+- Is called repeatedly from `MapScreen` during live tracking
+- Provides a simple abstraction over raw pedometer data
+
+---
+
+### Usage Context
+
+The `StepCounter` is primarily used in the Map screen where real-time step events are processed:
+
+- Pedometer emits step events
+- `MapScreen` calculates new steps
+- `StepCounter().addStep()` updates global total
+
+This design allows:
+- Session tracking (`_sessionSteps`)
+- Global tracking (`stepCount`)
+- Separation of UI logic and raw step accumulation
