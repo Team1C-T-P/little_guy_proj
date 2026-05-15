@@ -794,14 +794,177 @@ This is whats called when the button is clicked. If the hygiene is lower than 1,
 map_view.dart
 ~~~~~~~~~~~~~
 
-The Map screen where users can record GPS walking routes and replay past routes.
 
-.. note::
-   Add detail on how the map widget is set up, how route recording starts and stops, and how saved routes are displayed.
+The Map screen allows the user to track a live walk using GPS, record a route, and view previously saved routes. It also integrates step tracking via the pedometer and provides session-based statistics such as steps taken and walking status.
+
+This screen is a `StatefulWidget` because it manages live streams (GPS + pedometer), route state, and UI updates.
+
+Key responsibilities:
+- Live GPS tracking and route recording
+- Step counting (session + global via `StepCounter`)
+- Displaying current position on a map
+- Loading and displaying saved routes
+- Ending a walk and passing data to the summary screen
+
+---
+
+### Step and Pedestrian Tracking
+
+The screen listens to the device pedometer streams and converts raw step events into session data.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  void onStepCount(StepCount event) {
+    if (!mounted) return;
+
+    setState(() {
+      _steps = event.steps.toString();
+
+      if (_initialSteps == -1) {
+        _initialSteps = event.steps;
+      }
+
+      final currentSessionSteps = event.steps - _initialSteps;
+      final newSteps = currentSessionSteps - _sessionSteps;
+
+      for (int i = 0; i < newSteps; i++) {
+        StepCounter().addStep();
+      }
+
+      _sessionSteps = currentSessionSteps;
+    });
+  }
+
+This ensures:
+- Session steps are calculated relative to app start
+- Global step counter is updated incrementally
+- UI updates safely only when mounted
+
+---
+
+### GPS Location Tracking
+
+Location updates are handled using a stream from `LocationService`, which continuously updates the user’s position and builds the route.
+
+.. code-block:: dart
+
+  Future<void> _startLocationTracking() async {
+    Position? initialPosition = await LocationService().determinePosition();
+
+    if (initialPosition != null && mounted) {
+      setState(() {
+        _currentPosition = LatLng(
+          initialPosition.latitude,
+          initialPosition.longitude,
+        );
+        _route.add(_currentPosition!);
+      });
+    }
+
+    _positionStreamSubscription =
+        LocationService().getLocationStream().listen((Position position) {
+      if (!mounted) return;
+
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+        _route.add(_currentPosition!);
+      });
+    });
+  }
+
+This:
+- Gets the initial GPS position
+- Subscribes to live location updates
+- Appends each position to `_route` for drawing on the map
+
+---
+
+### Route Selection (Saved Routes)
+
+Users can load previously recorded routes from the database and display them as a highlighted overlay.
+
+.. code-block:: dart
+
+  Future<void> _openRoutes() async {
+    final selectedRoutePath = await Navigator.push<List<LatLng>?>(
+      context,
+      MaterialPageRoute(builder: (context) => const RoutesView()),
+    );
+
+    if (selectedRoutePath != null && mounted) {
+      setState(() {
+        _highlightedRoute = selectedRoutePath;
+      });
+    }
+  }
+
+This:
+- Opens the saved routes screen
+- Receives a selected route back
+- Displays it as a “ghost trail” on the map
+
+---
+
+### Ending a Walk
+
+When the user finishes a walk, the session data is passed into the summary screen.
+
+.. code-block:: dart
+
+  void _confirmEndWalk() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('End Walk?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+
+                if (!mounted) return;
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SummaryScreen(
+                      totalSteps: _sessionSteps,
+                      route: _route,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('End Walk'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+This:
+- Confirms user intent
+- Stops the session
+- Passes steps + route to summary view
+
+---
+
+### Map Rendering Overview
+
+The map is rendered using `flutter_map` with:
+- Live route (green polyline)
+- Saved route (blue polyline)
+- Current position marker
+
+Key idea:
+- `_route` = live walk
+- `_highlightedRoute` = previously saved route
+- `_currentPosition` = player marker
+
 
 routes_view.dart
 ~~~~~~~~~~~~~~~~
