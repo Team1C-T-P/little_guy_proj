@@ -72,13 +72,76 @@ hat_state.dart
 step_goal_controller.dart
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``StepGoalController`` is a singleton ``ChangeNotifier`` that manages the user's step count, goal progress, and currency balance, bridging the UI with the underlying database services.
+``StepGoalController`` manages the user's step count, goal progress, and currency balance when reaching a goal, it is called in the main page for the UI.
 
 .. code-block:: dart
 
-    // insert important code
+    Future<void> loadData() async {
+    try {
+      if (goalService == null || stepService == null) await init();
+      currentSteps = await goalService!.getCurrentSteps(userId);
+      stepGoal = await loadGoal();
+      totalSteps = await loadTotalSteps();
+      goalReached = false;
+      notifyListeners();
+    } catch (e) {
+      print('Error refreshing stats: $e');
+    }
+  }
+// This is the initiial loading of data when main page is clicked on to, it is also used when a goal has been reached and the UI needs to be refreshed with the new values. The function first checks if the tables used for goals and steps exist, causing it to be initiated if not. The variables are assigned by calling from other files or this class. An error is thrown if there is an issue that occurs.
 
-// explain code
+.. code-block:: dart
+
+  // Load goal from DB
+  Future<int> loadGoal() async {
+    goalReached = false;
+    final goal = await goalService!.getDailyStepGoal(userId);
+    return goal ?? 250;
+  }
+// This function is called when the goal value needs to be refreshed, it defines goalReached boolean as false to start or restart a goal, gets the target goal from goal service and returns a value (250 if it is new)
+
+.. code-block:: dart
+
+  // Load total steps from DB
+  Future<int> loadTotalSteps() async {
+    final summary = await stepService!.getAccountSummary(userId);
+    return summary.totalSteps;
+  }
+// This function loads the total steps a user has made into a local variable from stepService returning its value
+
+.. code-block:: dart
+
+  // Update the user's daily goal
+  Future<void> updateGoal(int newGoal) async {
+    if (newGoal <= 0) {
+      throw Exception('Invalid goal value');
+    }
+    await goalService!.setDailyStepGoal(userId, newGoal);
+    stepGoal = newGoal;
+    goalReached = false;
+    notifyListeners();
+  }
+
+.. code-block:: dart
+
+  Future<void> refreshSteps() async {
+    try {
+      // Load from both services
+      final summary = await stepService!.getAccountSummary(userId);
+      totalSteps = summary.totalSteps;
+      currency = summary.currency;
+      leftoverSteps = summary.unconvertedSteps;
+
+      currentSteps = await goalService!.getCurrentSteps(userId);
+      stepGoal = await loadGoal();
+
+      if (currentSteps >= stepGoal && stepGoal > 0 && !goalReached) {
+        currency = await goalService!.resetGoal(userId);
+        currentSteps = 0;
+        stepGoal = 250;
+        goalReached = true;
+      }
+
 
 Models
 ------
