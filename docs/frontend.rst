@@ -969,12 +969,137 @@ Key idea:
 routes_view.dart
 ~~~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of the Routes screen — how saved routes are listed and what actions are available (view, delete).
+
+The Routes screen displays a list of previously saved walking routes and allows the user to either view or delete them. It acts as a simple selection interface that returns a chosen route back to the Map screen for display as a highlighted path.
+
+This screen is a `StatefulWidget` because it loads data from the database and updates dynamically when routes are deleted.
+
+Key responsibilities:
+- Load saved routes from the database
+- Display route metadata (name + length)
+- Allow route deletion
+- Return a selected route back to the map
+
+---
+
+### Loading Saved Routes
+
+Routes are fetched from the database when the screen is first opened.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  Future<void> _loadRoutes() async {
+    try {
+      final routes = await _routeService.getSavedRoutes(1);
+
+      if (!mounted) return;
+
+      setState(() {
+        _savedRoutes = routes;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _savedRoutes = [];
+        _isLoading = false;
+      });
+
+      debugPrint('RoutesView: failed to load routes ($e)');
+    }
+  }
+
+This:
+- Queries saved routes for the user
+- Stores them in `_savedRoutes`
+- Handles errors safely with fallback empty state
+- Prevents UI updates after disposal using `mounted`
+
+---
+
+### Route List Display
+
+Saved routes are displayed using a `ListView.builder`, where each route is shown as a card with metadata and actions.
+
+.. code-block:: dart
+
+  ListView.builder(
+    padding: const EdgeInsets.all(16),
+    itemCount: _savedRoutes.length,
+    itemBuilder: (context, index) {
+      final route = _savedRoutes[index];
+
+      return Card(
+        child: ListTile(
+          leading: const Icon(Icons.map, color: Colors.green),
+          title: Text(
+            route['route_name'],
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            '${(route['route_path'] as List).length} coordinate points',
+          ),
+        ),
+      );
+    },
+  )
+
+Each item shows:
+- Route name
+- Number of recorded GPS points
+- Map icon for visual context
+
+---
+
+### Deleting a Route
+
+Users can remove a saved route directly from the list.
+
+.. code-block:: dart
+
+  trailing: IconButton(
+    icon: const Icon(Icons.delete, color: Colors.red),
+    onPressed: () async {
+      await _routeService.deleteRoute(route['route_id']);
+
+      if (!mounted) return;
+      _loadRoutes();
+    },
+  ),
+
+This:
+- Deletes the route from the database
+- Refreshes the list after deletion
+- Ensures UI consistency after changes
+
+---
+
+### Selecting a Route
+
+When a route is tapped, its coordinate data is passed back to the Map screen.
+
+.. code-block:: dart
+
+  onTap: () {
+    Navigator.pop(context, route['route_path']);
+  },
+
+This:
+- Closes the Routes screen
+- Returns the selected route (`List<LatLng>`-like structure)
+- Enables the Map screen to display it as a highlighted path
+
+---
+
+### Screen States
+
+The UI handles three states:
+- Loading → spinner shown while fetching routes
+- Empty → message shown if no routes exist
+- Loaded → list of saved routes
+
+This ensures a clean user experience even when no data is available.
 
 summary_view.dart
 ~~~~~~~~~~~~~~~~~
