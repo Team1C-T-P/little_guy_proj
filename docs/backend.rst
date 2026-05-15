@@ -86,13 +86,73 @@ Models
 database.dart
 ~~~~~~~~~~~~~
 
-``AppDatabase`` is a singleton that manages the SQLite database connection and schema creation, with a test-only hook for injecting an in-memory database.
+``AppDatabase`` is a singleton that manages the SQLite database connection and schema creation, with a test-only hook for injecting an in-memory database. Most of this file just contains create tables statements with a few statements that will populate the tables upon app initialization
 
 .. code-block:: dart
 
-    // insert important code
+  Future<void> _autoAddItemsFromAssets() async {
+    final db = await database;
 
-// explain code
+    // Check if items already exist
+    final existingItems = await db.query('item', limit: 1);
+    if (existingItems.isNotEmpty) return;
+
+    // Scan for all images in hats and food
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
+    final hatImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/hats/') &&
+              (path.endsWith('.png') || path.endsWith('.jpg')),
+        )
+        .toList();
+
+    final foodImages = manifest
+        .listAssets()
+        .where(
+          (path) =>
+              path.startsWith('assets/images/food/') &&
+              (path.endsWith('.png') || path.endsWith('.jpg')),
+        )
+        .toList();
+
+This function helps to automatically add hats and food to the database without having to manually add the image paths and names of each item, using the file path to the item and adding them to a list. 
+
+.. code-block:: dart
+
+    // Add food
+    for (var imagePath in foodImages) {
+      final fileName = imagePath.split('/').last.split('.').first.toLowerCase();
+      final itemName = _formatItemName(fileName);
+      final price = foodPrices[fileName] ?? 100; // Default 100 for food
+
+      await db.insert('item', {
+        'item_name': itemName,
+        'image_path': imagePath,
+        'quantity': 1,
+        'price': price,
+        'type': 'food',
+      });
+    }
+
+This section creates the item names of the food using the fileName and then inserts that into the database without, and providing the standard food price
+
+.. code-block:: dart
+
+  String _formatItemName(String fileName) {
+    // Convert filename to nice name
+    final formatted = fileName
+        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[0]}')
+        .trim();
+
+    if (formatted.isEmpty) return fileName;
+
+    return formatted[0].toUpperCase() + formatted.substring(1);
+  }
+
+This function takes the filename provided in the previous section of code and formats them properly and returns it to the function where it was called, which was in ``_autoAddItemsFromAssets()``
 
 dress_database.dart
 ~~~~~~~~~~~~~~~~~~~
@@ -190,7 +250,7 @@ pet_maintainance_database.dart
 
 ``pet_maintainance_database`` reads and writes the virtual pet's stats (hunger, hygiene, enjoyment) and the owning user's profile data.
 
-``getUserName``
+``getUserName`` returns the name of the user from a given user ID
 
 .. code-block:: dart
 
@@ -205,9 +265,7 @@ pet_maintainance_database.dart
         return result.first['user_name'] as String;
     }
 
-// explain code
-
-``getPetName``
+``getPetName`` returns the name of the user's pet from a given user ID
 
 .. code-block:: dart
 
@@ -222,9 +280,7 @@ pet_maintainance_database.dart
         return result.first['little_guy_name'] as String;
       }
 
-// explain code
-
-``getPetStat``
+``getPetStat`` returns the value for a given statistic which is namely used for updating and degrading the pets stats 
 
 .. code-block:: dart
 
@@ -248,11 +304,9 @@ pet_maintainance_database.dart
           throw Exception('Failed to get pet stat: Pet not found');
         }
         return (stats.first[stat] as int).toDouble() / 100;
-      }
+      )
 
-// explain code
-
-``getLastOnlineByUserId``
+``getLastOnlineByUserId`` Returns the ISO date which was the last online of a given user
 
 .. code-block:: dart
 
@@ -269,9 +323,7 @@ pet_maintainance_database.dart
         return result.first['last_online'] as String;
       }
 
-// explain code
-
-``updateUserName``
+``updateUserName`` Updates the user's name by an id, unless it is empty, or user does not exist
 
 .. code-block:: dart
 
@@ -290,9 +342,7 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
-
-``updatePetName``
+``updatePetName`` Updates the user's pet' name by an id, unless it is empty, or user does not exist
 
 .. code-block:: dart
 
@@ -311,9 +361,7 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
-
-``updatePetStat``
+``updatePetStat`` Updates a given stat for a given pet, ensuring that the entered value is between 0.0, and 1.0
 
 .. code-block:: dart
 
@@ -333,9 +381,8 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
 
-``updateLastOnlineByUserId``
+``updateLastOnlineByUserId`` Updates a given user's last online ISO date, ensuring that it is a valid iso date
 
 .. code-block:: dart
 
@@ -359,9 +406,7 @@ pet_maintainance_database.dart
         }
       }
 
-// explain code
-
-``getFoodByUserId``
+``getFoodByUserId`` returns a list of food items tthat the user owns, along  wth their quantity, and the image path for said food.
 
 .. code-block:: dart
 
@@ -378,9 +423,7 @@ pet_maintainance_database.dart
         return food;
       }
 
-// explain code
-
-``useFood``
+``useFood`` decreases the quantity of a given food type for a given user by 1
 
 .. code-block:: dart
 
@@ -408,8 +451,6 @@ pet_maintainance_database.dart
           [userId, foodId],
         );
       }
-
-// explain code
 
 route_service.dart
 ~~~~~~~~~~~~~~~~~~
@@ -1041,7 +1082,7 @@ Calculates how much the pet's stats should decrease based on the time elapsed si
     await petStatsDB.updateLastOnlineByUserId(userID, now.toIso8601String());
   }
 
-// This is called whenever loading the main page of the app, it functions to calculate the hours since the user was last online, then degrade each stat by 10% for every 2 hours since the user was last online.
+This is called whenever loading the main page of the app, it functions to calculate the hours since the user was last online, then degrade each stat by 10% for every 2 hours since the user was last online.
 
 step_counter.dart
 ~~~~~~~~~~~~~~~~~

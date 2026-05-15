@@ -35,12 +35,81 @@ Pages
 main_page_view.dart
 ~~~~~~~~~~~~~~~~~~~
 
-.. note::
-   Add a description of the main page layout and how it ties together the bottom navigation bar and child views.
+This is the main page that loads up when you have signed in. It contains the little guy, as well as its stats, such as its cleanliness, hunger and enjoyment. There is an area that displays the user's step goal, with buttons to increase or decrease it. There are also buttons to feed, play and clean the pet.
 
 .. code-block:: dart
 
-    // Add relevant code snippet here
+  late final VoidCallback _goalListener;
+
+``_goalListener`` is used to attach a listener to StepGoalController so that when the steps or goals change, the screen will rebuild itself. 
+
+.. code-block:: dart
+
+  Future<void> _loadPetStats() async {
+    try {
+      double hunger = await _petStatsDB.getPetStat(petId, 'hunger_level');
+      double enjoyment = await _petStatsDB.getPetStat(petId, 'enjoyment_level');
+      double hygiene = await _petStatsDB.getPetStat(petId, 'hygiene_level');
+
+      if (!mounted) return;
+      setState(() {
+        _hunger = hunger;
+        _enjoyment = enjoyment;
+        _hygiene = hygiene;
+      });
+    } catch (e) {
+      debugPrint('HomeScreen: failed to load pet stats ($e)');
+    }
+  }
+
+``_loadPetStats`` fetchesthe pets stats from the database, thatis then used tto update the progress bars. If the widget isn't on the screen when the data loads, it returns uwing the ``if (!mounted) return``
+
+.. code-block:: dart
+
+   Expanded(
+      child: GreenButton(
+         buttonText: "+250",
+         onPressed: () async {
+            final newGoal =
+               _goalController.stepGoal + 250;
+            await _goalController.updateGoal(newGoal);
+         },
+      ),
+   ),
+   Expanded(
+      child: GreenButton(
+         buttonText: "-250",
+         onPressed: () async {
+            final newGoal =
+               (_goalController.stepGoal - 250).clamp(
+                  0,
+                  999999,
+               );
+            await _goalController.updateGoal(newGoal);
+
+The buttons, here control how much the goal total changes, with a limit of 999999 steps. When they get pressed they call the ``_goalController`` to update the goal and refresh the UI.
+
+.. code-block:: dart
+
+   SizedBox(
+      width: 150,
+      height: 60,
+      child: FittedBox(
+         child: GreenButton(
+            buttonText: "Clean",
+            onPressed: () async {
+               await Navigator.of(context).push(
+                  MaterialPageRoute(
+                     builder: (context) => const CleanScreen(),
+                  ),
+               );
+               await _loadPetStats();
+            },
+         ),
+      ),
+   ),
+
+The green buttons that have the "Play", "Clean" and "Feed", that allow you to interact with the little guy all have this layout, where they will load a separate screen, with their own functions, allowing you to interact with the little guy.
 
 nav_bar.dart
 ~~~~~~~~~~~~
@@ -439,67 +508,164 @@ The page is a StatefulWidget, so that it will automatically update when the user
 
 .. code-block:: dart
 
-   int _coinBalance = 0;
-   List<Map<String, dynamic>> _items = [];
-   Set<int> _ownedItemIds = {};
-   Map<int, int> _itemQuantities = {};
-   bool _isLoading = true;
-   String _currentType = 'hat';
+  final StepGoalController _goalController = StepGoalController();
+  late final VoidCallback _goalListener;
 
-These variabes store the current state of the shop:
-
-- ``_coinBalance`` holds the user's coins
-- ``_items`` stores the items shown on screen
-- ``_ownedItemIds`` keeps track of owned hats
-- ``_itemQuantities`` stores the quantity of food the user owns
-- ``_isLoading`` shows a loding spinner while the data loads
-- ``_currentType`` tracks whether the user is viewing food or hats
+The ``_goalController`` and ``_goalListener`` refreshes the shop view whenever the user's currency balance is updated elsewhere in the app, with the controller being added in the ``initState()`` and removed in ``dispose()`` to avoid memory leaks
 
 .. code-block:: dart
 
-   Future<void> _loadShopData(String type) async {
+  Future<void> _loadShopData(String type) async {
+    // load user currency and shop items from the database
+    // Assuming user ID 1 for now
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
       final currency = await _shopDb.getUserCurrency(1);
       final items = await _shopDb.getItemsByType(type);
       final ownedIds = await _shopDb.getUserItems(1);
       final quantities = await _shopDb.getUserItemQuantities(1);
-      ...
-   }
 
-``_loadShopData`` loads all the shop information from the database, retrieving:
+      if (!mounted) return;
+      setState(() {
+        _coinBalance = currency;
+        _items = items;
+        _ownedItemIds = ownedIds.toSet();
+        _itemQuantities = quantities;
+        _currentType = type;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      debugPrint('Shop: failed to load shop data ($e)');
+    }
+  }
 
-- the user's balance
-- the current items
-- owned items,
-- item quantities
-
-This method is called when the page first opens, the user changes category from Food/Hat, or when a purchase is completed
-
-.. code-block:: dart
-
-   _goalListener = () {
-       if (mounted) _loadShopData(_currentType);
-   };
-   _goalController.addListener(_goalListener);
-
-This listener allows the shop to listen for updates from StepGoalController, so if the user earns coins somewhere else in the app, the shop refreshes automatically. It's added in ``initState`` and removed in ``dispose`` to avoid memory leaks
+This section helps to load all the data thats needed, such as the currenct balance of the user, all items in the shop, the owned item ids of items that the user owns and their quantities for food.
 
 .. code-block:: dart
 
-   if (itemType == 'food' && quantity > 0)
-      Text('You own: $quantity', ...)
-   else if (itemType == 'hat' && alreadyOwned)
-      Text('You already own this item', ...)
-   if (_coinBalance < price)
-      Text('You do not have enough coins to purchase this item.', ...)
+void _showPurchaseDialog(Map<String, dynamic> item) {
+    final itemId = item['item_id'] as int;
+    final itemName = item['item_name'] as String;
+    final price = item['price'] as int;
+    final itemType = item['type'] as String;
+    final alreadyOwned = _ownedItemIds.contains(itemId);
+    final quantity = _itemQuantities[itemId] ?? 0;
 
-The purchase dialogue will show different messages based on different situations:
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Purchase $itemName?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Price: $price coins'),
+            SizedBox(height: 10),
+            Text('Your Balance: $_coinBalance coins'),
+            SizedBox(height: 10),
+            // show quantity of food owned, and owned for hats
+            if (itemType == 'food' && quantity > 0)
+              Text(
+                'You own: $quantity',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            else if (itemType == 'hat' && alreadyOwned)
+              Text(
+                'You already own this item',
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            if (_coinBalance < price)
+              Text(
+                'You do not have enough coins to purchase this item.',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          // allow purchase if have enough money if food or new hat
+          if (_coinBalance >= price && (itemType == 'food' || !alreadyOwned))
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final result = await _shopDb.purchaseItem(1, itemId);
 
-- Food items showing how many the user owns
-- Hats showing a warning if the user owns it already
-- A red warning appears if the user doesn't have enough coins 
+                // Guard against the user leaving the Shop tab mid-purchase
+                // — touching context after dispose throws.
+                if (!mounted) return;
 
-These messages will then help the user understand why they can/can't purcahase an item.
+                if (result == 'success') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Purchased $itemName!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _loadShopData(_currentType);
+                } else if (result == 'already_owned') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('You already own this item'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                } else if (result == 'insufficient_funds') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Not enough funds to purchase this item'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text('Buy'),
+            ),
 
+This section handles the dialogue and process of buying items, showing different messages based on the scenario. When buying food, it shows the quantity you currently own, if trying to buy a hat you already own, it tells you that, and if you don't have enough currency in your balance, it cancels the transaction and tells you. On a successful purchase, it will tell you that you sucessfully did so.
+
+.. code-block:: dart
+
+                Expanded(
+                  child: GreenButton(
+                    buttonText: 'Food',
+                    onPressed: () {
+                      setState(() {
+                        _loadShopData('food');
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: GreenButton(
+                    buttonText: 'Clothes',
+                    onPressed: () {
+                      setState(() {
+                        _loadShopData('hat');
+                      });
+                    },
+                  ),
+                ),
+
+This section allows you to choose what type of items that you want to purchase, when pressing the buttons, they call the ``_loadShopData`` with the item type, either 'food', or 'hat', and the shop displays the items with that type.
 
 dress_view.dart
 ~~~~~~~~~~~~~~~
@@ -514,34 +680,78 @@ When a hat is selected, the database is updated and the little guy gets updated 
 
 .. code-block:: dart
 
-   List<Map<String, dynamic>> _ownedHats = [];
-   int? _equippedHatId;
-   bool _isLoading = true;
+  @override
+  void initState() {
+    super.initState();
+    _loadEquippedHat();
+    _hatsFuture = _loadOwnedHats();
+  }
 
-These variables store the state of the dress_view screen:
+The ``initState`` runs when the page is first loaded, fetching the data before anything is displayed on the page
 
-- ``_ownedHats`` stores all hats owned by user
-- ``_equippedHatId`` stores the currently equipped hat
-- ``_isLoading`` controls the loading spinner
+.. code-block:: dart
+
+  Future<void> _loadEquippedHat() async {
+    try {
+      final db = await AppDatabase.instance.database;
+      final dressDb = DressDatabase(db);
+      final equipped = await dressDb.getEquippedHat(1);
+      if (!mounted) return;
+      if (equipped != null) {
+        setState(() {
+          _selectedHatId = equipped['item_id'] as int;
+        });
+      }
+    } catch (e) {
+      debugPrint('DressUp: failed to load equipped hat ($e)');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _loadOwnedHats() async {
+    final db = await AppDatabase.instance.database;
+    final dressDb = DressDatabase(db);
+    return await dressDb.getHatsOwnedByUser(1);
+  }
+
+These two functions load up the currently equipped hat and the hats that are owned by the user, and they are used in the initState
 
 .. code_block:: dart
 
-   Future<void> _loadDressData() async {
-      final hats = await _dressDb.getOwnedHats(1);
-      final equipped = await _dressDb.getEquippedHat(1);
-      ...
-   }
+   final hat = snapshot.data![index];
+   final isSelected = _selectedHatId == hat['item_id'];
+   return IconButton(
+      padding: EdgeInsets.all(8.0),
+      style: IconButton.styleFrom(
+         backgroundColor: isSelected
+            ? Colors.green.withValues(
+               alpha: 0.3,
+              ) // highlight selected hat
+            : Colors
+                  .transparent, // leaves unselected transparent
 
-``_loadDressData`` loads the owned hats and equipped hat from the database, and it's called when the page opens or the equipped hat changes, keeping the UI synced with the database.
+This section of the ``GridView`` displayes the currently displayed hat, with the selected hat being higlighted green
 
 .. code-blocks:: dart
 
-   await _dressDb.equipHat(userId, hatId);
-   setState(() {
-      _equippedHatId = hatId;
-   });
+   final itemId = hat['item_id'] as int;
+   final imagePath = hat['image_path'] as String;
 
-When the user equips a hat, the database is updated, the equipped hat ID changes and refreshed the UI, so the little guy updates without having to reopen the page.
+   if (_selectedHatId == itemId) {
+      setState(() {
+         _selectedHatId = null;
+      });
+      await HatState.instance.unequipHat();
+   } else {
+      setState(() {
+         _selectedHatId = itemId;
+      });
+      await HatState.instance.equipHat(
+         itemId,
+         imagePath,
+      );
+   }
+
+This section handles the equipping/unequipping of hats, taking the item_id and image_path from the hat object of the hat displayed in the grid, comparing it to the _selectedHatId. If they are the same, it will uses ``unEquipHat()`` from the HatState to unequip the hat and reload the little guy. If they are different, then the opposite happens using ``EquipHat()``. 
 
 clean_view.dart
 ~~~~~~~~~~~~~~~
